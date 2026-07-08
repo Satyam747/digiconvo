@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digiconvo | Smart Business Infrastructure & Digital Platforms</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* PREMIUM CORE STYLES / मुख्य शैलियाँ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0b1329;
+            color: #f1f5f9;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .max-w-7xl {
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* NAVBAR / नेविगेशन बार */
+        nav {
+            background-color: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid #334155;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(12px);
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+        .logo-accent {
+            color: #10b981;
+        }
+        .nav-links {
+            display: none;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .nav-links {
+                display: flex;
+            }
+        }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .nav-links a.active, .nav-links a:hover {
+            color: #10b981;
+        }
+        .menu-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+        @media (min-width: 768px) {
+            .menu-btn {
+                display: none;
+            }
+        }
+        #mobile-menu {
+            display: none;
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        #mobile-menu a {
+            display: block;
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            font-weight: 600;
+        }
+        #mobile-menu a.active {
+            color: #10b981;
+        }
+
+        /* HERO SECTION / मुख्य अनुभाग */
+        header {
+            position: relative;
+            padding: 5rem 1.5rem;
+            text-align: center;
+            overflow: hidden;
+        }
+        .hero-badge {
+            background-color: #1e1b4b;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            display: inline-block;
+            letter-spacing: 0.1em;
+        }
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 900;
+            color: #ffffff;
+            margin-top: 2rem;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 3.75rem;
+            }
+        }
+        .text-gradient {
+            color: #10b981;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+        .hero-p {
+            color: #cbd5e1;
+            font-size: 1rem;
+            margin: 2rem auto 0 auto;
+            max-width: 48rem;
+        }
+        .hero-sub {
+            display: block;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+        .cta-container {
+            margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            justify-content: center;
+        }
+        @media (min-width: 640px) {
+            .cta-container {
+                flex-direction: row;
+            }
+        }
+        .btn-primary {
+            background-color: #10b981;
+            color: #0b1329;
+            font-weight: 700;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn-primary:hover {
+            background-color: #0d9488;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: #1c2541;
+            border: 1px solid #334155;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn-secondary:hover {
+            background-color: #2a365c;
+            transform: translateY(-2px);
+        }
+
+        /* CORE ADVANTAGES / मुख्य लाभ */
+        .advantages-section {
+            padding: 5rem 1.5rem;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 4rem;
+        }
+        .section-title p {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            font-weight: 400;
+            margin-top: 0.75rem;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .card {
+            background-color: rgba(28, 37, 65, 0.5);
+            border: 1px solid #334155;
+            padding: 2rem;
+            border-radius: 1rem;
+            transition: all 0.3s;
+        }
+        .card:hover {
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        .icon-box {
+            width: 3.5rem;
+            height: 3.5rem;
+            background-color: #1e1b4b;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .icon-green { color: #10b981; }
+        .icon-blue { color: #3b82f6; }
+        .icon-amber { color: #f59e0b; }
+        
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.75rem;
+        }
+        .card p {
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            text-align: justify;
+        }
+
+        /* FLOATING WHATSAPP / व्हाट्सएप बटन */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background-color: #25d366;
+            color: #ffffff;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+
+        /* FOOTER / फुटर */
+        footer {
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
+        }
+        footer p + p {
+            margin-top: 0.5rem;
+            color: #64748b;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #334155;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR / नेविगेशन बार -->
+    <nav>
+        <div class="max-w-7xl nav-container">
+            <a href="index.html" class="logo">
+                Digi<span class="logo-accent">convo</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="index.html" class="active">Home</a>
+                <a href="services.html">Services</a>
+                <a href="catalogue.html">Catalogue</a>
+                <a href="about.html">About Us</a>
+            </div>
+
+            <button id="menu-btn" class="menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <div id="mobile-menu">
+            <a href="index.html" class="active">Home</a>
+            <a href="services.html">Services</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="about.html">About Us</a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION / मुख्य परिचय अनुभाग -->
+    <header class="max-w-7xl">
+        <span class="hero-badge">Indore's Smart Tech Partner</span>
+        
+        <h1>
+            Transform Your Local Business Into A <span class="text-gradient">Smart Digital Platform</span>
+        </h1>
+        
+        <p class="hero-p">
+            अपने व्यवसाय के संचालन को डिजिटल और अत्यंत सरल बनाएं। न किसी जटिल सॉफ़्टवेयर का झंझट, न ही महंगे मासिक शुल्क का बोझ। सीधे व्हाट्सएप ट्रैकिंग और ऑटोमेशन के माध्यम से अपनी बिक्री बढ़ाएं।
+            <span class="hero-sub">Streamline operations with zero complex software dependencies and complete direct-to-customer control.</span>
+        </p>
+        
+        <div class="cta-container">
+            <a href="services.html" class="btn-primary">View Our Packages</a>
+            <a href="catalogue.html" class="btn-secondary">Explore Live Demos</a>
+        </div>
+    </header>
+
+    <hr class="max-w-7xl">
+
+    <!-- CORE ADVANTAGES / मुख्य लाभ अनुभाग -->
+    <section class="max-w-7xl advantages-section">
+        <div class="section-title">
+            <h2>Traditional System vs Digiconvo</h2>
+            <p>आपके व्यापार को आधुनिक युग के अनुकूल बनाने का एक विश्वसनीय डिजिटल समाधान।</p>
+        </div>
+
+        <div class="grid-container">
+            <!-- Advantage 1 / लाभ १ -->
+            <div class="card">
+                <div class="icon-box icon-green">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h3>100% Operational Efficiency</h3>
+                <p>
+                    भीड़भाड़ वाले समय में आपके कर्मचारियों को कतारें या व्यवस्था संभालने में समय व्यर्थ नहीं करना पड़ेगा। ग्राहक स्वयं क्यूआर (QR) कोड की मदद से डिजिटल रूपरेखा देखकर सीधे आपके काउंटर से जुड़ सकते हैं।
+                </p>
+            </div>
+
+            <!-- Advantage 2 / लाभ २ -->
+            <div class="card">
+                <div class="icon-box icon-blue">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h3>Smart Upselling Engine</h3>
+                <p>
+                    हमारा अनुकूलित वैभव-पेज इंटरफ़ेस ग्राहकों को उनकी प्राथमिकताओं के अनुसार उच्च-मार्जिन वाले अतिरिक्त विकल्पों (add-ons) का सुझाव देता है, जिससे आपके प्रत्येक आदेश का औसत मूल्य स्वतः बढ़ जाता है।
+                </p>
+            </div>
+
+            <!-- Advantage 3 / लाभ ३ -->
+            <div class="card">
+                <div class="icon-box icon-amber">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3>Zero Monthly Server Rent</h3>
+                <p>
+                    हम किसी भी प्रकार का वार्षिक नवीनीकरण शुल्क या मासिक रखरखाव शुल्क नहीं लेते हैं। एक बार के निश्चित सेटअप के पश्चात, सर्वर होस्टिंग की सुविधा आजीवन पूरी तरह से निःशुल्क उपलब्ध रहती है।
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FLOATING WHATSAPP CTA WITH BUILT-IN INTENT MESSAGE / व्हाट्सएप फ्लोटिंग बटन -->
+    <a href="https://wa.me/917470969466?text=Hello%20Digiconvo!%20I%20am%20interested%20in%20transforming%20my%20business%20into%20a%20Smart%20Digital%20Platform.%20Kindly%20share%20the%20details." id="whatsapp-cta" class="whatsapp-float" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- FOOTER / फुटर -->
+    <footer>
+        <p>&copy; 2026 Digiconvo. Designed for Smart Local Businesses. All Rights Reserved.</p>
+        <p>Empowering Cafes, Libraries, Gyms, and Salons with Next-Gen Infrastructure.</p>
+    </footer>
+
+    <!-- Mobile Menu Script / मोबाइल मेनू टॉगल स्क्रिप्ट -->
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn.addEventListener('click', () => {
+            if (mobileMenu.style.display === 'block') {
+                mobileMenu.style.display = 'none';
+            } else {
+                mobileMenu.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

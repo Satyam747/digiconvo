@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Digiconvo - Our Vision & Workflow</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* PREMIUM CORE STYLES / मुख्य शैलियाँ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0b1329;
+            color: #f1f5f9;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .max-w-7xl {
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .max-w-4xl {
+            max-width: 56rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* NAVBAR / नेविगेशन बार */
+        nav {
+            background-color: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid #334155;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(12px);
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+        .logo-accent {
+            color: #10b981;
+        }
+        .nav-links {
+            display: none;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .nav-links {
+                display: flex;
+            }
+        }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .nav-links a.active, .nav-links a:hover {
+            color: #10b981;
+        }
+        .menu-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+        @media (min-width: 768px) {
+            .menu-btn {
+                display: none;
+            }
+        }
+        #mobile-menu {
+            display: none;
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        #mobile-menu a {
+            display: block;
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            font-weight: 600;
+        }
+        #mobile-menu a.active {
+            color: #10b981;
+        }
+
+        /* HEADER SECTION / शीर्षक अनुभाग */
+        .header-section {
+            padding: 4rem 1.5rem 2rem 1.5rem;
+            text-align: center;
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .header-section h1 {
+            font-size: 2.25rem;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+        }
+        @media (min-width: 768px) {
+            .header-section h1 {
+                font-size: 3rem;
+            }
+        }
+        .header-section p {
+            color: #cbd5e1;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* VISION STORY BLOCK / दृष्टिकोण अनुभाग */
+        .vision-container {
+            padding: 2rem 1.5rem;
+        }
+        .vision-block {
+            background-color: #1c2541;
+            border: 1px solid #334155;
+            border-radius: 1.25rem;
+            padding: 2.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            margin-bottom: 4rem;
+        }
+        .vision-block h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #10b981;
+            margin-bottom: 1rem;
+        }
+        .vision-block p {
+            font-size: 1rem;
+            color: #cbd5e1;
+            text-align: justify;
+            margin-bottom: 1rem;
+        }
+
+        /* TIMELINE PROCESS / कार्यप्रणाली टाइमलाइन */
+        .timeline-section {
+            padding: 2rem 1.5rem 5rem 1.5rem;
+        }
+        .timeline-title {
+            text-align: center;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 3rem;
+        }
+        .timeline {
+            position: relative;
+            border-left: 2px solid #334155;
+            padding-left: 2rem;
+            margin-left: 1rem;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 3rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.65rem;
+            top: 0.25rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: #0b1329;
+            border: 3px solid #10b981;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        .timeline-step {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #10b981;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .timeline-item h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0.25rem 0 0.5rem 0;
+        }
+        .timeline-item p {
+            font-size: 0.875rem;
+            color: #cbd5e1;
+        }
+
+        /* FLOATING WHATSAPP / व्हाट्सएप बटन */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background-color: #25d366;
+            color: #ffffff;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+
+        /* FOOTER / फुटर */
+        footer {
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
+        }
+        footer p + p {
+            margin-top: 0.5rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR / नेविगेशन बार -->
+    <nav>
+        <div class="max-w-7xl nav-container">
+            <a href="index.html" class="logo">
+                Digi<span class="logo-accent">convo</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="catalogue.html">Catalogue</a>
+                <a href="about.html" class="active">About Us</a>
+            </div>
+
+            <button id="menu-btn" class="menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <div id="mobile-menu">
+            <a href="index.html">Home</a>
+            <a href="services.html">Services</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="about.html" class="active">About Us</a>
+        </div>
+    </nav>
+
+    <!-- HEADER SECTION / शीर्षक अनुभाग -->
+    <section class="header-section">
+        <h1>About Digiconvo</h1>
+        <p>
+            स्थानीय व्यवसायों को अगली पीढ़ी की डिजिटल तकनीक से सशक्त बनाना।
+            <span style="display:block; font-size:0.875rem; color:#94a3b8; margin-top:0.5rem; font-style:italic;">Empowering local brick-and-mortar businesses with efficient digital infrastructure.</span>
+        </p>
+    </section>
+
+    <!-- VISION STORY BLOCK / दृष्टिकोण अनुभाग -->
+    <main class="max-w-4xl vision-container">
+        <div class="vision-block">
+            <h2>Our Vision (हमारा उद्देश्य)</h2>
+            <p>
+                इन्दौर के स्थानीय व्यापारियों को बिना किसी जटिल सॉफ़्टवेयर या महंगे मासिक रखरखाव शुल्क के डिजिटल और अत्यंत कुशल बनाना ही डिगीकॉन्वो (Digiconvo) का मुख्य उद्देश्य है। हम पारंपरिक व्यवसायों और आधुनिक ग्राहकों के बीच की दूरी को न्यूनतम तकनीकी लागत में समाप्त करने का प्रयास कर रहे हैं।
+            </p>
+            <p>
+                We strive to dismantle the barriers of complex enterprise software by creating fast, lightweight, and single-setup digital ecosystems for cafes, libraries, gyms, and retail outlets.
+            </p>
+        </div>
+    </main>
+
+    <!-- TIMELINE PROCESS / कार्यप्रणाली टाइमलाइन -->
+    <section class="max-w-4xl timeline-section">
+        <h2 class="timeline-title">How We Work (हमारी कार्यप्रणाली)</h2>
+        
+        <div class="timeline">
+            
+            <!-- STEP 1 / चरण १ -->
+            <div class="timeline-item">
+                <span class="timeline-step">Step 01</span>
+                <h3>Consultation & Requirement Gathering</h3>
+                <p>हम आपके व्यवसाय के भौतिक लेआउट और आवश्यकताओं का गहन विश्लेषण करते हैं। आपके काउंटर ऑपरेशंस को समझने के पश्चात एक कस्टमाइज्ड योजना का खाका तैयार किया जाता है।</p>
+            </div>
+
+            <!-- STEP 2 / चरण २ -->
+            <div class="timeline-item">
+                <span class="timeline-step">Step 02</span>
+                <h3>7-Day Fast Technical Implementation</h3>
+                <p>चयनित योजना के अनुसार, हमारी तकनीकी टीम मात्र ७ दिनों के भीतर आपके ब्रांड की तस्वीरों और प्राथमिकताओं के आधार पर लाइव वेब इंटरफ़ेस और आर्किटेक्चर का निर्माण पूर्ण कर लेती है।</p>
+            </div>
+
+            <!-- STEP 3 / चरण ३ -->
+            <div class="timeline-item">
+                <span class="timeline-step">Step 03</span>
+                <h3>Counter Live Testing & Handover</h3>
+                <p>अंत में, आपके काउंटर और स्टाफ के साथ पूरे सिस्टम का लाइव परीक्षण किया जाता है। सुचारू संचालन सुनिश्चित करने के पश्चात, क्यूआर कोड और सिस्टम का पूर्ण स्वामित्व आपको सौंप दिया जाता है।</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FLOATING WHATSAPP CTA / व्हाट्सएप फ्लोटिंग बटन -->
+    <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20visited%20your%20About%20Us%20page%20and%20want%20to%20know%20more%20about%20your%20implementation%20process." class="whatsapp-float" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- FOOTER / फुटर -->
+    <footer>
+        <p>&copy; 2026 Digiconvo. Designed for Smart Local Businesses. All Rights Reserved.</p>
+        <p>Empowering Cafes, Libraries, Gyms, and Salons with Next-Gen Infrastructure.</p>
+    </footer>
+
+    <!-- Mobile Menu Script / मोबाइल मेनू टॉगल स्क्रिप्ट -->
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn.addEventListener('click', () => {
+            if (mobileMenu.style.display === 'block') {
+                mobileMenu.style.display = 'none';
+            } else {
+                mobileMenu.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

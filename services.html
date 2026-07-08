@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services & Trust | Digiconvo - Smart Pricing Plans</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* PREMIUM CORE STYLES / मुख्य शैलियाँ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0b1329;
+            color: #f1f5f9;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .max-w-7xl {
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .max-w-6xl {
+            max-width: 72rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* NAVBAR / नेविगेशन बार */
+        nav {
+            background-color: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid #334155;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(12px);
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+        .logo-accent {
+            color: #10b981;
+        }
+        .nav-links {
+            display: none;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .nav-links {
+                display: flex;
+            }
+        }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .nav-links a.active, .nav-links a:hover {
+            color: #10b981;
+        }
+        .menu-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+        @media (min-width: 768px) {
+            .menu-btn {
+                display: none;
+            }
+        }
+        #mobile-menu {
+            display: none;
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        #mobile-menu a {
+            display: block;
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            font-weight: 600;
+        }
+        #mobile-menu a.active {
+            color: #10b981;
+        }
+
+        /* HEADER SECTION / शीर्षक अनुभाग */
+        .header-section {
+            padding: 4rem 1.5rem 2rem 1.5rem;
+            text-align: center;
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .header-section h1 {
+            font-size: 2.25rem;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+        }
+        @media (min-width: 768px) {
+            .header-section h1 {
+                font-size: 3rem;
+            }
+        }
+        .header-section p {
+            color: #cbd5e1;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* PRICING SECTION / मूल्य निर्धारण ग्रिड */
+        .pricing-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            padding: 2rem 1.5rem 3rem 1.5rem;
+            align-items: start;
+        }
+        @media (min-width: 768px) {
+            .pricing-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .price-card {
+            background-color: #1c2541;
+            border: 1px solid #334155;
+            border-radius: 1.25rem;
+            padding: 2.5rem;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+        .price-card.premium {
+            background-color: #0b1329;
+            border: 2px solid #10b981;
+            box-shadow: 0 25px 30px -5px rgba(16, 185, 129, 0.1);
+        }
+        
+        .badge {
+            position: absolute;
+            top: -0.75rem;
+            left: 1.5rem;
+            background-color: #3b82f6;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.35rem 1rem;
+            border-radius: 9999px;
+            letter-spacing: 0.05em;
+        }
+        .badge.green {
+            background-color: #10b981;
+        }
+        
+        .price-card h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-top: 0.5rem;
+        }
+        .price-amount {
+            font-size: 2.25rem;
+            font-weight: 900;
+            color: #10b981;
+            margin: 1rem 0;
+        }
+        .price-sub {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+        
+        /* FEATURE LIST / विशेषता सूची */
+        .feature-list {
+            list-style: none;
+            border-top: 1px solid #334155;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+        }
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            font-size: 0.875rem;
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+        }
+        .feature-list li i {
+            margin-top: 0.25rem;
+            margin-right: 0.75rem;
+            font-size: 1rem;
+        }
+        .feature-list li i.fa-check { color: #10b981; }
+        .feature-list li i.fa-xmark { color: #ef4444; }
+        
+        .feature-list li.disabled {
+            opacity: 0.35;
+            text-decoration: line-through;
+        }
+        
+        /* BUTTONS / बटन */
+        .btn-order {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            text-decoration: none;
+            margin-top: 2rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-order-basic {
+            background-color: #1c2541;
+            border: 1px solid #334155;
+            color: #ffffff;
+        }
+        .btn-order-basic:hover {
+            background-color: #2a365c;
+            border-color: #475569;
+        }
+        .btn-order-premium {
+            background-color: #10b981;
+            color: #0b1329;
+        }
+        .btn-order-premium:hover {
+            background-color: #0d9488;
+            transform: translateY(-2px);
+        }
+
+        /* TRUST SECTION STYLES / विश्वास अनुभाग की शैलियाँ */
+        .trust-section {
+            padding: 3rem 1.5rem 5rem 1.5rem;
+        }
+        .trust-title {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+        .trust-title h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+        }
+        .trust-title p {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+        .trust-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .trust-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .trust-card {
+            background-color: rgba(30, 27, 75, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+        .trust-card:hover {
+            border-color: #10b981;
+            background-color: rgba(30, 27, 75, 0.4);
+        }
+        .trust-icon {
+            font-size: 1.5rem;
+            color: #10b981;
+            margin-bottom: 1rem;
+        }
+        .trust-card h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.75rem;
+        }
+        .trust-card p {
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            text-align: justify;
+        }
+        .trust-subtext {
+            display: block;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* FLOATING WHATSAPP / व्हाट्सएप बटन */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background-color: #25d366;
+            color: #ffffff;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+
+        /* FOOTER / फुटर */
+        footer {
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
+        }
+        footer p + p {
+            margin-top: 0.5rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR / नेविगेशन बार -->
+    <nav>
+        <div class="max-w-7xl nav-container">
+            <a href="index.html" class="logo">
+                Digi<span class="logo-accent">convo</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="services.html" class="active">Services</a>
+                <a href="catalogue.html">Catalogue</a>
+                <a href="about.html">About Us</a>
+            </div>
+
+            <button id="menu-btn" class="menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <div id="mobile-menu">
+            <a href="index.html">Home</a>
+            <a href="services.html" class="active">Services</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="about.html">About Us</a>
+        </div>
+    </nav>
+
+    <!-- HEADER SECTION / शीर्षक अनुभाग -->
+    <section class="header-section">
+        <h1>Our Pricing Packages</h1>
+        <p>
+            पारदर्शी मूल्य निर्धारण, बिना किसी छिपे हुए शुल्क के। अपने व्यवसाय के लिए सही योजना चुनें।
+            <span style="display:block; font-size:0.875rem; color:#94a3b8; margin-top:0.5rem; font-style:italic;">Transparent pricing with no hidden charges. Choose the right plan for your business growth.</span>
+        </p>
+    </section>
+
+    <!-- PRICING CARDS / मूल्य निर्धारण ग्रिड -->
+    <main class="max-w-6xl pricing-container">
+        
+        <!-- STANDARD SETUP (BASIC) / बुनियादी योजना -->
+        <div class="price-card">
+            <span class="badge">Standard Setup</span>
+            <h2>Basic Table QR</h2>
+            <div class="price-amount">₹2,999 <span class="price-sub">/ One-time Setup Cost</span></div>
+            
+            <ul class="feature-list">
+                <li><i class="fa-solid fa-check"></i> <span><strong>Custom Web Interface:</strong> Fast-loading custom web page personalized with your brand photos.</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Table-to-Counter Contact:</strong> Customers can submit orders directly, reducing staff workload.</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Auto Table Tracking:</strong> Order messages arrive on WhatsApp with customer details pre-formatted.</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Google Maps Link:</strong> Integrates an official website button directly on your Google Business Profile.</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Lifetime Free Server Hosting:</strong> Zero monthly maintenance fees and zero annual renewal charges.</span></li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> <span>Smart Suggestion & Upselling Engine</span></li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> <span>Live Mobile Updates via Google Sheets</span></li>
+            </ul>
+            
+            <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20am%20interested%20in%20the%20Basic%20Table%20QR%20Plan%20(%E2%82%B92,999)%20for%20my%20business.%20Please%20guide%20me%20further." class="btn-order btn-order-basic" target="_blank">
+                Select Basic Plan
+            </a>
+        </div>
+
+        <!-- COMPLETE GROWTH (PREMIUM) / प्रीमियम योजना -->
+        <div class="price-card premium">
+            <span class="badge green">Complete Growth</span>
+            <h2>Premium Custom</h2>
+            <div class="price-amount">₹4,999 <span class="price-sub">/ One-time Setup Cost</span></div>
+            
+            <ul class="feature-list">
+                <li><i class="fa-solid fa-check"></i> <span style="color: #ffffff; font-weight: bold;">Includes Everything in Basic Plan</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Smart Upselling Engine:</strong> Automatically suggests high-margin add-ons to boost average bill size.</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Live Mobile Updates (Google Sheets):</strong> Change prices and toggle "Today's Special" instantly from your phone.</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Google SEO & Schema Tags:</strong> Advanced restaurant metadata implementation to improve local search ranking.</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Instant UPI Route & Kitchen Copy:</strong> Includes direct UPI links and clean text formatting for easy receipt printing.</span></li>
+                <li><i class="fa-solid fa-check"></i> <span><strong>Google Review Link:</strong> Prompts customers with a pop-up redirecting them to your official review page.</span></li>
+            </ul>
+            
+            <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20am%20interested%20in%20the%20Premium%20Custom%20Plan%20(%E2%82%B94,999)%20for%20my%20business.%20Please%20guide%20me%20further." class="btn-order btn-order-premium" target="_blank">
+                Select Premium Plan
+            </a>
+        </div>
+
+    </main>
+
+    <!-- TRUST & PAYMENT TRANSPARENCY / विश्वास और भुगतान पारदर्शिता अनुभाग -->
+    <section class="max-w-6xl trust-section">
+        
+        <div class="trust-title">
+            <h2>Commercial Trust & Payment Security</h2>
+            <p>हम आपके व्यवसाय और निवेश की सुरक्षा को सर्वोपरि मानते हैं।</p>
+        </div>
+
+        <div class="trust-grid">
+
+            <!-- Point 1: Milestone Payments -->
+            <div class="trust-card">
+                <div class="trust-icon"><i class="fa-solid fa-layer-group"></i></div>
+                <h3>Milestone-Based Payments</h3>
+                <p>
+                    हम पूर्ण भुगतान की मांग कभी नहीं करते। परियोजना की शुरुआत में केवल 40% की अग्रिम राशि ली जाती है। शेष 60% का भुगतान आपको तभी करना है जब सिस्टम आपके काउंटर पर लाइव होकर पूरी तरह से परीक्षित (test) हो जाए।
+                </p>
+                <span class="trust-subtext">Pay only 40% advance to initiate layout engineering, rest after live validation.</span>
+            </div>
+
+            <!-- Point 2: Risk-Free Guarantee -->
+            <div class="trust-card" style="border-color: rgba(59, 130, 246, 0.3);">
+                <div class="trust-icon" style="color: #3b82f6;"><i class="fa-solid fa-rotate-left"></i></div>
+                <h3>100% Risk-Free Guarantee</h3>
+                <p>
+                    यदि अग्रिम भुगतान के पश्चात हम अगले ३ कार्य दिवसों (3 Working Days) के भीतर आपकी वेबसाइट का प्रारंभिक डिजिटल ड्राफ्ट (Draft Wireframe) प्रस्तुत नहीं कर पाते हैं, तो आपकी अग्रिम राशि बिना किसी कटौती के तुरंत वापस कर दी जाएगी।
+                </p>
+                <span class="trust-subtext">Guaranteed initial draft presentation within 72 hours or full refund.</span>
+            </div>
+
+            <!-- Point 3: Legal Invoice & Agreement -->
+            <div class="trust-card" style="border-color: rgba(245, 158, 11, 0.3);">
+                <div class="trust-icon" style="color: #f59e0b;"><i class="fa-solid fa-file-signature"></i></div>
+                <h3>Official Digital Invoice & Agreement</h3>
+                <p>
+                    सुरक्षा सुनिश्चित करने के लिए, हम १ रुपया भी स्वीकार करने से पहले आपके आधिकारिक व्यावसायिक नाम पर एक डिजिटल वर्क链接 (Work Order) और हस्ताक्षरित रसीद जारी करते हैं। आपके पास आपके निवेश का पूर्ण कानूनी प्रमाण होता है।
+                </p>
+                <span class="trust-subtext">Formal digital receipt and deployment contract issued prior to capital exchange.</span>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FLOATING WHATSAPP CTA / व्हाट्सएप फ्लोटिंग बटन -->
+    <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20am%20interested%20in%20transforming%20my%20business%20into%20a%20Smart%20Digital%20Platform.%20Kindly%20share%20the%20details." class="whatsapp-float" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- FOOTER / फुटर -->
+    <footer>
+        <p>&copy; 2026 Digiconvo. Designed for Smart Local Businesses. All Rights Reserved.</p>
+        <p>Empowering Cafes, Libraries, Gyms, and Salons with Next-Gen Infrastructure.</p>
+    </footer>
+
+    <!-- Mobile Menu Script / मोबाइल मेनू टॉगल स्क्रिप्ट -->
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn.addEventListener('click', () => {
+            if (mobileMenu.style.display === 'block') {
+                mobileMenu.style.display = 'none';
+            } else {
+                mobileMenu.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

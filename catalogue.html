@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Catalogue | Digiconvo - Live Digital Layouts</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* PREMIUM CORE STYLES / मुख्य शैलियाँ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0b1329;
+            color: #f1f5f9;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .max-w-7xl {
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* NAVBAR / नेविगेशन बार */
+        nav {
+            background-color: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid #334155;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(12px);
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+        .logo-accent {
+            color: #10b981;
+        }
+        .nav-links {
+            display: none;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .nav-links {
+                display: flex;
+            }
+        }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .nav-links a.active, .nav-links a:hover {
+            color: #10b981;
+        }
+        .menu-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+        @media (min-width: 768px) {
+            .menu-btn {
+                display: none;
+            }
+        }
+        #mobile-menu {
+            display: none;
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        #mobile-menu a {
+            display: block;
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            font-weight: 600;
+        }
+        #mobile-menu a.active {
+            color: #10b981;
+        }
+
+        /* HEADER SECTION / शीर्षक अनुभाग */
+        .header-section {
+            padding: 4rem 1.5rem 2rem 1.5rem;
+            text-align: center;
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .header-section h1 {
+            font-size: 2.25rem;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+        }
+        @media (min-width: 768px) {
+            .header-section h1 {
+                font-size: 3rem;
+            }
+        }
+        .header-section p {
+            color: #cbd5e1;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* CATALOGUE GRID / कैटलॉग ग्रिड */
+        .catalogue-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            padding: 2rem 1.5rem 5rem 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .catalogue-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .template-card {
+            background-color: #1c2541;
+            border: 1px solid #334155;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        .template-card:hover {
+            border-color: #10b981;
+            transform: translateY(-4px);
+        }
+        
+        /* MOCKUP INTERFACE VISUAL / मॉकअप ग्राफिक */
+        .mockup-visual {
+            background-color: #0f172a;
+            height: 12rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-b: 1px solid #334155;
+        }
+        .mockup-visual i {
+            font-size: 4rem;
+            opacity: 0.15;
+            position: absolute;
+        }
+        .mockup-badge {
+            background-color: #1e1b4b;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #10b981;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            z-index: 2;
+        }
+        
+        .card-content {
+            padding: 2rem;
+        }
+        .card-content h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+        .card-content p {
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            margin-bottom: 1.5rem;
+            min-height: 4.5rem;
+        }
+        
+        /* BUTTONS / बटन */
+        .btn-preview {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 0.85rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            background-color: #10b981;
+            color: #0b1329;
+        }
+        .btn-preview:hover {
+            background-color: #0d9488;
+        }
+
+        /* FLOATING WHATSAPP / व्हाट्सएप बटन */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background-color: #25d366;
+            color: #ffffff;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+
+        /* FOOTER / फुटर */
+        footer {
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
+        }
+        footer p + p {
+            margin-top: 0.5rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR / नेविगेशन बार -->
+    <nav>
+        <div class="max-w-7xl nav-container">
+            <a href="index.html" class="logo">
+                Digi<span class="logo-accent">convo</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="catalogue.html" class="active">Catalogue</a>
+                <a href="about.html">About Us</a>
+            </div>
+
+            <button id="menu-btn" class="menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <div id="mobile-menu">
+            <a href="index.html">Home</a>
+            <a href="services.html">Services</a>
+            <a href="catalogue.html" class="active">Catalogue</a>
+            <a href="about.html">About Us</a>
+        </div>
+    </nav>
+
+    <!-- HEADER SECTION / शीर्षक अनुभाग -->
+    <section class="header-section">
+        <h1>Live Demo Catalogue</h1>
+        <p>
+            हमारे द्वारा डिज़ाइन किए गए आधुनिक और व्यावहारिक इंटरफ़ेस प्रारूपों का अन्वेषण करें।
+            <span style="display:block; font-size:0.875rem; color:#94a3b8; margin-top:0.5rem; font-style:italic;">Explore the responsive, ultra-fast web layouts tailored for high operational efficiency.</span>
+        </p>
+    </section>
+
+    <!-- CATALOGUE CARDS / कैटलॉग कार्ड्स ग्रिड -->
+    <main class="max-w-7xl catalogue-container">
+        
+        <!-- TEMPLATE 1: CAFE Layout -->
+        <div class="template-card">
+            <div class="mockup-visual">
+                <i class="fa-solid fa-utensils"></i>
+                <span class="mockup-badge">Minimalist Aesthetic</span>
+            </div>
+            <div class="card-content">
+                <h2>Premium Cafe Layout</h2>
+                <p>गहन और आकर्षक दृश्यों के साथ कैफ़े के लिए विशेष रूप से निर्मित डिजिटल मेनू। यह ग्राहकों को अतिरिक्त विकल्पों (add-ons) की ओर आकर्षित करता है।</p>
+                <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20saw%20the%20Premium%20Cafe%20Layout%20in%20your%20catalogue.%20I%20want%20to%20see%20a%20live%20functional%20demo%20of%20this%20setup." class="btn-preview" target="_blank">
+                    Request Live Demo
+                </a>
+            </div>
+        </div>
+
+        <!-- TEMPLATE 2: LIBRARY Layout -->
+        <div class="template-card">
+            <div class="mockup-visual">
+                <i class="fa-solid fa-book-open"></i>
+                <span class="mockup-badge">Seat Management</span>
+            </div>
+            <div class="card-content">
+                <h2>Library Slot Booking</h2>
+                <p>सेल्फ़-स्टडी लाइब्रेरी के लिए एक व्यवस्थित प्रणाली। छात्र रिक्त सीटों और उपलब्ध समय-अंतरालों (time slots) की जांच स्वतः कर सकते हैं।</p>
+                <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20am%20interested%20in%20the%20Library%20Slot%20Booking%20Template.%20Kindly%20share%20the%20working%20mechanism%20and%20demo." class="btn-preview" target="_blank">
+                    Request Live Demo
+                </a>
+            </div>
+        </div>
+
+        <!-- TEMPLATE 3: SALON / GYM Layout -->
+        <div class="template-card">
+            <div class="mockup-visual">
+                <i class="fa-solid fa-scissors"></i>
+                <span class="mockup-badge">Appointment Route</span>
+            </div>
+            <div class="card-content">
+                <h2>Salon & Gym Dashboard</h2>
+                <p>सैलून और फिटनेस केंद्रों के लिए आदर्श समाधान। ग्राहक उपलब्ध सेवाओं की सूची देखकर सीधे व्हाट्सएप के माध्यम से अपॉइंटमेंट बुक कर सकते हैं।</p>
+                <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20want%20to%20integrate%20the%20Salon%20and%20Gym%20Dashboard%20Template%20for%20my%20outlet.%20Please%20connect." class="btn-preview" target="_blank">
+                    Request Live Demo
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FLOATING WHATSAPP CTA / व्हाट्सएप फ्लोटिंग बटन -->
+    <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20am%20interested%20in%20transforming%20my%20business%20into%20a%20Smart%20Digital%20Platform.%20Kindly%20share%20the%20details." class="whatsapp-float" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- FOOTER / फुटर -->
+    <footer>
+        <p>&copy; 2026 Digiconvo. Designed for Smart Local Businesses. All Rights Reserved.</p>
+        <p>Empowering Cafes, Libraries, Gyms, and Salons with Next-Gen Infrastructure.</p>
+    </footer>
+
+    <!-- Mobile Menu Script / मोबाइल मेनू टॉगल स्क्रिप्ट -->
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn.addEventListener('click', () => {
+            if (mobileMenu.style.display === 'block') {
+                mobileMenu.style.display = 'none';
+            } else {
+                mobileMenu.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
