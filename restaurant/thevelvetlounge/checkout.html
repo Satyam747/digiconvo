@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1.0">
+
+<title>
+
+Checkout
+
+</title>
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="config.js"></script>
+
+<script src="common.js"></script>
+
+<style>
+
+/*=========================================================
+PART 2 CSS WILL COME HERE
+=========================================================*/
+/*=========================================================
+GLOBAL
+=========================================================*/
+
+*{
+
+margin:0;
+
+padding:0;
+
+box-sizing:border-box;
+
+font-family:
+
+system-ui,
+
+Segoe UI,
+
+sans-serif;
+
+}
+
+body{
+
+background:#05070f;
+
+color:white;
+
+padding:20px;
+
+}
+
+.wrapper{
+
+max-width:520px;
+
+margin:auto;
+
+background:#0b0f19;
+
+border:1px solid #24304d;
+
+border-radius:20px;
+
+overflow:hidden;
+
+box-shadow:
+
+0 20px 50px
+
+rgba(0,0,0,.45);
+
+}
+
+/*=========================================================
+HEADER
+=========================================================*/
+
+.header{
+
+padding:25px;
+
+border-bottom:1px solid #24304d;
+
+}
+
+.header h2{
+
+font-size:28px;
+
+margin-bottom:8px;
+
+}
+
+.header p{
+
+color:#94a3b8;
+
+font-size:14px;
+
+}
+
+/*=========================================================
+CUSTOMER
+=========================================================*/
+
+.customerCard{
+
+display:flex;
+
+justify-content:space-between;
+
+padding:20px 25px;
+
+background:#141b2d;
+
+border-bottom:1px solid #24304d;
+
+}
+
+.customerCard b{
+
+display:block;
+
+margin-bottom:6px;
+
+color:#c5a880;
+
+}
+
+/*=========================================================
+CART
+=========================================================*/
+
+.cartItems{
+
+padding:20px 25px;
+
+}
+
+.cartItem{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+padding:15px 0;
+
+border-bottom:1px solid #24304d;
+
+gap:15px;
+
+}
+
+.itemInfo{
+
+flex:1;
+
+}
+
+.itemName{
+
+font-weight:bold;
+
+font-size:17px;
+
+margin-bottom:4px;
+
+}
+
+.itemPrice{
+
+color:#c5a880;
+
+font-size:14px;
+
+}
+
+.itemQty{
+
+background:#141b2d;
+
+padding:6px 12px;
+
+border-radius:8px;
+
+font-weight:bold;
+
+}
+
+/*=========================================================
+SUMMARY
+=========================================================*/
+
+.summaryCard{
+
+margin:20px;
+
+padding:20px;
+
+background:#141b2d;
+
+border-radius:14px;
+
+border:1px solid #24304d;
+
+}
+
+.row{
+
+display:flex;
+
+justify-content:space-between;
+
+margin-bottom:12px;
+
+}
+
+.row:last-child{
+
+margin-bottom:0;
+
+}
+
+.summaryCard hr{
+
+border:none;
+
+border-top:1px solid #293552;
+
+margin:15px 0;
+
+}
+
+.total{
+
+font-size:20px;
+
+font-weight:bold;
+
+color:#c5a880;
+
+}
+
+/*=========================================================
+PAYMENT
+=========================================================*/
+
+.paymentCard{
+
+margin:20px;
+
+padding:20px;
+
+background:#141b2d;
+
+border-radius:14px;
+
+border:1px solid #24304d;
+
+}
+
+.paymentCard h3{
+
+margin-bottom:15px;
+
+}
+
+.paymentCard label{
+
+display:flex;
+
+align-items:center;
+
+gap:10px;
+
+padding:12px 0;
+
+cursor:pointer;
+
+}
+
+/*=========================================================
+BUTTON
+=========================================================*/
+
+.placeButton{
+
+width:calc(100% - 40px);
+
+margin:0 20px 20px;
+
+padding:16px;
+
+border:none;
+
+border-radius:12px;
+
+background:#10b981;
+
+color:#05070f;
+
+font-size:18px;
+
+font-weight:bold;
+
+cursor:pointer;
+
+transition:.25s;
+
+}
+
+.placeButton:hover{
+
+transform:translateY(-2px);
+
+}
+
+/*=========================================================
+EMPTY CART
+=========================================================*/
+
+.empty{
+
+padding:60px 20px;
+
+text-align:center;
+
+color:#94a3b8;
+
+font-size:18px;
+
+}
+
+/*=========================================================
+RESPONSIVE
+=========================================================*/
+
+@media(max-width:600px){
+
+.customerCard{
+
+flex-direction:column;
+
+gap:15px;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<div class="header">
+
+<h2>
+
+Review Order
+
+</h2>
+
+<p>
+
+Please verify your order before placing it.
+
+</p>
+
+</div>
+
+<div class="customerCard">
+
+<div>
+
+<b>
+
+Customer
+
+</b>
+
+<div id="customerName">
+
+--
+
+</div>
+
+</div>
+
+<div>
+
+<b>
+
+Table
+
+</b>
+
+<div id="tableNumber">
+
+--
+
+</div>
+
+</div>
+
+</div>
+
+<div
+id="cartItems"
+class="cartItems">
+
+</div>
+
+<div class="summaryCard">
+
+<div class="row">
+
+<span>
+
+Subtotal
+
+</span>
+
+<span
+id="subtotal">
+
+₹0.00
+
+</span>
+
+</div>
+
+<div class="row">
+
+<span>
+
+Discount
+
+</span>
+
+<span
+id="discount">
+
+₹0.00
+
+</span>
+
+</div>
+
+<div class="row">
+
+<span>
+
+GST
+
+</span>
+
+<span
+id="gst">
+
+₹0.00
+
+</span>
+
+</div>
+
+<hr>
+
+<div
+class="row total">
+
+<span>
+
+Grand Total
+
+</span>
+
+<span
+id="grandTotal">
+
+₹0.00
+
+</span>
+
+</div>
+
+</div>
+<div class="paymentCard">
+    <h3>Cooking Instructions</h3>
+    <textarea id="orderNotes" maxlength="150" placeholder="E.g., Make it less spicy, allergy to peanuts, no onions..." style="width:100%; padding:12px; border-radius:10px; border:1px solid #293552; background:#141b2d; color:white; resize:vertical; min-height:80px;"></textarea>
+</div>
+
+
+<div class="paymentCard">
+
+<h3>
+
+Payment Method
+
+</h3>
+
+<label>
+
+<input
+
+type="radio"
+
+name="payment"
+
+value="Cash"
+
+checked>
+
+Cash
+
+</label>
+
+<label>
+
+<input
+
+type="radio"
+
+name="payment"
+
+value="UPI">
+
+UPI
+
+</label>
+
+</div>
+
+<button
+id="placeOrderButton"
+class="placeButton">
+
+Place Order
+
+</button>
+
+</div>
+
+<script>
+
+/*=========================================================
+PART 3 JAVASCRIPT WILL COME HERE
+=========================================================*/
+"use strict";
+
+/*=========================================================
+GLOBAL
+=========================================================*/
+
+let ORDER={};
+
+/*=========================================================
+INITIALIZE
+=========================================================*/
+
+document.addEventListener(
+
+"DOMContentLoaded",
+
+async()=>{
+
+    requireSession();
+
+    requireCart();
+
+    await loadRestaurantSettings();
+
+    initializeCheckout();
+
+});
+
+/*=========================================================
+STARTUP
+=========================================================*/
+
+function initializeCheckout(){
+
+    loadCustomer();
+
+    renderCart();
+
+    initializePayment();
+
+    initializeButtons();
+
+}
+
+/*=========================================================
+CUSTOMER
+=========================================================*/
+
+function loadCustomer(){
+
+    const customer=
+
+    getCustomer();
+
+    document
+
+    .getElementById(
+
+    "customerName"
+
+    )
+
+    .innerText=
+
+    customer.name;
+
+    document
+
+    .getElementById(
+
+    "tableNumber"
+
+    )
+
+    .innerText=
+
+    customer.table;
+
+}
+
+/*=========================================================
+PAYMENT
+=========================================================*/
+
+function initializePayment(){
+
+    document
+
+    .querySelectorAll(
+
+    'input[name="payment"]'
+
+    )
+
+    .forEach(radio=>{
+
+        radio.onchange=()=>{
+
+            setPaymentMode(
+
+                radio.value
+
+            );
+
+        };
+
+    });
+
+    setPaymentMode("Cash");
+
+}
+
+/*=========================================================
+BUTTON
+=========================================================*/
+
+function initializeButtons(){
+
+    document
+
+    .getElementById(
+
+    "placeOrderButton"
+
+    )
+
+    .onclick=
+
+    placeOrder;
+
+}
+/*=========================================================
+RENDER CART
+=========================================================*/
+
+function renderCart(){
+
+    ORDER=
+
+    getOrderSummary();
+
+    const container=
+
+    document.getElementById(
+
+        "cartItems"
+
+    );
+
+    container.innerHTML="";
+
+        const placeBtn = document.getElementById("placeOrderButton");
+    
+    if(ORDER.cart.length===0){
+        container.innerHTML='<div class="empty">Your cart is empty.</div>';
+        placeBtn.disabled = true;
+        placeBtn.style.opacity = "0.5";
+        updateSummary();
+        return;
+    }
+    
+    placeBtn.disabled = false;
+    placeBtn.style.opacity = "1";
+
+    ORDER.cart.forEach(item=>{
+
+
+        container.innerHTML+=`
+
+<div class="cartItem">
+
+<div class="itemInfo">
+
+<div class="itemName">
+
+${item.name}
+
+</div>
+
+<div class="itemPrice">
+
+${formatMoney(item.price)}
+
+</div>
+
+</div>
+
+<div class="itemQty">
+
+× ${item.qty}
+
+</div>
+
+</div>
+
+`;
+
+    });
+
+    updateSummary();
+
+}
+
+/*=========================================================
+SUMMARY
+=========================================================*/
+
+function updateSummary(){
+
+    calculateBill();
+
+    document
+
+    .getElementById(
+
+        "subtotal"
+
+    )
+
+    .innerText=
+
+    formatMoney(
+
+        SESSION.order.subtotal
+
+    );
+
+    document
+
+    .getElementById(
+
+        "discount"
+
+    )
+
+    .innerText=
+
+    formatMoney(
+
+        SESSION.order.discount
+
+    );
+
+    document
+
+    .getElementById(
+
+        "gst"
+
+    )
+
+    .innerText=
+
+    formatMoney(
+
+        SESSION.order.gst
+
+    );
+
+    document
+
+    .getElementById(
+
+        "grandTotal"
+
+    )
+
+    .innerText=
+
+    formatMoney(
+
+        SESSION.order.total
+
+    );
+
+}
+/*=========================================================
+PLACE ORDER
+=========================================================*/
+async function placeOrder(){
+    calculateBill();
+    SESSION.order.notes = document.getElementById("orderNotes").value.trim();
+    const button = document.getElementById("placeOrderButton");
+    button.disabled = true;
+    button.innerText = "Placing Order...";
+
+    let extWindow = null;
+        const mode = getPaymentMode();
+    
+    // Check if UPI is selected but the admin hasn't configured it
+    if(mode === "UPI" && (!SETTINGS.UPI || SETTINGS.UPI.trim() === "")) {
+        alert("UPI payments are currently unavailable. Please select Cash.");
+        button.disabled = false;
+        button.innerText = "Place Order";
+        return;
+    }
+    
+       // Bypass mobile popup blockers by opening tab immediately ONLY for UPI
+    if(mode === "UPI"){
+
+         extWindow = window.open("", "_blank");
+         if(extWindow) {
+             extWindow.document.write("<div style='font-family:sans-serif; padding:20px; text-align:center;'>Redirecting securely...</div>");
+         }
+    }
+
+
+      try{
+        const response = await api("placeOrder", {
+            customer: SESSION.customer,
+            cart: SESSION.cart,
+            order: SESSION.order
+        });
+
+        if(!response.success){
+            if(extWindow) extWindow.close(); 
+            alert(response.message || "Unable to place order.");
+            button.disabled = false;
+            button.innerText = "Place Order";
+            return;
+        }
+
+              // FIX: Dynamically generate the UPI Intent Link using your Settings
+        if(mode === "UPI" && SETTINGS.UPI && extWindow){
+            const upiString = `upi://pay?pa=${SETTINGS.UPI}&pn=${encodeURIComponent(SETTINGS.Name || 'Restaurant')}&am=${SESSION.order.total}&tr=${SESSION.order.id}&cu=INR`;
+            extWindow.location.href = upiString;
+        } else if(extWindow) {
+            extWindow.close(); 
+        }
+
+
+        orderPlaced();
+        location.href = CONFIG.ROUTES.SUCCESS;
+    }
+
+    catch(error){
+        if(extWindow) extWindow.close();
+        console.error(error);
+        alert("Something went wrong.");
+        button.disabled = false;
+        button.innerText = "Place Order";
+    }
+}
+
+
+/*=========================================================
+ORDER SUCCESS
+=========================================================*/
+
+function orderPlaced(){
+    // Removed clearCart() so the success page can access the cart items for WhatsApp
+    saveSession();
+}
+
+
+
+/*=========================================================
+PAGE VISIBILITY
+=========================================================*/
+
+document.addEventListener(
+
+"visibilitychange",
+
+()=>{
+
+    if(
+
+        !document.hidden
+
+    ){
+
+        renderCart();
+
+    }
+
+}
+);
+/*=========================================================
+PAGE READY
+=========================================================*/
+
+console.log(
+
+"Checkout Page Loaded"
+
+);
+
+</script>
+
+</body>
+
+</html>
