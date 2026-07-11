@@ -710,166 +710,86 @@ function renderProducts(){
 /*=========================================================
 PRODUCT CARD
 =========================================================*/
-
 function createProductCard(item){
+    const card = document.createElement("div");
+    card.className = "card";
 
-    const card=document.createElement("div");
+    const qty = getCartQuantity(item.id);
 
-    card.className="card";
+    // 1. Calculate Prices based on Supabase Offer fields
+    let basePrice = Number(item.originalPrice || item.price);
+    let finalPrice = Number(item.price);
+    let activeOfferText = "";
 
-    const qty=getCartQuantity(item.id);
+    if (item.OfferType && item.OfferType !== "None") {
+        activeOfferText = item.OfferType; 
+        basePrice = Number(item.price); 
+        
+        if (item.OfferType === "Flat") {
+            finalPrice = Math.max(0, basePrice - Number(item.OfferValue));
+        } else {
+            // Percentage based logic
+            finalPrice = basePrice - (basePrice * Number(item.OfferValue) / 100);
+        }
+        
+        // Sync the item object so the cart charges the correct discounted amount
+        item.originalPrice = basePrice;
+        item.price = finalPrice;
+    } 
+    // Fallback to clear the hardcoded CSV prices
+    else if (Number(item.originalPrice) > Number(item.price)) {
+        activeOfferText = "Special Offer";
+    }
 
-    const hasDiscount=
-
-        Number(item.originalPrice)>
-
-        Number(item.price);
-
+    // 2. Generate Badges
     let badges="";
-
-    if(item.type==="Veg"){
-
-        badges+=
-
-        "<span class='badge veg'>VEG</span>";
-
+    
+    // Check Supabase boolean for Veg/Non-Veg
+    if(item.veg === true || item.veg === "TRUE"){
+        badges+="<span class='badge veg'>VEG</span>";
+    } else {
+        badges+="<span class='badge nonveg'>NON VEG</span>";
     }
 
-    if(item.type==="Non Veg"){
-
-        badges+=
-
-        "<span class='badge nonveg'>NON VEG</span>";
-
+    if(activeOfferText !== ""){
+        badges+=`<span class='badge offer'>${activeOfferText}</span>`;
     }
 
-    if(hasDiscount){
-
-        badges+=
-
-        "<span class='badge offer'>Happy Hour</span>";
-
+    if(item.available==="No" || item.available===false || item.available==="FALSE"){
+        badges+="<span class='badge out'>Out of Stock</span>";
     }
 
-    if(item.available==="No"){
-
-        badges+=
-
-        "<span class='badge out'>Out of Stock</span>";
-
-    }
-
+    // 3. Action Buttons
     let action="";
-
-    if(item.available==="No"){
-
-        action=
-
-        "<button class='addBtn' disabled>Unavailable</button>";
-
+    if(item.available==="No" || item.available===false || item.available==="FALSE"){
+        action="<button class='addBtn' disabled>Unavailable</button>";
+    } else if(qty===0){
+        action=`<button class="addBtn" onclick="addItem('${item.id}')">ADD</button>`;
+    } else {
+        action=`<div class="stepper">
+                    <button onclick="minusItem('${item.id}')">−</button>
+                    <span>${qty}</span>
+                    <button onclick="plusItem('${item.id}')">+</button>
+                </div>`;
     }
 
-    else if(qty===0){
-
-        action=
-
-        `<button
-            class="addBtn"
-            onclick="addItem('${item.id}')">
-            ADD
-        </button>`;
-
-    }
-
-    else{
-
-        action=
-
-        `<div class="stepper">
-
-            <button
-            onclick="minusItem('${item.id}')">
-
-            −
-
-            </button>
-
-            <span>
-
-            ${qty}
-
-            </span>
-
-            <button
-            onclick="plusItem('${item.id}')">
-
-            +
-
-            </button>
-
-        </div>`;
-
-    }
-
+    // 4. Render Card
     card.innerHTML=`
-
-        <img
-        src="${imageOrDefault(item.image)}">
-
+        <img src="${imageOrDefault(item.image)}">
         <div class="info">
-
-            <div class="name">
-
-                ${item.name}
-
-            </div>
-
-            <div class="badges">
-
-                ${badges}
-
-            </div>
-
-            <div class="desc">
-
-                ${item.description||""}
-
-            </div>
-
+            <div class="name">${item.name}</div>
+            <div class="badges">${badges}</div>
+            <div class="desc">${item.description||""}</div>
             <div class="price">
-
-                ${
-                    hasDiscount
-                    ?
-
-                    `<span class="oldPrice">
-
-                    ${formatMoney(item.originalPrice)}
-
-                    </span>`
-
-                    :""
-
-                }
-
-                ${formatMoney(item.price)}
-
+                ${activeOfferText !== "" ? `<span class="oldPrice">${formatMoney(basePrice)}</span>` : ""}
+                ${formatMoney(finalPrice)}
             </div>
-
-            <div class="action">
-
-                ${action}
-
-            </div>
-
+            <div class="action">${action}</div>
         </div>
-
     `;
 
     return card;
-
 }
-
 
 /*=========================================================
 CART BUTTONS
