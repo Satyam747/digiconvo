@@ -5465,21 +5465,19 @@ id="tablesGrid">
 /*=========================================================
 FILTER
 =========================================================*/
-
 function filterTables(){
     const keyword = document.getElementById("tableSearch").value.toLowerCase();
     const status = document.getElementById("tableFilter").value;
 
     FILTERED_TABLES = TABLES.filter(table => {
-        // Use table.table (not table.number) and remove customer search (not stored)
         const search = contains(table.table, keyword);
         const state = (status == "" || table.status == status);
         return search && state;
     });
     renderTableCards();
-}
-
-/*=========================================================
+    // ✅ Add this line to update the summary stats
+    renderTableSummary();
+} *=========================================================
 SUMMARY
 =========================================================*/
 function renderTableSummary(){
