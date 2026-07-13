@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1.0">
+
+<title>Welcome</title>
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="config.js"></script>
+
+<script src="common.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
+background:#05070f;
+
+font-family:
+system-ui,
+Segoe UI,
+sans-serif;
+
+color:white;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+min-height:100vh;
+
+padding:20px;
+
+}
+
+.container{
+
+width:100%;
+
+max-width:430px;
+
+background:#0b0f19;
+
+border:1px solid #1e2640;
+
+border-radius:20px;
+
+padding:35px 25px;
+
+box-shadow:
+0 25px 60px rgba(0,0,0,.5);
+
+}
+
+.logo{
+
+width:90px;
+
+height:90px;
+
+margin:auto;
+
+border-radius:50%;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+background:#141b2d;
+
+overflow:hidden;
+
+margin-bottom:20px;
+
+border:2px solid #c5a880;
+
+}
+
+.logo img{
+
+width:100%;
+
+height:100%;
+
+object-fit:cover;
+
+display:none;
+
+}
+
+.logo i{
+
+font-size:38px;
+
+color:#c5a880;
+
+}
+
+h1{
+
+text-align:center;
+
+font-size:30px;
+
+margin-bottom:8px;
+
+}
+
+.subtitle{
+
+text-align:center;
+
+font-size:14px;
+
+color:#9ca3af;
+
+line-height:1.6;
+
+margin-bottom:30px;
+
+}
+
+.form-group{
+
+margin-bottom:20px;
+
+}
+
+label{
+
+display:block;
+
+margin-bottom:8px;
+
+font-size:14px;
+
+font-weight:700;
+
+color:#c5a880;
+
+}
+
+.input{
+
+width:100%;
+
+padding:15px;
+
+border-radius:12px;
+
+border:1px solid #2c3555;
+
+background:#05070f;
+
+color:white;
+
+font-size:16px;
+
+outline:none;
+
+}
+
+.input:focus{
+
+border-color:#c5a880;
+
+}
+
+.button{
+
+width:100%;
+
+padding:16px;
+
+border:none;
+
+border-radius:12px;
+
+background:#c5a880;
+
+color:#05070f;
+
+font-size:17px;
+
+font-weight:700;
+
+cursor:pointer;
+
+margin-top:15px;
+
+}
+
+.button:hover{
+
+opacity:.9;
+
+}
+
+.footer{
+
+margin-top:30px;
+
+text-align:center;
+
+font-size:12px;
+
+color:#64748b;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="logo">
+
+<img
+id="restaurantLogo">
+
+<i
+id="logoIcon"
+class="fa-solid fa-utensils"></i>
+
+</div>
+
+<h1
+id="restaurantName">
+
+Restaurant
+
+</h1>
+
+<p
+class="subtitle"
+id="restaurantTagline">
+
+Loading...
+
+</p>
+
+<form
+id="checkinForm">
+
+<div class="form-group">
+
+<label>
+
+Customer Name
+
+</label>
+
+<input
+
+id="customerName"
+
+class="input"
+
+type="text"
+
+autocomplete="off"
+
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Table Number
+
+</label>
+
+<input
+
+id="tableNumber"
+
+class="input"
+
+type="text"
+
+required>
+
+</div>
+
+<button
+class="button"
+type="submit">
+
+Start Ordering
+
+</button>
+
+</form>
+
+<div class="footer">
+
+Powered by Digiconvo QR Ordering System
+
+</div>
+
+</div>
+<script>
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    await loadRestaurantSettings();
+
+    initializePage();
+
+    initializeForm();
+
+});
+
+
+/*=========================================================
+INITIALIZE PAGE
+=========================================================*/
+
+function initializePage() {
+loadSession();
+
+    document.title =
+        SETTINGS.Name || CONFIG.RESTAURANT.NAME;
+
+    document.getElementById("restaurantName").innerText =
+        SETTINGS.Name || CONFIG.RESTAURANT.NAME;
+
+    document.getElementById("restaurantTagline").innerText =
+        SETTINGS.Tagline || CONFIG.RESTAURANT.TAGLINE;
+
+    const logo = document.getElementById("restaurantLogo");
+
+    const icon = document.getElementById("logoIcon");
+
+    if (
+        SETTINGS.Logo &&
+        SETTINGS.Logo.trim() !== ""
+    ) {
+
+        logo.src = SETTINGS.Logo;
+
+        logo.style.display = "block";
+
+        icon.style.display = "none";
+
+    }
+
+    document.getElementById("customerName").focus();
+
+}
+
+
+/*=========================================================
+FORM
+=========================================================*/
+
+function initializeForm() {
+
+    document
+    .getElementById("checkinForm")
+    .addEventListener(
+        "submit",
+        submitForm
+    );
+
+}
+
+
+/*=========================================================
+SUBMIT
+=========================================================*/
+
+function submitForm(e) {
+
+    e.preventDefault();
+
+    const name =
+        document
+        .getElementById("customerName")
+        .value
+        .trim();
+
+    const table =
+        document
+        .getElementById("tableNumber")
+        .value
+        .trim();
+
+    if (isBlank(name)) {
+
+        alert("Enter customer name.");
+
+        return;
+
+    }
+
+    if (isBlank(table)) {
+
+        alert("Enter table number.");
+
+        return;
+
+    }
+
+    setCustomer(name, table);
+
+    newOrderSession();
+
+    location.href = CONFIG.ROUTES.MENU;
+
+}
+
+
+/*=========================================================
+ENTER KEY
+=========================================================*/
+
+document
+.getElementById("customerName")
+.addEventListener("keydown", e => {
+
+    if (e.key === "Enter") {
+
+        e.preventDefault();
+
+        document
+        .getElementById("tableNumber")
+        .focus();
+
+    }
+
+});
+
+
+/*=========================================================
+PREVENT BACK CACHE
+=========================================================*/
+
+window.addEventListener("pageshow", function(event){
+
+    if(event.persisted){
+
+        location.reload();
+
+    }
+
+});
+
+</script>
+
+</body>
+
+</html>
