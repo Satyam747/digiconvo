@@ -23,6 +23,13 @@ const RESTAURANTS = {
 
         ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhenZvbW92dmd6bGNraGdhZ2ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NDc2MjIsImV4cCI6MjA5OTMyMzYyMn0.OJRNzuUQrFDodDTuY-Y6xVK52zbTpSCAplEyGyMxDxk"
 
+    },
+    shreefoodjunction: {
+
+        URL: "https://fgkbkjksuteyjhvjycjp.supabase.co",
+
+        ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2JramtzdXRleWpodmp5Y2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NTQ0NzIsImV4cCI6MjA5OTUzMDQ3Mn0.IYnRgTPsHzz8hiCxrJvbaq0gG1ISrFaKPsGdY6ezSmw"
+
     }
 
 };
