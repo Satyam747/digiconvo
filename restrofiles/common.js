@@ -1951,3 +1951,7 @@ window.addEventListener(
 }
 
 );
+
+function goTo(page){
+    location.href = page + window.location.search;
+}
