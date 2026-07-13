@@ -813,7 +813,7 @@ async function placeOrder(){
         }
 
         orderPlaced();
-        location.href = CONFIG.ROUTES.SUCCESS;
+        goTo(CONFIG.ROUTES.SUCCESS);
     }
     catch(error){
         console.error(error);
