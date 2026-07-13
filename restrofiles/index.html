@@ -17,9 +17,29 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script src="config.js"></script>
+<script>
+const restaurant = new URLSearchParams(window.location.search).get("restaurant");
 
-<script src="common.js"></script>
+if (!restaurant) {
+    document.body.innerHTML = "<h2 style='font-family:sans-serif;padding:30px'>Restaurant not specified.</h2>";
+    throw new Error("Restaurant not specified.");
+}
+
+const configScript = document.createElement("script");
+configScript.src = "../indore/restaurants/" + restaurant + "/config.js";
+
+configScript.onload = function () {
+    const commonScript = document.createElement("script");
+    commonScript.src = "common.js";
+    document.head.appendChild(commonScript);
+};
+
+configScript.onerror = function () {
+    document.body.innerHTML = "<h2 style='font-family:sans-serif;padding:30px'>Restaurant configuration not found.</h2>";
+};
+
+document.head.appendChild(configScript);
+</script>
 
 <style>
 
