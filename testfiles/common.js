@@ -583,7 +583,7 @@ if (data.status === 'Cancelled') {
                 return { success: !result.error };
 
 
-            case "closeDay": 
+                        case "closeDay": 
     try {
         // 1. Delete all orders from today (optional – but we want to reset)
         const today = new Date();
@@ -605,6 +605,14 @@ if (data.status === 'Cancelled') {
     } catch(err) {
         return { success: false, message: err.toString() };
     }
+
+            default:
+                return { success: false, message: "Unknown Action Parameters" };
+        }
+    } catch(err) {
+        return { success: false, message: err.toString() };
+    }
+}
 
 /*=========================================================
 LOAD SETTINGS
