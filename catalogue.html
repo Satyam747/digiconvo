@@ -3,369 +3,960 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Catalogue | Digiconvo - Live Digital Layouts</title>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>Product & Solutions Catalogue | DigiConvo Technologies</title>
+    <meta name="description" content="Browse DigiConvo Technologies' digital software solutions, smart QR acrylic standees, NFC smart cards, and thermal POS printers for local businesses.">
+
+    <!-- Browser Tab Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <style>
-        /* PREMIUM CORE STYLES / मुख्य शैलियाँ */
+        :root {
+            --bg-dark: #060913;
+            --bg-card: #0d1424;
+            --border: #1e293b;
+            --border-hover: #00aeef;
+            --cyan: #00aeef;
+            --amber: #f5a623;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --green: #10b981;
+        }
+
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            scroll-behavior: smooth;
         }
+
         body {
-            background-color: #0b1329;
-            color: #f1f5f9;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
-        .max-w-7xl {
-            max-width: 80rem;
-            margin-left: auto;
-            margin-right: auto;
+
+        a {
+            text-decoration: none;
+            color: inherit;
         }
-        
-        /* NAVBAR / नेविगेशन बार */
-        nav {
-            background-color: rgba(15, 23, 42, 0.9);
-            border-bottom: 1px solid #334155;
-            position: sticky;
+
+        /*==================================================
+        NAVBAR
+        ==================================================*/
+        .navbar {
+            position: fixed;
             top: 0;
-            z-index: 50;
-            padding: 1rem 1.5rem;
+            left: 0;
+            width: 100%;
+            background: rgba(6, 9, 19, 0.9);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 14px 24px;
         }
+
         .nav-container {
+            max-width: 1200px;
+            margin: auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #ffffff;
-            text-decoration: none;
-            letter-spacing: 0.05em;
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .logo-accent {
-            color: #10b981;
+
+        .brand-logo img {
+            height: 44px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+            display: block;
         }
+
         .nav-links {
-            display: none;
-            gap: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
         }
-        @media (min-width: 768px) {
-            .nav-links {
-                display: flex;
-            }
-        }
-        .nav-links a {
-            color: #cbd5e1;
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 600;
+
+        .nav-link {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
             transition: color 0.2s;
         }
-        .nav-links a.active, .nav-links a:hover {
-            color: #10b981;
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--cyan);
         }
-        .menu-btn {
-            display: block;
-            background: none;
-            border: none;
-            color: #ffffff;
-            font-size: 1.25rem;
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--cyan), #0077b6);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 174, 239, 0.35);
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 24px;
+            color: var(--text-light);
             cursor: pointer;
         }
-        @media (min-width: 768px) {
-            .menu-btn {
-                display: none;
-            }
-        }
-        #mobile-menu {
-            display: none;
-            background-color: #0f172a;
-            border-top: 1px solid #334155;
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 0.75rem;
+
+        /*==================================================
+        HEADER & FILTER STRIP
+        ==================================================*/
+        .page-header {
+            padding: 140px 20px 40px;
             text-align: center;
+            max-width: 850px;
+            margin: auto;
         }
-        #mobile-menu a {
-            display: block;
-            color: #cbd5e1;
-            text-decoration: none;
-            padding: 0.5rem 0;
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 174, 239, 0.1);
+            border: 1px solid rgba(0, 174, 239, 0.3);
+            color: var(--cyan);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
             font-weight: 600;
-        }
-        #mobile-menu a.active {
-            color: #10b981;
+            margin-bottom: 20px;
         }
 
-        /* HEADER SECTION / शीर्षक अनुभाग */
-        .header-section {
-            padding: 4rem 1.5rem 2rem 1.5rem;
-            text-align: center;
-            max-width: 48rem;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .header-section h1 {
-            font-size: 2.25rem;
-            font-weight: 900;
-            color: #ffffff;
-            letter-spacing: -0.02em;
-        }
-        @media (min-width: 768px) {
-            .header-section h1 {
-                font-size: 3rem;
-            }
-        }
-        .header-section p {
-            color: #cbd5e1;
-            font-size: 1rem;
-            margin-top: 1rem;
+        .page-header h1 {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-bottom: 16px;
         }
 
-        /* CATALOGUE GRID / कैटलॉग ग्रिड */
-        .catalogue-container {
+        .page-header p {
+            font-size: 17px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .filter-container {
+            max-width: 1200px;
+            margin: 20px auto 40px;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #0d1424;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--cyan);
+            color: #fff;
+        }
+
+        .filter-btn.active {
+            background: var(--cyan);
+            color: #060913;
+            border-color: var(--cyan);
+            font-weight: 700;
+        }
+
+        /*==================================================
+        CATALOGUE GRID
+        ==================================================*/
+        .catalogue-section {
+            max-width: 1200px;
+            margin: auto;
+            padding: 0 20px 80px;
+        }
+
+        .grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 2.5rem;
-            padding: 2rem 1.5rem 5rem 1.5rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
         }
-        @media (min-width: 768px) {
-            .catalogue-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        
-        .template-card {
-            background-color: #1c2541;
-            border: 1px solid #334155;
-            border-radius: 1.25rem;
+
+        .catalogue-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-            transition: border-color 0.3s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.25s ease;
+            position: relative;
         }
-        .template-card:hover {
-            border-color: #10b981;
-            transform: translateY(-4px);
+
+        .catalogue-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-hover);
+            box-shadow: 0 15px 35px rgba(0, 174, 239, 0.15);
         }
-        
-        /* MOCKUP INTERFACE VISUAL / मॉकअप ग्राफिक */
-        .mockup-visual {
-            background-color: #0f172a;
-            height: 12rem;
+
+        .card-visual {
+            height: 190px;
+            background: linear-gradient(135deg, #0e172a, #162038);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            border-b: 1px solid #334155;
-        }
-        .mockup-visual i {
-            font-size: 4rem;
-            opacity: 0.15;
-            position: absolute;
-        }
-        .mockup-badge {
-            background-color: #1e1b4b;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            color: #10b981;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.5rem;
-            z-index: 2;
-        }
-        
-        .card-content {
-            padding: 2rem;
-        }
-        .card-content h2 {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-        }
-        .card-content p {
-            font-size: 0.875rem;
-            color: #cbd5e1;
-            margin-bottom: 1.5rem;
-            min-height: 4.5rem;
-        }
-        
-        /* BUTTONS / बटन */
-        .btn-preview {
-            display: block;
-            width: 100%;
-            text-align: center;
-            padding: 0.85rem;
-            border-radius: 0.75rem;
-            font-weight: 700;
-            text-decoration: none;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            cursor: pointer;
-            background-color: #10b981;
-            color: #0b1329;
-        }
-        .btn-preview:hover {
-            background-color: #0d9488;
         }
 
-        /* FLOATING WHATSAPP / व्हाट्सएप बटन */
-        .whatsapp-float {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            background-color: #25d366;
-            color: #ffffff;
-            width: 3.5rem;
-            height: 3.5rem;
-            border-radius: 9999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-            text-decoration: none;
-            z-index: 100;
-            transition: transform 0.2s;
+        .card-visual i.main-icon {
+            font-size: 64px;
+            opacity: 0.85;
+            transition: transform 0.3s;
         }
-        .whatsapp-float:hover {
+
+        .catalogue-card:hover .card-visual i.main-icon {
             transform: scale(1.1);
         }
 
-        /* FOOTER / फुटर */
-        footer {
-            background-color: #0f172a;
-            border-top: 1px solid #334155;
-            padding: 2.5rem 1.5rem;
-            text-align: center;
-            font-size: 0.75rem;
-            color: #94a3b8;
-            letter-spacing: 0.05em;
+        .category-chip {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: rgba(6, 9, 19, 0.85);
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--cyan);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
-        footer p + p {
-            margin-top: 0.5rem;
-            color: #64748b;
+
+        .stock-chip {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--green);
+            color: var(--green);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .card-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .card-body h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .card-body p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .specs-list {
+            list-style: none;
+            margin-bottom: 24px;
+            background: #090e1a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .specs-list li {
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .specs-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .specs-list li i {
+            color: var(--amber);
+            font-size: 11px;
+        }
+
+        .card-action {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-enquire {
+            width: 100%;
+            background: #141d33;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-enquire:hover {
+            background: #25d366;
+            border-color: #25d366;
+            color: #060913;
+        }
+
+        /*==================================================
+        ORDER & ONBOARDING PROCESS
+        ==================================================*/
+        .process-section {
+            background: #090e1a;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 90px 20px;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 60px;
+        }
+
+        .section-tag {
+            color: var(--amber);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .section-header h2 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .process-grid {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .process-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 30px 22px;
+            position: relative;
+        }
+
+        .step-num {
+            font-size: 32px;
+            font-weight: 900;
+            color: rgba(0, 174, 239, 0.25);
+            margin-bottom: 12px;
+        }
+
+        .process-box h4 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .process-box p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /*==================================================
+        CTA BANNER
+        ==================================================*/
+        .cta-section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .cta-card {
+            background: linear-gradient(135deg, #0e1e38, #182848);
+            border: 1px solid rgba(0, 174, 239, 0.4);
+            border-radius: 28px;
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .cta-card h2 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .cta-card p {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        /*==================================================
+        FOOTER
+        ==================================================*/
+        footer {
+            background: #04060c;
+            border-top: 1px solid var(--border);
+            padding: 60px 20px 30px;
+        }
+
+        .footer-grid {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .footer-col h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 18px;
+        }
+
+        .footer-col p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--cyan);
+        }
+
+        .contact-info li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .contact-info i {
+            color: var(--cyan);
+            width: 18px;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: auto;
+            padding-top: 25px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        @media (max-width: 992px) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+            .process-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: #090e1a;
+                padding: 25px;
+                border-bottom: 1px solid var(--border);
+                gap: 18px;
+            }
+            .nav-links.active { display: flex; }
+            .menu-toggle { display: block; }
+            .grid { grid-template-columns: 1fr; }
+            .process-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 32px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- NAVBAR / नेविगेशन बार -->
-    <nav>
-        <div class="max-w-7xl nav-container">
-            <a href="index.html" class="logo">
-                Digi<span class="logo-accent">convo</span>
+    <!--==================================================
+    NAVBAR
+    ==================================================-->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                <img src="logo.png" alt="DigiConvo Technologies" onerror="this.style.display='none'; document.getElementById('navFallbackText').style.display='block';">
+                <div id="navFallbackText" style="display:none; font-size:20px; font-weight:800;">
+                    Digi<span style="color:var(--cyan)">Convo</span> <span style="color:var(--amber); font-size:14px;">Technologies</span>
+                </div>
             </a>
-            
-            <div class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="services.html">Services</a>
-                <a href="catalogue.html" class="active">Catalogue</a>
-                <a href="about.html">About Us</a>
+
+            <div class="menu-toggle" id="menuToggle">
+                <i class="fa-solid fa-bars"></i>
             </div>
 
-            <button id="menu-btn" class="menu-btn">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-        </div>
-
-        <div id="mobile-menu">
-            <a href="index.html">Home</a>
-            <a href="services.html">Services</a>
-            <a href="catalogue.html" class="active">Catalogue</a>
-            <a href="about.html">About Us</a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="services.html" class="nav-link">Services</a></li>
+                <li><a href="catalogue.html" class="nav-link active">Catalogue</a></li>
+                <li><a href="about.html" class="nav-link">About Us</a></li>
+                <li>
+                    <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20order%20products/systems%20from%20your%20catalogue." target="_blank" class="nav-cta"[cite: 47]>
+                        <i class="fa-brands fa-whatsapp"></i> Get Started
+                    </a>
+                </li>
+            </ul>
         </div>
     </nav>
 
-    <!-- HEADER SECTION / शीर्षक अनुभाग -->
-    <section class="header-section">
-        <h1>Live Demo Catalogue</h1>
-        <p>
-            हमारे द्वारा डिज़ाइन किए गए आधुनिक और व्यावहारिक इंटरफ़ेस प्रारूपों का अन्वेषण करें।
-            <span style="display:block; font-size:0.875rem; color:#94a3b8; margin-top:0.5rem; font-style:italic;">Explore the responsive, ultra-fast web layouts tailored for high operational efficiency.</span>
-        </p>
+    <!--==================================================
+    PAGE HEADER
+    ==================================================-->
+    <header class="page-header">
+        <div class="badge-pill">
+            <i class="fa-solid fa-boxes-stacked"></i> Complete Hardware & Software Suite
+        </div>
+        <h1>Everything You Need For A Contactless, Digital Operation</h1>
+        <p>Explore our lineup of commercial-grade QR standees, NFC smart blocks, thermal kitchen printers, and custom web portals built for local businesses.</p>
+    </header>
+
+    <!--==================================================
+    FILTER STRIP
+    ==================================================-->
+    <div class="filter-container">
+        <button class="filter-btn active" onclick="filterItems('all')">All Offerings</button>
+        <button class="filter-btn" onclick="filterItems('hardware')">QR Standees & NFC Blocks</button>
+        <button class="filter-btn" onclick="filterItems('pos')">Printers & POS Hardware</button>
+        <button class="filter-btn" onclick="filterItems('software')">Software Portals & Engines</button>
+    </div>
+
+    <!--==================================================
+    CATALOGUE GRID
+    ==================================================-->
+    <section class="catalogue-section">
+        <div class="grid" id="catalogueGrid">
+
+            <!-- Item 1: Acrylic QR Table Standee -->
+            <div class="catalogue-card" data-category="hardware">
+                <div class="card-visual">
+                    <span class="category-chip">Smart Hardware</span>
+                    <span class="stock-chip">Available</span>
+                    <i class="fa-solid fa-table-cells main-icon" style="color: var(--cyan);"></i>
+                </div>
+                <div class="card-body">
+                    <h3>Commercial Acrylic QR Standee</h3>
+                    <p>Heavy-duty, weather-resistant acrylic table standee custom printed with your logo, table numbers, and branded scan-to-order QR codes.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> High-clarity 3mm cast acrylic</li>
+                        <li><i class="fa-solid fa-check"></i> Waterproof & oil-stain proof surface</li>
+                        <li><i class="fa-solid fa-check"></i> Available in A6, T-Shape, and L-Shape</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%20Commercial%20Acrylic%20QR%20Standee." target="_blank" class="btn-enquire"[cite: 47]>
+                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 2: Wood Engraved QR Block -->
+            <div class="catalogue-card" data-category="hardware">
+                <div class="card-visual">
+                    <span class="category-chip">Luxury Hardware</span>
+                    <span class="stock-chip">Available</span>
+                    <i class="fa-solid fa-cube main-icon" style="color: var(--amber);"></i>
+                </div>
+                <div class="card-body">
+                    <h3>Solid Wood Engraved QR Block</h3>
+                    <p>Premium dark-walnut finish solid wooden blocks with laser-etched dynamic QR codes. Ideal for upscale fine dining, rooftop lounges, and boutique cafes.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> Real seasoned hardwood with matte seal</li>
+                        <li><i class="fa-solid fa-check"></i> Precision laser engraving that never fades</li>
+                        <li><i class="fa-solid fa-check"></i> Compact footprint (3" x 3" and 4" x 4")</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%20Solid%20Wood%20Engraved%20QR%20Blocks." target="_blank" class="btn-enquire"[cite: 47]>
+                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 3: NFC + Dynamic QR Smart Review Card -->
+            <div class="catalogue-card" data-category="hardware">
+                <div class="card-visual">
+                    <span class="category-chip">Customer Engagement</span>
+                    <span class="stock-chip">Trending</span>
+                    <i class="fa-solid fa-id-card main-icon" style="color: #a855f7;"></i>
+                </div>
+                <div class="card-body">
+                    <h3>NFC + QR Google Review Tap Card</h3>
+                    <p>Pocket-sized or counter-top smart cards with embedded NFC chip and backup QR. Customers tap with their phone to instantly open your Google Review page.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> Zero-click contactless NFC chip built-in</li>
+                        <li><i class="fa-solid fa-check"></i> Boosts Google Maps reviews by up to 300%</li>
+                        <li><i class="fa-solid fa-check"></i> Works on both Android and Apple devices</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%20NFC%20Google%20Review%20Tap%20Card." target="_blank" class="btn-enquire"[cite: 47]>
+                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 4: 58mm Thermal Bluetooth/USB Receipt Printer -->
+            <div class="catalogue-card" data-category="pos">
+                <div class="card-visual">
+                    <span class="category-chip">POS Equipment</span>
+                    <span class="stock-chip">In Stock</span>
+                    <i class="fa-solid fa-print main-icon" style="color: var(--green);"></i>
+                </div>
+                <div class="card-body">
+                    <h3>58mm Wireless POS Bill Printer</h3>
+                    <p>Compact, inkless thermal printer that connects directly via Bluetooth or USB to your counter phone, tablet, or laptop for high-speed bill printing.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> Zero ink or toner needed (thermal paper)</li>
+                        <li><i class="fa-solid fa-check"></i> Bluetooth + USB dual connectivity</li>
+                        <li><i class="fa-solid fa-check"></i> Compatible with DigiConvo POS Dashboard</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%2058mm%20Thermal%20POS%20Printer." target="_blank" class="btn-enquire"[cite: 47]>
+                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 5: 80mm Heavy-Duty Kitchen KOT Printer -->
+            <div class="catalogue-card" data-category="pos">
+                <div class="card-visual">
+                    <span class="category-chip">POS Equipment</span>
+                    <span class="stock-chip">Commercial</span>
+                    <i class="fa-solid fa-kitchen-set main-icon" style="color: #38bdf8;"></i>
+                </div>
+                <div class="card-body">
+                    <h3>80mm Heavy-Duty Kitchen KOT Printer</h3>
+                    <p>Commercial-grade kitchen order ticket printer equipped with auto-cutter, loud audio alert for new cooking tickets, and LAN/USB connectivity.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> Auto paper cutter with 250mm/s speed</li>
+                        <li><i class="fa-solid fa-check"></i> Loud kitchen order buzzer & LED alert</li>
+                        <li><i class="fa-solid fa-check"></i> Dust and kitchen oil-smoke resistant</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%2080mm%20Kitchen%20KOT%20Printer." target="_blank" class="btn-enquire"[cite: 47]>
+                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 6: Restaurant Autonomous POS & KDS Software -->
+            <div class="catalogue-card" data-category="software">
+                <div class="card-visual">
+                    <span class="category-chip">Software Engine</span>
+                    <span class="stock-chip">Live Cloud</span>
+                    <i class="fa-solid fa-network-wired main-icon" style="color: var(--cyan);"></i>
+                </div>
+                <div class="card-body">
+                    <h3>Autonomous Ordering POS & KDS Suite</h3>
+                    <p>Our complete cloud-powered operating system for restaurants. Handles contactless table ordering, live kitchen displays, table releases, and daily GST reports.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> Real-time kitchen ticket synchronization</li>
+                        <li><i class="fa-solid fa-check"></i> PIN-protected Admin & Staff access tiers</li>
+                        <li><i class="fa-solid fa-check"></i> Detailed daily revenue CSV & Excel exports</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="services.html#restaurant-pricing" class="btn-enquire" style="background: var(--cyan); color: #060913; border: none;">
+                            <i class="fa-solid fa-bolt"></i> View Pricing (₹499/mo)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 7: Hotel Room Service & Concierge Portal -->
+            <div class="catalogue-card" data-category="software">
+                <div class="card-visual">
+                    <span class="category-chip">Software Engine</span>
+                    <span class="stock-chip">Live Cloud</span>
+                    <i class="fa-solid fa-bell-concierge main-icon" style="color: var(--amber);"></i>
+                </div>
+                <div class="card-body">
+                    <h3>In-Room Hotel Service Portal</h3>
+                    <p>A cloud portal mapped by room numbers. Guests scan bedside standees to order breakfast, request fresh towels, request cabs, or view local city guides.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> Unique digital routing per room number</li>
+                        <li><i class="fa-solid fa-check"></i> Instant dispatch to reception / kitchen</li>
+                        <li><i class="fa-solid fa-check"></i> Zero app downloads needed for guests</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20a%20demo%20of%20the%20In-Room%20Hotel%20Portal." target="_blank" class="btn-enquire"[cite: 47]>
+                            <i class="fa-brands fa-whatsapp"></i> Request Hotel Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 8: Gym QR Check-in & Schedule Portal -->
+            <div class="catalogue-card" data-category="software">
+                <div class="card-visual">
+                    <span class="category-chip">Software Engine</span>
+                    <span class="stock-chip">Live Cloud</span>
+                    <i class="fa-solid fa-clipboard-user main-icon" style="color: var(--green);"></i>
+                </div>
+                <div class="card-body">
+                    <h3>Gym Reception & Batch Schedule Hub</h3>
+                    <p>Contactless check-in portal for fitness studios. Replaces messy registers, displays trainer slots, and allows members to submit renewal confirmations.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> Digital member check-in timestamping</li>
+                        <li><i class="fa-solid fa-check"></i> Daily batch schedule & trainer profiles</li>
+                        <li><i class="fa-solid fa-check"></i> Direct UPI membership renewal links</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20a%20demo%20of%20the%20Gym%20Check-in%20System." target="_blank" class="btn-enquire"[cite: 47]>
+                            <i class="fa-brands fa-whatsapp"></i> Request Gym Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 9: Weather-Proof Vinyl Window & Counter Decals -->
+            <div class="catalogue-card" data-category="hardware">
+                <div class="card-visual">
+                    <span class="category-chip">Smart Hardware</span>
+                    <span class="stock-chip">Custom Print</span>
+                    <i class="fa-solid fa-stamp main-icon" style="color: #ec4899;"></i>
+                </div>
+                <div class="card-body">
+                    <h3>Outdoor Weatherproof QR Decals</h3>
+                    <p>Heavy-duty, UV-coated vinyl stickers designed for glass store doors, billing counters, clinic reception tables, and take-away counters.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> UV resistant & waterproof laminate</li>
+                        <li><i class="fa-solid fa-check"></i> Anti-fade inks designed for sunlight</li>
+                        <li><i class="fa-solid fa-check"></i> Custom branded with your business logo</li>
+                    </ul>
+                    <div class="card-action">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20Custom%20Weatherproof%20QR%20Decals." target="_blank" class="btn-enquire"[cite: 47]>
+                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </section>
 
-    <!-- CATALOGUE CARDS / कैटलॉग कार्ड्स ग्रिड -->
-    <main class="max-w-7xl catalogue-container">
-        
-        <!-- TEMPLATE 1: CAFE Layout -->
-        <div class="template-card">
-            <div class="mockup-visual">
-                <i class="fa-solid fa-utensils"></i>
-                <span class="mockup-badge">Minimalist Aesthetic</span>
-            </div>
-            <div class="card-content">
-                <h2>Premium Cafe Layout</h2>
-                <p>गहन और आकर्षक दृश्यों के साथ कैफ़े के लिए विशेष रूप से निर्मित डिजिटल मेनू। यह ग्राहकों को अतिरिक्त विकल्पों (add-ons) की ओर आकर्षित करता है।</p>
-                <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20saw%20the%20Premium%20Cafe%20Layout%20in%20your%20catalogue.%20I%20want%20to%20see%20a%20live%20functional%20demo%20of%20this%20setup." class="btn-preview" target="_blank">
-                    Request Live Demo
-                </a>
-            </div>
+    <!--==================================================
+    ORDER & DELIVERY PROCESS
+    ==================================================-->
+    <section class="process-section">
+        <div class="section-header">
+            <span class="section-tag">How It Works</span>
+            <h2>Simple 4-Step Setup & Delivery</h2>
+            <p>We handle all design, software configuration, printing, and hardware testing so you can start operating immediately.</p>
         </div>
 
-        <!-- TEMPLATE 2: LIBRARY Layout -->
-        <div class="template-card">
-            <div class="mockup-visual">
-                <i class="fa-solid fa-book-open"></i>
-                <span class="mockup-badge">Seat Management</span>
+        <div class="process-grid">
+            <div class="process-box">
+                <div class="step-num">01</div>
+                <h4>Select Solution</h4>
+                <p>Choose your software modules and decide on the hardware units (acrylic standees, printers, or wooden blocks) you need.</p>
             </div>
-            <div class="card-content">
-                <h2>Library Slot Booking</h2>
-                <p>सेल्फ़-स्टडी लाइब्रेरी के लिए एक व्यवस्थित प्रणाली। छात्र रिक्त सीटों और उपलब्ध समय-अंतरालों (time slots) की जांच स्वतः कर सकते हैं।</p>
-                <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20am%20interested%20in%20the%20Library%20Slot%20Booking%20Template.%20Kindly%20share%20the%20working%20mechanism%20and%20demo." class="btn-preview" target="_blank">
-                    Request Live Demo
-                </a>
+            <div class="process-box">
+                <div class="step-num">02</div>
+                <h4>Share Details</h4>
+                <p>Send us your logo, business menu/catalog, and UPI IDs via WhatsApp. Our design team prepares your custom branding.</p>
             </div>
-        </div>
-
-        <!-- TEMPLATE 3: SALON / GYM Layout -->
-        <div class="template-card">
-            <div class="mockup-visual">
-                <i class="fa-solid fa-scissors"></i>
-                <span class="mockup-badge">Appointment Route</span>
+            <div class="process-box">
+                <div class="step-num">03</div>
+                <h4>Configuration</h4>
+                <p>We deploy your cloud portal, generate high-resolution dynamic QR codes, and encode your smart NFC hardware.</p>
             </div>
-            <div class="card-content">
-                <h2>Salon & Gym Dashboard</h2>
-                <p>सैलून और फिटनेस केंद्रों के लिए आदर्श समाधान। ग्राहक उपलब्ध सेवाओं की सूची देखकर सीधे व्हाट्सएप के माध्यम से अपॉइंटमेंट बुक कर सकते हैं।</p>
-                <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20want%20to%20integrate%20the%20Salon%20and%20Gym%20Dashboard%20Template%20for%20my%20outlet.%20Please%20connect." class="btn-preview" target="_blank">
-                    Request Live Demo
-                </a>
+            <div class="process-box">
+                <div class="step-num">04</div>
+                <h4>Live & Delivered</h4>
+                <p>Your software is activated within 24 hours, and custom physical hardware is delivered directly to your venue in Central India.</p>
             </div>
         </div>
+    </section>
 
-    </main>
+    <!--==================================================
+    CTA BANNER
+    ==================================================-->
+    <section class="cta-section">
+        <div class="cta-card">
+            <h2>Need a Custom Hardware or Software Combo?</h2>
+            <p>We build tailored bundles for multi-table restaurants, multi-room hotels, and retail chains with special package discounts.</p>
+            <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20request%20a%20custom%20hardware%20and%20software%20quote." target="_blank" class="nav-cta" style="font-size: 16px; padding: 15px 32px; display: inline-flex;"[cite: 47]>
+                <i class="fa-brands fa-whatsapp"></i> Request A Custom Bundle Quote
+            </a>
+        </div>
+    </section>
 
-    <!-- FLOATING WHATSAPP CTA / व्हाट्सएप फ्लोटिंग बटन -->
-    <a href="https://api.whatsapp.com/send?phone=917470969466&text=Hello%20Digiconvo!%20I%20am%20interested%20in%20transforming%20my%20business%20into%20a%20Smart%20Digital%20Platform.%20Kindly%20share%20the%20details." class="whatsapp-float" target="_blank">
-        <i class="fa-brands fa-whatsapp"></i>
-    </a>
-
-    <!-- FOOTER / फुटर -->
+    <!--==================================================
+    FOOTER
+    ==================================================-->
     <footer>
-        <p>&copy; 2026 Digiconvo. Designed for Smart Local Businesses. All Rights Reserved.</p>
-        <p>Empowering Cafes, Libraries, Gyms, and Salons with Next-Gen Infrastructure.</p>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="brand-logo" style="margin-bottom: 16px;">
+                    <img src="logo.png" alt="DigiConvo Technologies" style="height: 38px;">
+                </div>
+                <p>Empowering physical businesses across Central India with robust digital portals, smart QR systems, and automated customer engagement tech[cite: 47].</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="services.html">Services & Packages</a></li>
+                    <li><a href="catalogue.html">Product Catalogue</a></li>
+                    <li><a href="about.html">About Company</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Hardware & Tech</h4>
+                <ul class="footer-links">
+                    <li><a href="catalogue.html">Acrylic Table Standees</a></li>
+                    <li><a href="catalogue.html">Wood Engraved QR Blocks</a></li>
+                    <li><a href="catalogue.html">NFC Review Tap Cards</a></li>
+                    <li><a href="catalogue.html">Thermal POS Printers</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Contact Us</h4>
+                <ul class="contact-info" style="list-style: none;">
+                    <li><i class="fa-solid fa-location-dot"></i> Indore, Madhya Pradesh[cite: 47]</li>
+                    <li><i class="fa-solid fa-phone"></i> +91 94247 39009[cite: 47]</li>
+                    <li><i class="fa-solid fa-envelope"></i> digiconvohelpdesk@gmail.com[cite: 47]</li>
+                    <li><i class="fa-solid fa-globe"></i> www.digiconvo.in[cite: 47]</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; 2026 DigiConvo Technologies. All rights reserved.[cite: 47]</div>
+            <div>Indore, Madhya Pradesh &bull; Central India's Tech Growth Partner[cite: 47]</div>
+        </div>
     </footer>
 
-    <!-- Mobile Menu Script / मोबाइल मेनू टॉगल स्क्रिप्ट -->
     <script>
-        const menuBtn = document.getElementById('menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
+        // Mobile Navigation Toggle
+        const menuToggle = document.getElementById("menuToggle");
+        const navLinks = document.getElementById("navLinks");
 
-        menuBtn.addEventListener('click', () => {
-            if (mobileMenu.style.display === 'block') {
-                mobileMenu.style.display = 'none';
+        menuToggle.addEventListener("click", () => {
+            navLinks.classList.toggle("active");
+            const icon = menuToggle.querySelector("i");
+            if (navLinks.classList.contains("active")) {
+                icon.classList.remove("fa-bars");
+                icon.classList.add("fa-xmark");
             } else {
-                mobileMenu.style.display = 'block';
+                icon.classList.remove("fa-xmark");
+                icon.classList.add("fa-bars");
             }
         });
+
+        // Interactive Filter Engine
+        function filterItems(category) {
+            document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
+            event.target.classList.add("active");
+
+            const cards = document.querySelectorAll(".catalogue-card");
+            cards.forEach(card => {
+                if (category === "all" || card.dataset.category === category) {
+                    card.style.display = "flex";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        }
     </script>
 </body>
 </html>
