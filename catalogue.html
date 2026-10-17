@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product & Solutions Catalogue | DigiConvo Technologies</title>
-    <meta name="description" content="Browse DigiConvo Technologies' digital software solutions, smart QR acrylic standees, NFC smart cards, and thermal POS printers for local businesses.">
+    <title>Product & Hardware Catalogue | DigiConvo Technologies</title>
+    <meta name="description" content="Explore DigiConvo Technologies' catalogue of custom QR acrylic standees, engraved wood blocks, NFC review cards, thermal POS printers, and software modules.">
 
     <!-- Browser Tab Favicon -->
     <link rel="icon" type="image/png" href="logo.png">
@@ -128,10 +128,10 @@
         }
 
         /*==================================================
-        HEADER & FILTER STRIP
+        HEADER & BRIDGE BAR
         ==================================================*/
         .page-header {
-            padding: 140px 20px 40px;
+            padding: 140px 20px 30px;
             text-align: center;
             max-width: 850px;
             margin: auto;
@@ -164,9 +164,75 @@
             line-height: 1.7;
         }
 
+        /* Navigation Bridge between Services and Catalogue */
+        .bridge-banner {
+            max-width: 1200px;
+            margin: 0 auto 35px;
+            padding: 0 20px;
+        }
+
+        .bridge-inner {
+            background: #090e1a;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .bridge-text {
+            font-size: 14px;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bridge-text i {
+            color: var(--amber);
+            font-size: 16px;
+        }
+
+        .bridge-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .bridge-pill {
+            background: #141d33;
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .bridge-pill:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .bridge-pill.highlight {
+            background: rgba(0, 174, 239, 0.15);
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        /*==================================================
+        FILTER CONTROLS
+        ==================================================*/
         .filter-container {
             max-width: 1200px;
-            margin: 20px auto 40px;
+            margin: 0 auto 40px;
             padding: 0 20px;
             display: flex;
             justify-content: center;
@@ -175,7 +241,7 @@
         }
 
         .filter-btn {
-            background: #0d1424;
+            background: var(--bg-card);
             border: 1px solid var(--border);
             color: var(--text-muted);
             padding: 10px 22px;
@@ -231,7 +297,7 @@
         }
 
         .card-visual {
-            height: 190px;
+            height: 185px;
             background: linear-gradient(135deg, #0e172a, #162038);
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -241,8 +307,8 @@
         }
 
         .card-visual i.main-icon {
-            font-size: 64px;
-            opacity: 0.85;
+            font-size: 60px;
+            opacity: 0.9;
             transition: transform 0.3s;
         }
 
@@ -265,17 +331,16 @@
             text-transform: uppercase;
         }
 
-        .stock-chip {
+        .use-case-chip {
             position: absolute;
-            top: 14px;
+            bottom: 12px;
             right: 14px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid var(--green);
-            color: var(--green);
-            padding: 4px 10px;
-            border-radius: 20px;
+            background: rgba(13, 20, 36, 0.9);
+            border: 1px solid var(--border);
+            color: #cbd5e1;
+            padding: 3px 10px;
+            border-radius: 12px;
             font-size: 11px;
-            font-weight: 700;
         }
 
         .card-body {
@@ -288,20 +353,20 @@
         .card-body h3 {
             font-size: 20px;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .card-body p {
             color: var(--text-muted);
             font-size: 14px;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             flex: 1;
         }
 
         .specs-list {
             list-style: none;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
             background: #090e1a;
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -326,20 +391,20 @@
             font-size: 11px;
         }
 
-        .card-action {
+        .card-actions {
             display: flex;
             gap: 10px;
         }
 
         .btn-enquire {
-            width: 100%;
+            flex: 1;
             background: #141d33;
             border: 1px solid var(--border);
             color: #fff;
-            padding: 12px 18px;
+            padding: 12px 14px;
             border-radius: 10px;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -348,15 +413,34 @@
         }
 
         .btn-enquire:hover {
-            background: #25d366;
-            border-color: #25d366;
+            background: var(--cyan);
+            border-color: var(--cyan);
             color: #060913;
         }
 
+        .btn-secondary-link {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary-link:hover {
+            border-color: var(--amber);
+            color: var(--amber);
+        }
+
         /*==================================================
-        ORDER & ONBOARDING PROCESS
+        BUNDLES SECTION (BRIDGING HARDWARE + SERVICES)
         ==================================================*/
-        .process-section {
+        .bundles-section {
             background: #090e1a;
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
@@ -365,8 +449,8 @@
 
         .section-header {
             text-align: center;
-            max-width: 700px;
-            margin: 0 auto 60px;
+            max-width: 720px;
+            margin: 0 auto 55px;
         }
 
         .section-tag {
@@ -380,7 +464,7 @@
         }
 
         .section-header h2 {
-            font-size: 36px;
+            font-size: 34px;
             font-weight: 800;
             margin-bottom: 14px;
         }
@@ -390,69 +474,70 @@
             font-size: 16px;
         }
 
-        .process-grid {
+        .bundles-grid {
             max-width: 1200px;
             margin: auto;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 25px;
         }
 
-        .process-box {
+        .bundle-box {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 30px 22px;
-            position: relative;
+            border-radius: 20px;
+            padding: 30px 24px;
+            display: flex;
+            flex-direction: column;
         }
 
-        .step-num {
-            font-size: 32px;
-            font-weight: 900;
-            color: rgba(0, 174, 239, 0.25);
-            margin-bottom: 12px;
+        .bundle-box.featured {
+            border-color: var(--cyan);
+            background: linear-gradient(180deg, #101c36, var(--bg-card));
         }
 
-        .process-box h4 {
-            font-size: 18px;
+        .bundle-badge {
+            display: inline-block;
+            align-self: flex-start;
+            background: rgba(245, 166, 35, 0.15);
+            color: var(--amber);
+            border: 1px solid rgba(245, 166, 35, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
             font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .bundle-box h4 {
+            font-size: 20px;
+            font-weight: 800;
             margin-bottom: 10px;
         }
 
-        .process-box p {
+        .bundle-box p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .bundle-includes {
+            list-style: none;
+            margin-bottom: 24px;
+            flex: 1;
+        }
+
+        .bundle-includes li {
             font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.6;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /*==================================================
-        CTA BANNER
-        ==================================================*/
-        .cta-section {
-            padding: 80px 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        .cta-card {
-            background: linear-gradient(135deg, #0e1e38, #182848);
-            border: 1px solid rgba(0, 174, 239, 0.4);
-            border-radius: 28px;
-            padding: 50px 40px;
-            text-align: center;
-        }
-
-        .cta-card h2 {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 12px;
-        }
-
-        .cta-card p {
-            color: var(--text-muted);
-            font-size: 16px;
-            max-width: 600px;
-            margin: 0 auto 30px;
+        .bundle-includes li i {
+            color: var(--green);
         }
 
         /*==================================================
@@ -535,7 +620,7 @@
 
         @media (max-width: 992px) {
             .grid { grid-template-columns: repeat(2, 1fr); }
-            .process-grid { grid-template-columns: repeat(2, 1fr); }
+            .bundles-grid { grid-template-columns: 1fr; }
             .footer-grid { grid-template-columns: 1fr 1fr; }
         }
 
@@ -555,9 +640,9 @@
             .nav-links.active { display: flex; }
             .menu-toggle { display: block; }
             .grid { grid-template-columns: 1fr; }
-            .process-grid { grid-template-columns: 1fr; }
             .footer-grid { grid-template-columns: 1fr; }
             .page-header h1 { font-size: 32px; }
+            .bridge-inner { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -585,8 +670,8 @@
                 <li><a href="catalogue.html" class="nav-link active">Catalogue</a></li>
                 <li><a href="about.html" class="nav-link">About Us</a></li>
                 <li>
-                    <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20order%20products/systems%20from%20your%20catalogue." target="_blank" class="nav-cta"[cite: 47]>
-                        <i class="fa-brands fa-whatsapp"></i> Get Started
+                    <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20enquire%20about%20items%20in%20your%20Catalogue." target="_blank" class="nav-cta">
+                        <i class="fa-brands fa-whatsapp"></i> Enquire Now
                     </a>
                 </li>
             </ul>
@@ -598,230 +683,268 @@
     ==================================================-->
     <header class="page-header">
         <div class="badge-pill">
-            <i class="fa-solid fa-boxes-stacked"></i> Complete Hardware & Software Suite
+            <i class="fa-solid fa-boxes-stacked"></i> Physical Hardware & Digital Modules
         </div>
-        <h1>Everything You Need For A Contactless, Digital Operation</h1>
-        <p>Explore our lineup of commercial-grade QR standees, NFC smart blocks, thermal kitchen printers, and custom web portals built for local businesses.</p>
+        <h1>Smart Touchpoints & POS Equipment Catalogue</h1>
+        <p>Browse the physical QR standees, NFC review cards, thermal printers, and pre-built software templates we deploy at your business premises.</p>
     </header>
 
     <!--==================================================
-    FILTER STRIP
+    CROSS-NAVIGATION BRIDGE TO SERVICES
     ==================================================-->
-    <div class="filter-container">
-        <button class="filter-btn active" onclick="filterItems('all')">All Offerings</button>
-        <button class="filter-btn" onclick="filterItems('hardware')">QR Standees & NFC Blocks</button>
-        <button class="filter-btn" onclick="filterItems('pos')">Printers & POS Hardware</button>
-        <button class="filter-btn" onclick="filterItems('software')">Software Portals & Engines</button>
+    <div class="bridge-banner">
+        <div class="bridge-inner">
+            <div class="bridge-text">
+                <i class="fa-solid fa-compass"></i>
+                <span>Looking for monthly software subscriptions or industry-specific solutions?</span>
+            </div>
+            <div class="bridge-links">
+                <a href="services.html#restaurant-pricing" class="bridge-pill highlight">
+                    <i class="fa-solid fa-utensils"></i> Restaurant Plans (₹199 / ₹499)
+                </a>
+                <a href="services.html#hotels" class="bridge-pill">
+                    <i class="fa-solid fa-hotel"></i> Hotel Portals
+                </a>
+                <a href="services.html#gyms" class="bridge-pill">
+                    <i class="fa-solid fa-dumbbell"></i> Gym Check-in
+                </a>
+                <a href="services.html#salons" class="bridge-pill">
+                    <i class="fa-solid fa-spa"></i> Salons & Retail
+                </a>
+            </div>
+        </div>
     </div>
 
     <!--==================================================
-    CATALOGUE GRID
+    CATEGORY FILTER BUTTONS
+    ==================================================-->
+    <div class="filter-container">
+        <button class="filter-btn active" onclick="filterItems('all', this)">All Catalogue Items</button>
+        <button class="filter-btn" onclick="filterItems('standees', this)">QR Standees & NFC Cards</button>
+        <button class="filter-btn" onclick="filterItems('printers', this)">Thermal POS Printers</button>
+        <button class="filter-btn" onclick="filterItems('portals', this)">Interactive Software Templates</button>
+    </div>
+
+    <!--==================================================
+    CATALOGUE ITEMS GRID
     ==================================================-->
     <section class="catalogue-section">
         <div class="grid" id="catalogueGrid">
 
-            <!-- Item 1: Acrylic QR Table Standee -->
-            <div class="catalogue-card" data-category="hardware">
+            <!-- 1. Acrylic QR Standee -->
+            <div class="catalogue-card" data-category="standees">
                 <div class="card-visual">
-                    <span class="category-chip">Smart Hardware</span>
-                    <span class="stock-chip">Available</span>
-                    <i class="fa-solid fa-table-cells main-icon" style="color: var(--cyan);"></i>
+                    <span class="category-chip">Table & Desk Hardware</span>
+                    <span class="use-case-chip">Restaurants &bull; Hotels &bull; Clinics</span>
+                    <i class="fa-solid fa-qrcode main-icon" style="color: var(--cyan);"></i>
                 </div>
                 <div class="card-body">
-                    <h3>Commercial Acrylic QR Standee</h3>
-                    <p>Heavy-duty, weather-resistant acrylic table standee custom printed with your logo, table numbers, and branded scan-to-order QR codes.</p>
+                    <h3>Custom Branded Acrylic QR Standee</h3>
+                    <p>Crystal-clear cast acrylic table standees custom printed with your business logo, table/room number, and instant-scan QR code.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> High-clarity 3mm cast acrylic</li>
-                        <li><i class="fa-solid fa-check"></i> Waterproof & oil-stain proof surface</li>
-                        <li><i class="fa-solid fa-check"></i> Available in A6, T-Shape, and L-Shape</li>
+                        <li><i class="fa-solid fa-check"></i> Heavy 3mm scratch & water-resistant acrylic</li>
+                        <li><i class="fa-solid fa-check"></i> Custom numbered per table or hotel room</li>
+                        <li><i class="fa-solid fa-check"></i> Available in A6 Upright & L-Stand styles</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%20Commercial%20Acrylic%20QR%20Standee." target="_blank" class="btn-enquire"[cite: 47]>
-                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                    <div class="card-actions">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20order%20Custom%20Branded%20Acrylic%20QR%20Standees." target="_blank" class="btn-enquire">
+                            <i class="fa-brands fa-whatsapp"></i> Order Standees
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Item 2: Wood Engraved QR Block -->
-            <div class="catalogue-card" data-category="hardware">
+            <!-- 2. Solid Wood Engraved QR Block -->
+            <div class="catalogue-card" data-category="standees">
                 <div class="card-visual">
                     <span class="category-chip">Luxury Hardware</span>
-                    <span class="stock-chip">Available</span>
+                    <span class="use-case-chip">Fine Dining &bull; Lounges &bull; Cafes</span>
                     <i class="fa-solid fa-cube main-icon" style="color: var(--amber);"></i>
                 </div>
                 <div class="card-body">
-                    <h3>Solid Wood Engraved QR Block</h3>
-                    <p>Premium dark-walnut finish solid wooden blocks with laser-etched dynamic QR codes. Ideal for upscale fine dining, rooftop lounges, and boutique cafes.</p>
+                    <h3>Laser-Engraved Wooden QR Cube</h3>
+                    <p>Hand-finished hardwood blocks with precision laser-etched QR codes. Built to match premium interior aesthetics without plastic glare.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> Real seasoned hardwood with matte seal</li>
-                        <li><i class="fa-solid fa-check"></i> Precision laser engraving that never fades</li>
-                        <li><i class="fa-solid fa-check"></i> Compact footprint (3" x 3" and 4" x 4")</li>
+                        <li><i class="fa-solid fa-check"></i> Seasoned walnut & teak wood finishes</li>
+                        <li><i class="fa-solid fa-check"></i> Permanent laser etching that never peels</li>
+                        <li><i class="fa-solid fa-check"></i> Weighted wind-proof base for outdoor seating</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%20Solid%20Wood%20Engraved%20QR%20Blocks." target="_blank" class="btn-enquire"[cite: 47]>
-                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                    <div class="card-actions">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20enquire%20about%20Laser-Engraved%20Wooden%20QR%20Cubes." target="_blank" class="btn-enquire">
+                            <i class="fa-brands fa-whatsapp"></i> Order Wood Blocks
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Item 3: NFC + Dynamic QR Smart Review Card -->
-            <div class="catalogue-card" data-category="hardware">
+            <!-- 3. NFC + QR Google Review Tap Card -->
+            <div class="catalogue-card" data-category="standees">
                 <div class="card-visual">
-                    <span class="category-chip">Customer Engagement</span>
-                    <span class="stock-chip">Trending</span>
-                    <i class="fa-solid fa-id-card main-icon" style="color: #a855f7;"></i>
+                    <span class="category-chip">Reputation Booster</span>
+                    <span class="use-case-chip">All Local Businesses</span>
+                    <i class="fa-solid fa-star main-icon" style="color: #a855f7;"></i>
                 </div>
                 <div class="card-body">
-                    <h3>NFC + QR Google Review Tap Card</h3>
-                    <p>Pocket-sized or counter-top smart cards with embedded NFC chip and backup QR. Customers tap with their phone to instantly open your Google Review page.</p>
+                    <h3>NFC + QR Google 5-Star Review Card</h3>
+                    <p>Smart contactless tap cards and counter stands. Customers simply tap their smartphone or scan to open your Google Review box in 1 second.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> Zero-click contactless NFC chip built-in</li>
-                        <li><i class="fa-solid fa-check"></i> Boosts Google Maps reviews by up to 300%</li>
-                        <li><i class="fa-solid fa-check"></i> Works on both Android and Apple devices</li>
+                        <li><i class="fa-solid fa-check"></i> Built-in NTAG215 NFC contactless microchip</li>
+                        <li><i class="fa-solid fa-check"></i> Lifetime validity with zero monthly fee</li>
+                        <li><i class="fa-solid fa-check"></i> Works on all iPhones and Android phones</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%20NFC%20Google%20Review%20Tap%20Card." target="_blank" class="btn-enquire"[cite: 47]>
-                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                    <div class="card-actions">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20order%20the%20NFC%20Google%20Review%20Tap%20Card." target="_blank" class="btn-enquire">
+                            <i class="fa-brands fa-whatsapp"></i> Order Review Card
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Item 4: 58mm Thermal Bluetooth/USB Receipt Printer -->
-            <div class="catalogue-card" data-category="pos">
+            <!-- 4. 58mm Thermal Billing Printer -->
+            <div class="catalogue-card" data-category="printers">
                 <div class="card-visual">
                     <span class="category-chip">POS Equipment</span>
-                    <span class="stock-chip">In Stock</span>
+                    <span class="use-case-chip">Billing Counters &bull; Cafes</span>
                     <i class="fa-solid fa-print main-icon" style="color: var(--green);"></i>
                 </div>
                 <div class="card-body">
-                    <h3>58mm Wireless POS Bill Printer</h3>
-                    <p>Compact, inkless thermal printer that connects directly via Bluetooth or USB to your counter phone, tablet, or laptop for high-speed bill printing.</p>
+                    <h3>58mm Bluetooth + USB Thermal Printer</h3>
+                    <p>Compact, zero-ink thermal receipt printer that pairs with your smartphone, tablet, or PC to print GST customer bills and KOT slips instantly.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> Zero ink or toner needed (thermal paper)</li>
-                        <li><i class="fa-solid fa-check"></i> Bluetooth + USB dual connectivity</li>
-                        <li><i class="fa-solid fa-check"></i> Compatible with DigiConvo POS Dashboard</li>
+                        <li><i class="fa-solid fa-check"></i> Dual Bluetooth & USB plug-and-play</li>
+                        <li><i class="fa-solid fa-check"></i> High-speed 90mm/sec inkless thermal head</li>
+                        <li><i class="fa-solid fa-check"></i> Pre-configured for DigiConvo POS Suite</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%2058mm%20Thermal%20POS%20Printer." target="_blank" class="btn-enquire"[cite: 47]>
-                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                    <div class="card-actions">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20enquire%20about%20the%2058mm%20Thermal%20Printer." target="_blank" class="btn-enquire">
+                            <i class="fa-brands fa-whatsapp"></i> Enquire Price
+                        </a>
+                        <a href="services.html#restaurant-pricing" class="btn-secondary-link" title="View Compatible POS Plan">
+                            POS Plan <i class="fa-solid fa-arrow-right" style="margin-left:5px;"></i>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Item 5: 80mm Heavy-Duty Kitchen KOT Printer -->
-            <div class="catalogue-card" data-category="pos">
+            <!-- 5. 80mm Auto-Cut Kitchen KOT Printer -->
+            <div class="catalogue-card" data-category="printers">
                 <div class="card-visual">
                     <span class="category-chip">POS Equipment</span>
-                    <span class="stock-chip">Commercial</span>
-                    <i class="fa-solid fa-kitchen-set main-icon" style="color: #38bdf8;"></i>
+                    <span class="use-case-chip">Commercial Kitchens &bull; Hotels</span>
+                    <i class="fa-solid fa-receipt main-icon" style="color: #38bdf8;"></i>
                 </div>
                 <div class="card-body">
-                    <h3>80mm Heavy-Duty Kitchen KOT Printer</h3>
-                    <p>Commercial-grade kitchen order ticket printer equipped with auto-cutter, loud audio alert for new cooking tickets, and LAN/USB connectivity.</p>
+                    <h3>80mm Auto-Cutter Kitchen KOT Printer</h3>
+                    <p>Heavy-duty kitchen printer with automatic paper cutter, wide 80mm itemized receipt layout, and built-in sound/light buzzer for incoming orders.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> Auto paper cutter with 250mm/s speed</li>
-                        <li><i class="fa-solid fa-check"></i> Loud kitchen order buzzer & LED alert</li>
-                        <li><i class="fa-solid fa-check"></i> Dust and kitchen oil-smoke resistant</li>
+                        <li><i class="fa-solid fa-check"></i> Automatic precision blade paper cutter</li>
+                        <li><i class="fa-solid fa-check"></i> USB + LAN Ethernet network support</li>
+                        <li><i class="fa-solid fa-check"></i> Oil-resistant cover for busy kitchens</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20the%2080mm%20Kitchen%20KOT%20Printer." target="_blank" class="btn-enquire"[cite: 47]>
-                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                    <div class="card-actions">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20enquire%20about%20the%2080mm%20Auto-Cut%20KOT%20Printer." target="_blank" class="btn-enquire">
+                            <i class="fa-brands fa-whatsapp"></i> Enquire Price
+                        </a>
+                        <a href="services.html#restaurant-pricing" class="btn-secondary-link">
+                            POS Plan <i class="fa-solid fa-arrow-right" style="margin-left:5px;"></i>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Item 6: Restaurant Autonomous POS & KDS Software -->
-            <div class="catalogue-card" data-category="software">
+            <!-- 6. Weatherproof Counter & Glass QR Decals -->
+            <div class="catalogue-card" data-category="standees">
                 <div class="card-visual">
-                    <span class="category-chip">Software Engine</span>
-                    <span class="stock-chip">Live Cloud</span>
-                    <i class="fa-solid fa-network-wired main-icon" style="color: var(--cyan);"></i>
+                    <span class="category-chip">Smart Stickers</span>
+                    <span class="use-case-chip">Takeaway &bull; Retail &bull; Gyms</span>
+                    <i class="fa-solid fa-Sheet-plastic main-icon fa-note-sticky" style="color: #ec4899;"></i>
                 </div>
                 <div class="card-body">
-                    <h3>Autonomous Ordering POS & KDS Suite</h3>
-                    <p>Our complete cloud-powered operating system for restaurants. Handles contactless table ordering, live kitchen displays, table releases, and daily GST reports.</p>
+                    <h3>UV-Laminated Weatherproof QR Decals</h3>
+                    <p>High-adhesion vinyl QR stickers for glass doors, gym reception desks, food trucks, and retail shelves. Resistant to water, heat, and sunlight.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> Real-time kitchen ticket synchronization</li>
-                        <li><i class="fa-solid fa-check"></i> PIN-protected Admin & Staff access tiers</li>
-                        <li><i class="fa-solid fa-check"></i> Detailed daily revenue CSV & Excel exports</li>
+                        <li><i class="fa-solid fa-check"></i> Matte anti-glare UV protective coating</li>
+                        <li><i class="fa-solid fa-check"></i> Tear-proof PVC vinyl material</li>
+                        <li><i class="fa-solid fa-check"></i> Custom sized for counters or product shelves</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="services.html#restaurant-pricing" class="btn-enquire" style="background: var(--cyan); color: #060913; border: none;">
-                            <i class="fa-solid fa-bolt"></i> View Pricing (₹499/mo)
+                    <div class="card-actions">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20order%20Weatherproof%20QR%20Decals." target="_blank" class="btn-enquire">
+                            <i class="fa-brands fa-whatsapp"></i> Order Decals
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Item 7: Hotel Room Service & Concierge Portal -->
-            <div class="catalogue-card" data-category="software">
+            <!-- 7. Interactive Restaurant Ordering & KDS Template -->
+            <div class="catalogue-card" data-category="portals">
                 <div class="card-visual">
-                    <span class="category-chip">Software Engine</span>
-                    <span class="stock-chip">Live Cloud</span>
-                    <i class="fa-solid fa-bell-concierge main-icon" style="color: var(--amber);"></i>
+                    <span class="category-chip">Software Module</span>
+                    <span class="use-case-chip">Restaurants &bull; Cafes &bull; Bars</span>
+                    <i class="fa-solid fa-utensils main-icon" style="color: var(--cyan);"></i>
                 </div>
                 <div class="card-body">
-                    <h3>In-Room Hotel Service Portal</h3>
-                    <p>A cloud portal mapped by room numbers. Guests scan bedside standees to order breakfast, request fresh towels, request cabs, or view local city guides.</p>
+                    <h3>Dine-In QR Menu & Live KDS Portal</h3>
+                    <p>Our flagship cloud software module featuring instant category filtering, Veg/Non-Veg badges, Happy Hour timers, cart checkout, and 5-column Kitchen Display.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> Unique digital routing per room number</li>
-                        <li><i class="fa-solid fa-check"></i> Instant dispatch to reception / kitchen</li>
-                        <li><i class="fa-solid fa-check"></i> Zero app downloads needed for guests</li>
+                        <li><i class="fa-solid fa-check"></i> Available as View-Only Menu or Full POS</li>
+                        <li><i class="fa-solid fa-check"></i> Real-time table status & bill printing</li>
+                        <li><i class="fa-solid fa-check"></i> Admin & Staff PIN role protection</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20a%20demo%20of%20the%20In-Room%20Hotel%20Portal." target="_blank" class="btn-enquire"[cite: 47]>
-                            <i class="fa-brands fa-whatsapp"></i> Request Hotel Demo
+                    <div class="card-actions">
+                        <a href="services.html#restaurant-pricing" class="btn-enquire" style="background: var(--cyan); color: #060913; border-color: var(--cyan);">
+                            <i class="fa-solid fa-tags"></i> See Plans (₹199 / ₹499)
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Item 8: Gym QR Check-in & Schedule Portal -->
-            <div class="catalogue-card" data-category="software">
+            <!-- 8. Hotel In-Room Digital Concierge Template -->
+            <div class="catalogue-card" data-category="portals">
                 <div class="card-visual">
-                    <span class="category-chip">Software Engine</span>
-                    <span class="stock-chip">Live Cloud</span>
-                    <i class="fa-solid fa-clipboard-user main-icon" style="color: var(--green);"></i>
+                    <span class="category-chip">Software Module</span>
+                    <span class="use-case-chip">Hotels &bull; Resorts &bull; Homestays</span>
+                    <i class="fa-solid fa-bed main-icon" style="color: var(--amber);"></i>
                 </div>
                 <div class="card-body">
-                    <h3>Gym Reception & Batch Schedule Hub</h3>
-                    <p>Contactless check-in portal for fitness studios. Replaces messy registers, displays trainer slots, and allows members to submit renewal confirmations.</p>
+                    <h3>Hotel Room-Service & Amenity Hub</h3>
+                    <p>Room-mapped digital guest portal. Travelers scan the bedside QR to order food to their room, request housekeeping, or view Wi-Fi and city guides.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> Digital member check-in timestamping</li>
-                        <li><i class="fa-solid fa-check"></i> Daily batch schedule & trainer profiles</li>
-                        <li><i class="fa-solid fa-check"></i> Direct UPI membership renewal links</li>
+                        <li><i class="fa-solid fa-check"></i> Auto-detects room number from QR scan</li>
+                        <li><i class="fa-solid fa-check"></i> Routes food orders to kitchen & requests to desk</li>
+                        <li><i class="fa-solid fa-check"></i> Custom branded with hotel logo & theme</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20a%20demo%20of%20the%20Gym%20Check-in%20System." target="_blank" class="btn-enquire"[cite: 47]>
-                            <i class="fa-brands fa-whatsapp"></i> Request Gym Demo
+                    <div class="card-actions">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20would%20like%20a%20live%20demo%20of%20the%20Hotel%20Room-Service%20Portal." target="_blank" class="btn-enquire">
+                            <i class="fa-brands fa-whatsapp"></i> Request Live Demo
+                        </a>
+                        <a href="services.html#hotels" class="btn-secondary-link">
+                            Details <i class="fa-solid fa-arrow-right" style="margin-left:5px;"></i>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Item 9: Weather-Proof Vinyl Window & Counter Decals -->
-            <div class="catalogue-card" data-category="hardware">
+            <!-- 9. Gym Check-in & Salon Rate Card Template -->
+            <div class="catalogue-card" data-category="portals">
                 <div class="card-visual">
-                    <span class="category-chip">Smart Hardware</span>
-                    <span class="stock-chip">Custom Print</span>
-                    <i class="fa-solid fa-stamp main-icon" style="color: #ec4899;"></i>
+                    <span class="category-chip">Software Module</span>
+                    <span class="use-case-chip">Gyms &bull; Salons &bull; Clinics</span>
+                    <i class="fa-solid fa-dumbbell main-icon" style="color: var(--green);"></i>
                 </div>
                 <div class="card-body">
-                    <h3>Outdoor Weatherproof QR Decals</h3>
-                    <p>Heavy-duty, UV-coated vinyl stickers designed for glass store doors, billing counters, clinic reception tables, and take-away counters.</p>
+                    <h3>Attendance, Rate Card & Booking Portal</h3>
+                    <p>All-in-one digital reception portal for fitness centers, salons, and clinics. Displays service rate cards, batch schedules, and books slots via WhatsApp.</p>
                     <ul class="specs-list">
-                        <li><i class="fa-solid fa-check"></i> UV resistant & waterproof laminate</li>
-                        <li><i class="fa-solid fa-check"></i> Anti-fade inks designed for sunlight</li>
-                        <li><i class="fa-solid fa-check"></i> Custom branded with your business logo</li>
+                        <li><i class="fa-solid fa-check"></i> Contactless QR check-in for gym members</li>
+                        <li><i class="fa-solid fa-check"></i> Visual service catalog with transparent pricing</li>
+                        <li><i class="fa-solid fa-check"></i> Direct UPI fee renewal & appointment triggers</li>
                     </ul>
-                    <div class="card-action">
-                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20inquiring%20about%20Custom%20Weatherproof%20QR%20Decals." target="_blank" class="btn-enquire"[cite: 47]>
-                            <i class="fa-brands fa-whatsapp"></i> Enquire / Order
+                    <div class="card-actions">
+                        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20would%20like%20a%20demo%20of%20the%20Gym/Salon%20Reception%20Portal." target="_blank" class="btn-enquire">
+                            <i class="fa-brands fa-whatsapp"></i> Request Live Demo
+                        </a>
+                        <a href="services.html#gyms" class="btn-secondary-link">
+                            Details <i class="fa-solid fa-arrow-right" style="margin-left:5px;"></i>
                         </a>
                     </div>
                 </div>
@@ -831,49 +954,63 @@
     </section>
 
     <!--==================================================
-    ORDER & DELIVERY PROCESS
+    READY-TO-GO HARDWARE + SOFTWARE BUNDLES
     ==================================================-->
-    <section class="process-section">
+    <section class="bundles-section">
         <div class="section-header">
-            <span class="section-tag">How It Works</span>
-            <h2>Simple 4-Step Setup & Delivery</h2>
-            <p>We handle all design, software configuration, printing, and hardware testing so you can start operating immediately.</p>
+            <span class="section-tag">All-In-One Turnkey Kits</span>
+            <h2>Hardware + Software Starter Bundles</h2>
+            <p>Want us to set up both your digital portal and your physical table/counter standees together? Choose a pre-configured turnkey kit.</p>
         </div>
 
-        <div class="process-grid">
-            <div class="process-box">
-                <div class="step-num">01</div>
-                <h4>Select Solution</h4>
-                <p>Choose your software modules and decide on the hardware units (acrylic standees, printers, or wooden blocks) you need.</p>
+        <div class="bundles-grid">
+            <!-- Bundle 1 -->
+            <div class="bundle-box">
+                <span class="bundle-badge">CAFE & SMALL EATERY KIT</span>
+                <h4>Digital Menu Table Kit</h4>
+                <p>Ideal for cafes and quick-service outlets upgrading from paper menus to contactless table scans.</p>
+                <ul class="bundle-includes">
+                    <li><i class="fa-solid fa-circle-check"></i> Smart QR Menu Setup (₹299 Setup + ₹199/mo)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 5 to 10 Custom Acrylic Table QR Standees</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 1 Counter NFC Google Review Tap Card</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Complete Menu Data & Price Upload</li>
+                </ul>
+                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20interested%20in%20the%20Digital%20Menu%20Table%20Kit%20(Software%20+%20Standees)." target="_blank" class="btn-enquire">
+                    <i class="fa-brands fa-whatsapp"></i> Get Bundle Quote
+                </a>
             </div>
-            <div class="process-box">
-                <div class="step-num">02</div>
-                <h4>Share Details</h4>
-                <p>Send us your logo, business menu/catalog, and UPI IDs via WhatsApp. Our design team prepares your custom branding.</p>
-            </div>
-            <div class="process-box">
-                <div class="step-num">03</div>
-                <h4>Configuration</h4>
-                <p>We deploy your cloud portal, generate high-resolution dynamic QR codes, and encode your smart NFC hardware.</p>
-            </div>
-            <div class="process-box">
-                <div class="step-num">04</div>
-                <h4>Live & Delivered</h4>
-                <p>Your software is activated within 24 hours, and custom physical hardware is delivered directly to your venue in Central India.</p>
-            </div>
-        </div>
-    </section>
 
-    <!--==================================================
-    CTA BANNER
-    ==================================================-->
-    <section class="cta-section">
-        <div class="cta-card">
-            <h2>Need a Custom Hardware or Software Combo?</h2>
-            <p>We build tailored bundles for multi-table restaurants, multi-room hotels, and retail chains with special package discounts.</p>
-            <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20request%20a%20custom%20hardware%20and%20software%20quote." target="_blank" class="nav-cta" style="font-size: 16px; padding: 15px 32px; display: inline-flex;"[cite: 47]>
-                <i class="fa-brands fa-whatsapp"></i> Request A Custom Bundle Quote
-            </a>
+            <!-- Bundle 2 (Featured) -->
+            <div class="bundle-box featured">
+                <span class="bundle-badge" style="background: rgba(0, 174, 239, 0.2); color: var(--cyan); border-color: var(--cyan);">FULL RESTAURANT AUTOMATION</span>
+                <h4>Smart POS + Printer Turnkey Kit</h4>
+                <p>Complete table ordering, live kitchen display, table standees, and thermal bill/KOT printing in one box.</p>
+                <ul class="bundle-includes">
+                    <li><i class="fa-solid fa-circle-check"></i> Autonomous Ordering + POS (₹499 Setup + ₹499/mo)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 10 Custom Numbered Acrylic or Wood Standees</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 58mm or 80mm Thermal Receipt/KOT Printer</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Staff & Kitchen On-Ground Training</li>
+                </ul>
+                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20interested%20in%20the%20Smart%20POS%20+%20Printer%20Turnkey%20Kit." target="_blank" class="btn-enquire" style="background: var(--cyan); color: #060913; border: none;">
+                    <i class="fa-brands fa-whatsapp"></i> Get Turnkey Kit Quote
+                </a>
+            </div>
+
+            <!-- Bundle 3 -->
+            <div class="bundle-box">
+                <span class="bundle-badge">GYM / SALON / CLINIC KIT</span>
+                <h4>Smart Reception Desk Kit</h4>
+                <p>Transform your front desk with digital check-ins, interactive service catalogs, and automated Google reviews.</p>
+                <ul class="bundle-includes">
+                    <li><i class="fa-solid fa-circle-check"></i> Custom Digital Rate Card or Check-in Portal</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 2 Large Reception Acrylic QR Standees</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 2 NFC Google 5-Star Review Tap Cards</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Direct WhatsApp Booking & UPI Integration</li>
+                </ul>
+                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20interested%20in%20the%20Smart%20Reception%20Desk%20Kit%20for%20my%20business." target="_blank" class="btn-enquire">
+                    <i class="fa-brands fa-whatsapp"></i> Get Reception Kit Quote
+                </a>
+            </div>
         </div>
     </section>
 
@@ -884,13 +1021,16 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <div class="brand-logo" style="margin-bottom: 16px;">
-                    <img src="logo.png" alt="DigiConvo Technologies" style="height: 38px;">
+                    <img src="logo.png" alt="DigiConvo Technologies" style="height: 38px;" onerror="this.style.display='none'; document.getElementById('footerFallbackText').style.display='block';">
+                    <div id="footerFallbackText" style="display:none; font-size:18px; font-weight:800;">
+                        Digi<span style="color:var(--cyan)">Convo</span> <span style="color:var(--amber); font-size:13px;">Technologies</span>
+                    </div>
                 </div>
-                <p>Empowering physical businesses across Central India with robust digital portals, smart QR systems, and automated customer engagement tech[cite: 47].</p>
+                <p>Empowering physical businesses across Central India with robust digital portals, smart QR systems, and automated customer engagement tech.</p>
             </div>
 
             <div class="footer-col">
-                <h4>Quick Links</h4>
+                <h4>Navigation</h4>
                 <ul class="footer-links">
                     <li><a href="index.html">Home</a></li>
                     <li><a href="services.html">Services & Packages</a></li>
@@ -900,31 +1040,41 @@
             </div>
 
             <div class="footer-col">
-                <h4>Hardware & Tech</h4>
+                <h4>Service Packages</h4>
                 <ul class="footer-links">
-                    <li><a href="catalogue.html">Acrylic Table Standees</a></li>
-                    <li><a href="catalogue.html">Wood Engraved QR Blocks</a></li>
-                    <li><a href="catalogue.html">NFC Review Tap Cards</a></li>
-                    <li><a href="catalogue.html">Thermal POS Printers</a></li>
+                    <li><a href="services.html#restaurant-pricing">Restaurant Plans (₹199 / ₹499)</a></li>
+                    <li><a href="services.html#hotels">Hotel In-Room Service</a></li>
+                    <li><a href="services.html#gyms">Gym & Fitness Check-in</a></li>
+                    <li><a href="services.html#salons">Salons & Retail Stores</a></li>
                 </ul>
             </div>
 
             <div class="footer-col">
                 <h4>Contact Us</h4>
                 <ul class="contact-info" style="list-style: none;">
-                    <li><i class="fa-solid fa-location-dot"></i> Indore, Madhya Pradesh[cite: 47]</li>
-                    <li><i class="fa-solid fa-phone"></i> +91 94247 39009[cite: 47]</li>
-                    <li><i class="fa-solid fa-envelope"></i> digiconvohelpdesk@gmail.com[cite: 47]</li>
-                    <li><i class="fa-solid fa-globe"></i> www.digiconvo.in[cite: 47]</li>
+                    <li><i class="fa-solid fa-location-dot"></i> Indore, Madhya Pradesh</li>
+                    <li><i class="fa-solid fa-phone"></i> <a href="tel:+919424739009">+91 94247 39009</a></li>
+                    <li><i class="fa-solid fa-envelope"></i> <a href="mailto:digiconvohelpdesk@gmail.com">digiconvohelpdesk@gmail.com</a></li>
+                    <li><i class="fa-solid fa-globe"></i> <a href="https://www.digiconvo.in" target="_blank">www.digiconvo.in</a></li>
                 </ul>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <div>&copy; 2026 DigiConvo Technologies. All rights reserved.[cite: 47]</div>
-            <div>Indore, Madhya Pradesh &bull; Central India's Tech Growth Partner[cite: 47]</div>
+            <div>&copy; 2026 DigiConvo Technologies. All rights reserved.</div>
+            <div>Indore, Madhya Pradesh &bull; Central India's Tech Growth Partner</div>
         </div>
     </footer>
+
+    <!-- Floating Contact Widget -->
+    <div id="floatingContact" style="position:fixed; bottom:24px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:12px;">
+        <a href="tel:+919424739009" aria-label="Call DigiConvo" style="width:50px; height:50px; border-radius:50%; background:#00aeef; color:#060913; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 8px 20px rgba(0,174,239,0.4);">
+            <i class="fa-solid fa-phone"></i>
+        </a>
+        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20interested%20in%20your%20digital%20solutions." target="_blank" aria-label="WhatsApp DigiConvo" style="width:50px; height:50px; border-radius:50%; background:#25d366; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 8px 20px rgba(37,211,102,0.4);">
+            <i class="fa-brands fa-whatsapp"></i>
+        </a>
+    </div>
 
     <script>
         // Mobile Navigation Toggle
@@ -943,10 +1093,10 @@
             }
         });
 
-        // Interactive Filter Engine
-        function filterItems(category) {
+        // Bug-free Category Filter Engine
+        function filterItems(category, clickedBtn) {
             document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
-            event.target.classList.add("active");
+            if (clickedBtn) clickedBtn.classList.add("active");
 
             const cards = document.querySelectorAll(".catalogue-card");
             cards.forEach(card => {
