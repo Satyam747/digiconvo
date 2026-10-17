@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DigiConvo Technologies | Digital Growth Partner for Local Businesses</title>
     <meta name="description" content="DigiConvo Technologies empowers local businesses in Central India with smart QR solutions, contactless ordering, digital catalogs, and customer engagement tools.">
+
+    <!-- Browser Tab Favicon -->
     <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
@@ -43,14 +47,14 @@
         }
 
         /*==================================================
-        NAVBAR & LOGO STYLING
+        NAVBAR
         ==================================================*/
         .navbar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            background: rgba(6, 9, 19, 0.88);
+            background: rgba(6, 9, 19, 0.9);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
@@ -70,10 +74,8 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            text-decoration: none;
         }
 
-        /* Clean logo handling */
         .brand-logo img {
             height: 44px;
             width: auto;
@@ -392,7 +394,7 @@
         }
 
         .vertical-card.featured {
-            border-color: var(--cyan);
+            border: 2px solid var(--cyan);
             background: linear-gradient(180deg, #10192e, var(--bg-card));
         }
 
@@ -698,10 +700,10 @@
             </p>
             <div class="hero-actions">
                 <a href="services.html" class="btn-primary">
-                    Explore Solutions <i class="fa-solid fa-arrow-right"></i>
+                    Explore Services & Plans <i class="fa-solid fa-arrow-right"></i>
                 </a>
-                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20would%20like%20a%20free%20consultation%20for%20my%20business." target="_blank" class="btn-secondary">
-                    <i class="fa-brands fa-whatsapp" style="color: #25d366;"></i> Talk to Us
+                <a href="catalogue.html" class="btn-secondary">
+                    <i class="fa-solid fa-boxes-stacked" style="color: var(--amber);"></i> View Hardware Catalogue
                 </a>
             </div>
         </div>
@@ -718,17 +720,17 @@
                 </div>
 
                 <div class="preview-features">
-                    <div class="feature-chip">
+                    <a href="services.html#restaurant-pricing" class="feature-chip">
                         <div class="feature-icon-box" style="background: rgba(0, 174, 239, 0.15); color: var(--cyan);">
                             <i class="fa-solid fa-utensils"></i>
                         </div>
                         <div>
                             <div style="font-weight: 700; font-size: 15px;">Smart Dining & Kitchen KOT</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Instant ordering, billing & live analytics</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Plans starting at ₹199/mo &bull; View Packages &rarr;</div>
                         </div>
-                    </div>
+                    </a>
 
-                    <div class="feature-chip">
+                    <a href="services.html#hotels" class="feature-chip">
                         <div class="feature-icon-box" style="background: rgba(245, 166, 35, 0.15); color: var(--amber);">
                             <i class="fa-solid fa-hotel"></i>
                         </div>
@@ -736,9 +738,9 @@
                             <div style="font-weight: 700; font-size: 15px;">In-Room QR Hotel Service</div>
                             <div style="font-size: 12px; color: var(--text-muted);">Guest room service & housekeeping tickets</div>
                         </div>
-                    </div>
+                    </a>
 
-                    <div class="feature-chip">
+                    <a href="services.html#gyms" class="feature-chip">
                         <div class="feature-icon-box" style="background: rgba(16, 185, 129, 0.15); color: var(--green);">
                             <i class="fa-solid fa-dumbbell"></i>
                         </div>
@@ -746,17 +748,17 @@
                             <div style="font-weight: 700; font-size: 15px;">Gym Passes & Schedules</div>
                             <div style="font-size: 12px; color: var(--text-muted);">Digital attendance and membership renews</div>
                         </div>
-                    </div>
+                    </a>
 
-                    <div class="feature-chip">
+                    <a href="catalogue.html" class="feature-chip">
                         <div class="feature-icon-box" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">
                             <i class="fa-solid fa-star"></i>
                         </div>
                         <div>
-                            <div style="font-weight: 700; font-size: 15px;">Automated 5-Star Reviews</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Direct Google Maps review boost triggers</div>
+                            <div style="font-weight: 700; font-size: 15px;">NFC Tap Cards & QR Standees</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Explore physical standees & POS printers &rarr;</div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>
@@ -793,7 +795,7 @@
         <div class="section-header">
             <span class="section-subtitle">Industries We Modernize</span>
             <h2>Tailored Digital Systems Built For Your Specific Business</h2>
-            <p>Every business operates differently. We build custom QR flows and digital touchpoints engineered for your customer journey.</p>
+            <p>Every business operates differently. We build custom QR flows and physical standees engineered for your customer journey.</p>
         </div>
 
         <div class="verticals-grid">
@@ -805,11 +807,11 @@
                 <h3>Restaurants & Cafes</h3>
                 <p>Turn tables faster with contactless table QR menus, POS billing, instant KOT printing, and staff management.</p>
                 <ul class="feature-bullets">
-                    <li><i class="fa-solid fa-check"></i> Interactive QR Menu & Table Ordering</li>
-                    <li><i class="fa-solid fa-check"></i> Live Kitchen Display System (KDS)</li>
+                    <li><i class="fa-solid fa-check"></i> Smart QR Menu Plan (₹199/mo)</li>
+                    <li><i class="fa-solid fa-check"></i> Full Ordering + POS Suite (₹499/mo)</li>
                     <li><i class="fa-solid fa-check"></i> Thermal Bill & KOT Print Integration</li>
                 </ul>
-                <a href="services.html#restaurants" class="card-link">View Restaurant Packages <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="services.html#restaurant-pricing" class="card-link">View Restaurant Packages <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
             <!-- 2. Hotels & Homestays -->
@@ -872,19 +874,19 @@
                 <a href="services.html#retail" class="card-link">Explore Retail Solutions <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
-            <!-- 6. Custom Local Ventures -->
+            <!-- 6. Custom Hardware & Standees -->
             <div class="vertical-card">
                 <div class="vertical-icon" style="background: rgba(168, 85, 247, 0.2); color: #a855f7;">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <i class="fa-solid fa-boxes-stacked"></i>
                 </div>
-                <h3>Custom Business Workflows</h3>
-                <p>Have an event venue, car wash, or service agency? We design tailor-made digital portals and branded acrylic QR stands for any business.</p>
+                <h3>Hardware & POS Catalogue</h3>
+                <p>Equip your tables and counters with custom acrylic QR stands, laser-etched wood blocks, NFC review cards, and thermal printers.</p>
                 <ul class="feature-bullets">
-                    <li><i class="fa-solid fa-check"></i> Custom Domain & Branding</li>
-                    <li><i class="fa-solid fa-check"></i> Premium Acrylic & Wooden Standees</li>
-                    <li><i class="fa-solid fa-check"></i> Dedicated Ground Support in MP</li>
+                    <li><i class="fa-solid fa-check"></i> Custom Acrylic & Wooden QR Standees</li>
+                    <li><i class="fa-solid fa-check"></i> 58mm & 80mm Thermal KOT/Bill Printers</li>
+                    <li><i class="fa-solid fa-check"></i> NFC Google 5-Star Review Tap Cards</li>
                 </ul>
-                <a href="catalogue.html" class="card-link">Browse Full Catalogue <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="catalogue.html" class="card-link">Open Product Catalogue <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         </div>
     </section>
@@ -934,7 +936,7 @@
                     <i class="fa-brands fa-whatsapp"></i> Chat With Us on WhatsApp
                 </a>
                 <a href="catalogue.html" class="btn-secondary" style="font-size: 16px; padding: 16px 32px;">
-                    Explore Products & Catalogue
+                    Browse Hardware & Catalogue
                 </a>
             </div>
         </div>
@@ -947,13 +949,16 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <div class="brand-logo" style="margin-bottom: 16px;">
-                    <img src="logo.png" alt="DigiConvo Technologies" style="height: 38px;">
+                    <img src="logo.png" alt="DigiConvo Technologies" style="height: 38px;" onerror="this.style.display='none'; document.getElementById('footerFallbackText').style.display='block';">
+                    <div id="footerFallbackText" style="display:none; font-size:18px; font-weight:800;">
+                        Digi<span style="color:var(--cyan)">Convo</span> <span style="color:var(--amber); font-size:13px;">Technologies</span>
+                    </div>
                 </div>
                 <p>Your comprehensive digital transformation partner in Central India. We equip physical local businesses with high-impact software, smart QR tech, and automation tools.</p>
             </div>
 
             <div class="footer-col">
-                <h4>Quick Links</h4>
+                <h4>Navigation</h4>
                 <ul class="footer-links">
                     <li><a href="index.html">Home</a></li>
                     <li><a href="services.html">Services & Packages</a></li>
@@ -965,7 +970,7 @@
             <div class="footer-col">
                 <h4>Specialized Sectors</h4>
                 <ul class="footer-links">
-                    <li><a href="services.html#restaurants">Restaurants & Dining POS</a></li>
+                    <li><a href="services.html#restaurant-pricing">Restaurants & Dining POS</a></li>
                     <li><a href="services.html#hotels">Hotels & Homestay Service</a></li>
                     <li><a href="services.html#gyms">Gyms & Fitness Check-in</a></li>
                     <li><a href="services.html#salons">Salons & Healthcare Clinics</a></li>
@@ -976,18 +981,28 @@
                 <h4>Connect With Us</h4>
                 <ul class="contact-info" style="list-style: none;">
                     <li><i class="fa-solid fa-location-dot"></i> Indore, Madhya Pradesh</li>
-                    <li><i class="fa-solid fa-phone"></i> +91 94247 39009</li>
-                    <li><i class="fa-solid fa-envelope"></i> digiconvohelpdesk@gmail.com</li>
-                    <li><i class="fa-solid fa-globe"></i> www.digiconvo.in</li>
+                    <li><i class="fa-solid fa-phone"></i> <a href="tel:+919424739009">+91 94247 39009</a></li>
+                    <li><i class="fa-solid fa-envelope"></i> <a href="mailto:digiconvohelpdesk@gmail.com">digiconvohelpdesk@gmail.com</a></li>
+                    <li><i class="fa-solid fa-globe"></i> <a href="https://www.digiconvo.in" target="_blank">www.digiconvo.in</a></li>
                 </ul>
             </div>
         </div>
 
         <div class="footer-bottom">
             <div>&copy; 2026 DigiConvo Technologies. All rights reserved.</div>
-            <div>Built for Local Businesses &bull; Designed in Indore, MP</div>
+            <div>Indore, Madhya Pradesh &bull; Central India's Tech Growth Partner</div>
         </div>
     </footer>
+
+    <!-- Floating Contact Widget -->
+    <div id="floatingContact" style="position:fixed; bottom:24px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:12px;">
+        <a href="tel:+919424739009" aria-label="Call DigiConvo" style="width:50px; height:50px; border-radius:50%; background:#00aeef; color:#060913; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 8px 20px rgba(0,174,239,0.4);">
+            <i class="fa-solid fa-phone"></i>
+        </a>
+        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20interested%20in%20your%20digital%20solutions." target="_blank" aria-label="WhatsApp DigiConvo" style="width:50px; height:50px; border-radius:50%; background:#25d366; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 8px 20px rgba(37,211,102,0.4);">
+            <i class="fa-brands fa-whatsapp"></i>
+        </a>
+    </div>
 
     <script>
         // Mobile Navigation Toggle
