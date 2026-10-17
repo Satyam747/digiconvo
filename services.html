@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Services & Solutions | DigiConvo Technologies</title>
+    <title>Services & Packages | DigiConvo Technologies</title>
     <meta name="description" content="Explore digital growth services by DigiConvo Technologies for restaurants, hotels, gyms, salons, and retail stores in Central India.">
 
     <!-- Browser Tab Favicon -->
@@ -128,10 +128,10 @@
         }
 
         /*==================================================
-        PAGE HEADER
+        PAGE HEADER & QUICK INDUSTRY NAV
         ==================================================*/
         .page-header {
-            padding: 140px 20px 60px;
+            padding: 140px 20px 30px;
             text-align: center;
             max-width: 850px;
             margin: auto;
@@ -164,11 +164,52 @@
             line-height: 1.7;
         }
 
+        .quick-jump-bar {
+            max-width: 1200px;
+            margin: 10px auto 30px;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .jump-pill {
+            background: #0d1424;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 9px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .jump-pill:hover {
+            border-color: var(--cyan);
+            color: #fff;
+        }
+
+        .jump-pill.primary {
+            background: rgba(0, 174, 239, 0.15);
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .jump-pill.amber {
+            background: rgba(245, 166, 35, 0.12);
+            border-color: rgba(245, 166, 35, 0.4);
+            color: var(--amber);
+        }
+
         /*==================================================
         SERVICE VERTICALS GRID
         ==================================================*/
         .section {
-            padding: 40px 20px 80px;
+            padding: 20px 20px 80px;
             max-width: 1200px;
             margin: auto;
         }
@@ -177,7 +218,6 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 24px;
-            margin-bottom: 80px;
         }
 
         .service-card {
@@ -189,6 +229,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            scroll-margin-top: 100px;
         }
 
         .service-card:hover {
@@ -203,7 +244,7 @@
         }
 
         .service-card.highlight::before {
-            content: "POPULAR SECTOR";
+            content: "CLICK FOR PACKAGES";
             position: absolute;
             top: -12px;
             right: 20px;
@@ -290,6 +331,7 @@
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
             padding: 90px 20px;
+            scroll-margin-top: 70px;
         }
 
         .pricing-header {
@@ -527,36 +569,6 @@
         }
 
         /*==================================================
-        CTA BANNER
-        ==================================================*/
-        .cta-section {
-            padding: 60px 20px 90px;
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        .cta-card {
-            background: linear-gradient(135deg, #0e1e38, #182848);
-            border: 1px solid rgba(0, 174, 239, 0.4);
-            border-radius: 28px;
-            padding: 50px 40px;
-            text-align: center;
-        }
-
-        .cta-card h2 {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 12px;
-        }
-
-        .cta-card p {
-            color: var(--text-muted);
-            font-size: 16px;
-            max-width: 600px;
-            margin: 0 auto 30px;
-        }
-
-        /*==================================================
         FOOTER
         ==================================================*/
         footer {
@@ -634,9 +646,6 @@
             gap: 15px;
         }
 
-        /*==================================================
-        RESPONSIVE
-        ==================================================*/
         @media (max-width: 992px) {
             .services-grid { grid-template-columns: repeat(2, 1fr); }
             .pricing-grid { grid-template-columns: 1fr; }
@@ -698,35 +707,48 @@
     </nav>
 
     <!--==================================================
-    PAGE HEADER
+    PAGE HEADER & QUICK NAVIGATION
     ==================================================-->
     <header class="page-header">
         <div class="badge-pill">
-            <i class="fa-solid fa-sliders"></i> Complete Business Digitization
+            <i class="fa-solid fa-sliders"></i> Complete Digital Growth Partner
         </div>
-        <h1>Tailored Systems Engineered For Local Commerce</h1>
-        <p>From smart dine-in QR ordering to hotel room service and gym check-ins, we build affordable, high-impact systems that give your business a tech edge over competitors.</p>
+        <h1>Industry Solutions & Subscription Packages</h1>
+        <p>We partner with local businesses to digitize customer workflows. Click on Restaurants below to view our two dedicated dining packages, or explore solutions for your industry.</p>
     </header>
+
+    <div class="quick-jump-bar">
+        <a href="#restaurant-pricing" class="jump-pill primary">
+            <i class="fa-solid fa-utensils"></i> Restaurant Pricing (₹199 & ₹499)
+        </a>
+        <a href="#hotels" class="jump-pill"><i class="fa-solid fa-hotel"></i> Hotels</a>
+        <a href="#gyms" class="jump-pill"><i class="fa-solid fa-dumbbell"></i> Gyms</a>
+        <a href="#salons" class="jump-pill"><i class="fa-solid fa-spa"></i> Salons & Clinics</a>
+        <a href="#retail" class="jump-pill"><i class="fa-solid fa-store"></i> Retail</a>
+        <a href="catalogue.html" class="jump-pill amber">
+            <i class="fa-solid fa-boxes-stacked"></i> View Hardware Catalogue <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
 
     <!--==================================================
     SERVICE VERTICALS
     ==================================================-->
     <section class="section">
         <div class="services-grid">
-            <!-- 1. Restaurants (Anchor to pricing) -->
-            <div class="service-card highlight" id="restaurants-card">
+            <!-- 1. Restaurants (Clickable card leading to pricing) -->
+            <div class="service-card highlight" id="restaurants" onclick="location.href='#restaurant-pricing'" style="cursor: pointer;">
                 <div class="service-icon" style="background: rgba(0, 174, 239, 0.2); color: var(--cyan);">
                     <i class="fa-solid fa-utensils"></i>
                 </div>
                 <h3>Restaurants & Cafes</h3>
-                <p>Complete QR dining automation, live kitchen ticket routing (KDS), thermal receipt printing, and comprehensive sales reports.</p>
+                <p>Complete QR dining automation, live kitchen ticket routing (KDS), thermal receipt printing, and comprehensive daily GST reports.</p>
                 <ul class="feature-list">
                     <li><i class="fa-solid fa-check"></i> Instant QR Menu & Contactless Ordering</li>
                     <li><i class="fa-solid fa-check"></i> Live Kitchen Display & KOT Printing</li>
-                    <li><i class="fa-solid fa-check"></i> Direct UPI & Cash Billing</li>
+                    <li><i class="fa-solid fa-check"></i> Direct UPI & Cash Counter Billing</li>
                 </ul>
                 <a href="#restaurant-pricing" class="card-btn" style="background: var(--cyan); color: #060913; border: none;">
-                    View Restaurant Packages <i class="fa-solid fa-arrow-down"></i>
+                    See 2 Restaurant Packages <i class="fa-solid fa-arrow-down"></i>
                 </a>
             </div>
 
@@ -736,7 +758,7 @@
                     <i class="fa-solid fa-hotel"></i>
                 </div>
                 <h3>Hotels & Homestays</h3>
-                <p>Provide guests with an in-room digital portal. Allow them to order breakfast, request housekeeping, or access Wi-Fi details from their bed.</p>
+                <p>Provide guests with an in-room digital portal. Allow them to order breakfast, request housekeeping, or access Wi-Fi details from their room.</p>
                 <ul class="feature-list">
                     <li><i class="fa-solid fa-check"></i> In-Room QR Dining & Room Service</li>
                     <li><i class="fa-solid fa-check"></i> Concierge & Housekeeping Tickets</li>
@@ -798,20 +820,20 @@
                 </a>
             </div>
 
-            <!-- 6. Custom Local Business -->
+            <!-- 6. Hardware & Standees Bridge -->
             <div class="service-card">
                 <div class="service-icon" style="background: rgba(168, 85, 247, 0.2); color: #a855f7;">
-                    <i class="fa-solid fa-layer-group"></i>
+                    <i class="fa-solid fa-qrcode"></i>
                 </div>
-                <h3>Custom Tech Solutions</h3>
-                <p>Need something custom for a banquet hall, workshop, car service, or local franchise? We build dedicated, bespoke software workflows.</p>
+                <h3>Physical Hardware & Printers</h3>
+                <p>Need custom acrylic QR standees, laser-engraved wooden blocks, NFC Google review tap cards, or thermal POS printers?</p>
                 <ul class="feature-list">
-                    <li><i class="fa-solid fa-check"></i> Custom White-label Portals</li>
-                    <li><i class="fa-solid fa-check"></i> Custom Acrylic & Wooden Hardware</li>
-                    <li><i class="fa-solid fa-check"></i> Full Database & Staff Integration</li>
+                    <li><i class="fa-solid fa-check"></i> Custom Branded Acrylic & Wood Standees</li>
+                    <li><i class="fa-solid fa-check"></i> NFC Contactless Google Review Cards</li>
+                    <li><i class="fa-solid fa-check"></i> 58mm & 80mm Thermal Receipt Printers</li>
                 </ul>
-                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20need%20a%20custom%20software%20solution%20for%20my%20business." target="_blank" class="card-btn">
-                    Discuss Custom Project <i class="fa-solid fa-arrow-right"></i>
+                <a href="catalogue.html" class="card-btn" style="border-color: var(--amber); color: var(--amber);">
+                    Open Hardware Catalogue <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -824,14 +846,14 @@
         <div class="pricing-header">
             <span class="section-tag">Clear & Transparent Pricing</span>
             <h2>Restaurant & Food Business Packages</h2>
-            <p>Select the plan that fits your current operational setup. Scale seamlessly from a clean digital menu to full kitchen POS automation.</p>
+            <p>Select the plan that fits your dining operation. Upgrade anytime from a view-only digital QR menu to full kitchen & POS automation.</p>
         </div>
 
         <div class="pricing-grid">
-            <!-- Plan 1: Smart QR Menu -->
+            <!-- Package 1: 299 Setup + 199/month -->
             <div class="pricing-card">
                 <div class="plan-name">Smart QR Menu</div>
-                <div class="plan-desc">For cafes and food outlets looking to eliminate printed paper menus with an elegant digital scan.</div>
+                <div class="plan-desc">Just menu through QR — ideal for cafes and food outlets replacing paper menus with an instant mobile scan.</div>
 
                 <div class="plan-price-box">
                     <div class="price-setup">One-time Setup: ₹299</div>
@@ -839,28 +861,28 @@
                 </div>
 
                 <ul class="plan-features">
-                    <li><i class="fa-solid fa-check"></i> <b>Mobile-Optimized Digital Menu</b></li>
-                    <li><i class="fa-solid fa-check"></i> Dynamic Price & Item Updates (Unlimited)</li>
-                    <li><i class="fa-solid fa-check"></i> Veg / Non-Veg Categorization</li>
-                    <li><i class="fa-solid fa-check"></i> Happy Hour & Discount Badge Support</li>
-                    <li><i class="fa-solid fa-check"></i> High-Resolution Food Images & Descriptions</li>
-                    <li><i class="fa-solid fa-check"></i> High-Resolution Printable Table QR Files</li>
-                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Direct Table Ordering & Cart Checkout</li>
-                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Kitchen Display System (KDS)</li>
-                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Thermal Bill & KOT Printing</li>
-                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Daily Sales & GST Analytics Reports</li>
+                    <li><i class="fa-solid fa-check"></i> <b>Mobile-Optimized Digital QR Menu</b></li>
+                    <li><i class="fa-solid fa-check"></i> Instant Dish Search & Category Filter</li>
+                    <li><i class="fa-solid fa-check"></i> Veg / Non-Veg Badges & Dish Photos</li>
+                    <li><i class="fa-solid fa-check"></i> Unlimited Price & Stock Updates</li>
+                    <li><i class="fa-solid fa-check"></i> Special Discount & Happy Hour Badges</li>
+                    <li><i class="fa-solid fa-check"></i> Printable High-Resolution Table QR Codes</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Customer Table Cart & Order Placement</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Live 5-Column Kitchen Display (KDS)</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Thermal Bill & Kitchen KOT Printing</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Daily Revenue, GST & Excel Reports</li>
                 </ul>
 
-                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20get%20started%20with%20the%20Smart%20QR%20Menu%20Plan%20(Rs.299%20setup%20+%20Rs.199/month)." target="_blank" class="plan-btn btn-outline">
-                    Choose QR Menu Plan
+                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20get%20started%20with%20the%20Smart%20QR%20Menu%20Package%20(Rs.299%20Setup%20+%20Rs.199/month)." target="_blank" class="plan-btn btn-outline">
+                    Get QR Menu (₹199/mo)
                 </a>
             </div>
 
-            <!-- Plan 2: Full System & POS (Featured) -->
+            <!-- Package 2: 499 Setup + 499/month -->
             <div class="pricing-card featured-plan">
                 <div class="plan-tag">FULL RESTAURANT SUITE</div>
-                <div class="plan-name">Autonomous Ordering + POS</div>
-                <div class="plan-desc">Complete restaurant operating system with live kitchen routing, POS billing, tables, and staff security.</div>
+                <div class="plan-name">Full Ordering + POS System</div>
+                <div class="plan-desc">Complete restaurant operating system with table ordering, live kitchen display, thermal billing, and analytics.</div>
 
                 <div class="plan-price-box" style="border-color: var(--cyan);">
                     <div class="price-setup" style="color: var(--cyan);">One-time Setup: ₹499</div>
@@ -868,85 +890,62 @@
                 </div>
 
                 <ul class="plan-features">
-                    <li><i class="fa-solid fa-check"></i> <b>Everything in QR Menu Plan</b></li>
-                    <li><i class="fa-solid fa-check"></i> <b>Self-Ordering Cart & Table Checkout</b></li>
-                    <li><i class="fa-solid fa-check"></i> <b>Live Kitchen Display System (KDS)</b></li>
-                    <li><i class="fa-solid fa-check"></i> Real-time Audio Chimes on Incoming Orders</li>
-                    <li><i class="fa-solid fa-check"></i> Thermal Bill & Kitchen Order Ticket (KOT) Print</li>
-                    <li><i class="fa-solid fa-check"></i> Real-time Table Occupancy & Release Control</li>
-                    <li><i class="fa-solid fa-check"></i> Daily Revenue, Average Bill & GST Reports</li>
-                    <li><i class="fa-solid fa-check"></i> One-Click Excel / CSV Export for Accounting</li>
-                    <li><i class="fa-solid fa-check"></i> PIN-Protected Admin & Staff Role Security</li>
-                    <li><i class="fa-solid fa-check"></i> Automated Customer WhatsApp Dispatch</li>
+                    <li><i class="fa-solid fa-check"></i> <b>Everything in Smart QR Menu Plan</b></li>
+                    <li><i class="fa-solid fa-check"></i> <b>Direct Table Ordering & Cart Checkout</b></li>
+                    <li><i class="fa-solid fa-check"></i> <b>Live 5-Column Kitchen Display System (KDS)</b></li>
+                    <li><i class="fa-solid fa-check"></i> Loud Audio Chime Alerts on New Orders</li>
+                    <li><i class="fa-solid fa-check"></i> Customer Live Order Status Tracker</li>
+                    <li><i class="fa-solid fa-check"></i> 58mm / 80mm Thermal Bill & KOT Printing</li>
+                    <li><i class="fa-solid fa-check"></i> Live Table Occupancy & Release Management</li>
+                    <li><i class="fa-solid fa-check"></i> Daily Revenue, Top Items & GST Analytics</li>
+                    <li><i class="fa-solid fa-check"></i> One-Click CSV & Excel Accounting Export</li>
+                    <li><i class="fa-solid fa-check"></i> PIN-Protected Admin & Staff Access Roles</li>
                 </ul>
 
-                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20get%20started%20with%20the%20Full%20POS%20+%20Autonomous%20Ordering%20Plan%20(Rs.499%20setup%20+%20Rs.499/month)." target="_blank" class="plan-btn btn-filled">
-                    Choose Full POS Suite <i class="fa-solid fa-bolt"></i>
+                <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20want%20to%20get%20started%20with%20the%20Full%20Ordering%20+%20POS%20Package%20(Rs.499%20Setup%20+%20Rs.499/month)." target="_blank" class="plan-btn btn-filled">
+                    Get Full POS Suite (₹499/mo) <i class="fa-solid fa-bolt"></i>
                 </a>
             </div>
         </div>
     </section>
 
     <!--==================================================
-    FREQUENTLY ASKED QUESTIONS
+    FAQ SECTION
     ==================================================-->
     <section class="faq-section">
         <div class="pricing-header" style="margin-bottom: 35px;">
             <span class="section-tag">Got Questions?</span>
-            <h2 style="font-size: 30px;">Common Inquiries</h2>
+            <h2 style="font-size: 30px;">Frequently Asked Questions</h2>
         </div>
 
         <div class="faq-item active">
             <div class="faq-question">
-                Do customers need to download any application?
+                Can I start with the ₹199/month plan and upgrade to the ₹499/month Full POS later?
                 <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="faq-answer">
-                No. Customers simply point their phone camera at the QR code. The digital menu or system opens instantly in their browser within 2 seconds. No apps, no registration barriers.
+                Yes! Your printed table QR codes remain the exact same. We can upgrade your account from a view-only menu to full table ordering and POS billing remotely in minutes.
             </div>
         </div>
 
         <div class="faq-item">
             <div class="faq-question">
-                Can I update prices, items, or mark items out of stock myself?
+                Where can I buy table QR standees and thermal printers?
                 <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="faq-answer">
-                Yes. You receive your own protected Dashboard where you can edit prices, toggle items out-of-stock with one tap, or launch Happy Hour discounts in real-time.
+                Right here from us. Visit our <a href="catalogue.html" style="color: var(--cyan); text-decoration: underline;">Product Catalogue</a> to view our custom acrylic standees, engraved wood blocks, NFC review cards, and thermal printers.
             </div>
         </div>
 
         <div class="faq-item">
             <div class="faq-question">
-                What printer is required for KOT and Bills in the Full Plan?
+                Do customers need to install any app to scan the QR?
                 <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="faq-answer">
-                Our system supports standard 58mm and 80mm thermal receipt printers via USB, Bluetooth, or LAN directly from any laptop, tablet, or POS counter terminal.
+                No. Customers scan with their standard phone camera or Google Lens and your menu opens directly in their browser in under 2 seconds.
             </div>
-        </div>
-
-        <div class="faq-item">
-            <div class="faq-question">
-                How soon can my business go live after signup?
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-            <div class="faq-answer">
-                Once you share your menu or catalog details, we configure your complete database and deliver your production system within 24 hours.
-            </div>
-        </div>
-    </section>
-
-    <!--==================================================
-    CTA BANNER
-    ==================================================-->
-    <section class="cta-section">
-        <div class="cta-card">
-            <h2>Ready to Choose the Perfect Setup for Your Venue?</h2>
-            <p>Our team in Indore provides complete on-ground onboarding and support to get your operations running seamlessly.</p>
-            <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20need%20help%20choosing%20the%20right%20plan%20for%20my%20business." target="_blank" class="nav-cta" style="font-size: 16px; padding: 15px 32px; display: inline-flex;">
-                <i class="fa-brands fa-whatsapp"></i> Speak With An Onboarding Specialist
-            </a>
         </div>
     </section>
 
@@ -957,9 +956,12 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <div class="brand-logo" style="margin-bottom: 16px;">
-                    <img src="logo.png" alt="DigiConvo Technologies" style="height: 38px;">
+                    <img src="logo.png" alt="DigiConvo Technologies" style="height: 38px;" onerror="this.style.display='none'; document.getElementById('footerFallbackText').style.display='block';">
+                    <div id="footerFallbackText" style="display:none; font-size:18px; font-weight:800;">
+                        Digi<span style="color:var(--cyan)">Convo</span> <span style="color:var(--amber); font-size:13px;">Technologies</span>
+                    </div>
                 </div>
-                <p>Empowering physical businesses across Central India with robust digital portals, smart QR systems, and automated customer engagement tech[cite: 47].</p>
+                <p>Empowering physical businesses across Central India with robust digital portals, smart QR systems, and automated customer engagement tech.</p>
             </div>
 
             <div class="footer-col">
@@ -985,19 +987,29 @@
             <div class="footer-col">
                 <h4>Contact Us</h4>
                 <ul class="contact-info" style="list-style: none;">
-                    <li><i class="fa-solid fa-location-dot"></i> Indore, Madhya Pradesh[cite: 47]</li>
-                    <li><i class="fa-solid fa-phone"></i> +91 94247 39009[cite: 47]</li>
-                    <li><i class="fa-solid fa-envelope"></i> digiconvohelpdesk@gmail.com[cite: 47]</li>
-                    <li><i class="fa-solid fa-globe"></i> www.digiconvo.in[cite: 47]</li>
+                    <li><i class="fa-solid fa-location-dot"></i> Indore, Madhya Pradesh</li>
+                    <li><i class="fa-solid fa-phone"></i> <a href="tel:+919424739009">+91 94247 39009</a></li>
+                    <li><i class="fa-solid fa-envelope"></i> <a href="mailto:digiconvohelpdesk@gmail.com">digiconvohelpdesk@gmail.com</a></li>
+                    <li><i class="fa-solid fa-globe"></i> <a href="https://www.digiconvo.in" target="_blank">www.digiconvo.in</a></li>
                 </ul>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <div>&copy; 2026 DigiConvo Technologies. All rights reserved.[cite: 47]</div>
-            <div>Indore, Madhya Pradesh &bull; Central India's Tech Growth Partner[cite: 47]</div>
+            <div>&copy; 2026 DigiConvo Technologies. All rights reserved.</div>
+            <div>Indore, Madhya Pradesh &bull; Central India's Tech Growth Partner</div>
         </div>
     </footer>
+
+    <!-- Floating Contact Widget -->
+    <div id="floatingContact" style="position:fixed; bottom:24px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:12px;">
+        <a href="tel:+919424739009" aria-label="Call DigiConvo" style="width:50px; height:50px; border-radius:50%; background:#00aeef; color:#060913; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 8px 20px rgba(0,174,239,0.4);">
+            <i class="fa-solid fa-phone"></i>
+        </a>
+        <a href="https://wa.me/919424739009?text=Hello%20DigiConvo,%20I%20am%20interested%20in%20your%20digital%20solutions." target="_blank" aria-label="WhatsApp DigiConvo" style="width:50px; height:50px; border-radius:50%; background:#25d366; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 8px 20px rgba(37,211,102,0.4);">
+            <i class="fa-brands fa-whatsapp"></i>
+        </a>
+    </div>
 
     <script>
         // Mobile Navigation Toggle
@@ -1016,7 +1028,7 @@
             }
         });
 
-        // FAQ Accordion Interaction
+        // FAQ Accordion
         document.querySelectorAll(".faq-item").forEach(item => {
             item.querySelector(".faq-question").addEventListener("click", () => {
                 const isActive = item.classList.contains("active");
