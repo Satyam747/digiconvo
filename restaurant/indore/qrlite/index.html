@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Digital Menu</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<style>
+:root{
+    --primary:#c5a880;
+    --bg-main:#05070f;
+    --bg-card:#141b2d;
+    --bg-panel:#0b0f19;
+    --border-col:#24304d;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg-main);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#fff;padding-bottom:120px;}
+.app{max-width:480px;margin:auto;min-height:100vh;background:var(--bg-panel);border-left:1px solid var(--border-col);border-right:1px solid var(--border-col);}
+
+/* LIVE ANNOUNCEMENT BAR */
+.announceBar{background:linear-gradient(90deg,var(--primary),#f59e0b);color:#05070f;font-size:12.5px;font-weight:800;padding:8px 14px;text-align:center;display:none;}
+
+/* HERO HEADER */
+.hero{background:linear-gradient(180deg,var(--bg-card) 0%,var(--bg-panel) 100%);padding:20px 16px 14px;border-bottom:1px solid var(--border-col);}
+.brandRow{display:flex;align-items:center;gap:14px;}
+.brandLogo{width:62px;height:62px;border-radius:16px;background:var(--bg-card);border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.brandLogo img{width:100%;height:100%;object-fit:cover;display:none;}
+.brandLogo i{font-size:25px;color:var(--primary);}
+.brandInfo h1{font-size:21px;line-height:1.2;color:#fff;}
+.brandInfo p{font-size:12.5px;color:#94a3b8;margin-top:4px;}
+.quickActions{display:flex;gap:8px;margin-top:14px;overflow-x:auto;padding-bottom:4px;}
+.quickActions::-webkit-scrollbar{display:none;}
+.actionChip{background:var(--bg-card);border:1px solid var(--border-col);color:#e2e8f0;padding:7px 12px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;}
+.actionChip i{color:var(--primary);}
+
+/* STICKY SEARCH & FILTERS */
+.stickyTop{position:sticky;top:0;z-index:50;background:rgba(11,15,25,0.95);backdrop-filter:blur(10px);padding:11px 14px 9px;border-bottom:1px solid var(--border-col);}
+.searchWrap{position:relative;}
+.searchWrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#64748b;font-size:14px;}
+.searchWrap input{width:100%;padding:11px 14px 11px 38px;border-radius:12px;border:1px solid var(--border-col);background:var(--bg-main);color:#fff;font-size:14px;outline:none;}
+.searchWrap input:focus{border-color:var(--primary);}
+
+.filterPills{display:flex;gap:7px;overflow-x:auto;margin-top:9px;padding-bottom:2px;}
+.filterPills::-webkit-scrollbar{display:none;}
+.fPill{padding:6px 12px;border-radius:99px;font-size:11.5px;font-weight:600;background:var(--bg-card);border:1px solid var(--border-col);color:#cbd5e1;white-space:nowrap;cursor:pointer;}
+.fPill.active{background:var(--primary);color:#05070f;border-color:var(--primary);font-weight:800;}
+
+.categories{display:flex;gap:8px;overflow-x:auto;margin-top:9px;padding-bottom:2px;}
+.categories::-webkit-scrollbar{display:none;}
+.catTab{padding:6px 14px;border-radius:10px;background:var(--bg-main);border:1px solid var(--border-col);color:#94a3b8;font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;}
+.catTab.active{border-color:var(--primary);color:var(--primary);background:var(--bg-card);}
+
+/* LIVE OFFERS CAROUSEL */
+.spotlightWrap{padding:15px 14px 2px;display:none;}
+.secTitle{font-size:13px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.offerCarousel{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;}
+.offerCarousel::-webkit-scrollbar{display:none;}
+.offerCard{min-width:255px;background:linear-gradient(135deg,#1e1b4b 0%,var(--bg-card) 100%);border:1px solid var(--primary);border-radius:14px;padding:11px;display:flex;gap:11px;align-items:center;cursor:pointer;}
+.offerCard img{width:66px;height:66px;border-radius:10px;object-fit:cover;flex-shrink:0;}
+.offerCardTag{display:inline-block;background:#ef4444;color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px;margin-bottom:4px;}
+.offerCardName{font-size:14px;font-weight:700;line-height:1.25;margin-bottom:4px;}
+.offerCardPrice{font-size:15px;font-weight:800;color:var(--primary);}
+.offerCardPrice del{font-size:12px;color:#64748b;margin-right:5px;font-weight:400;}
+
+/* DISH CARDS */
+.products{padding:14px;}
+.catSectionHeader{font-size:17px;font-weight:800;color:#fff;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border-col);display:flex;justify-content:space-between;align-items:center;}
+.catSectionHeader:first-child{margin-top:2px;}
+.catSectionHeader span{font-size:12px;color:#94a3b8;font-weight:600;}
+
+.dishCard{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:14px;margin-bottom:13px;display:flex;gap:13px;transition:.2s;position:relative;}
+.dishCard.goldenGlow{border-color:var(--primary);box-shadow:0 4px 20px rgba(0,0,0,0.35);}
+.dishCard.outStock{opacity:0.55;}
+.dishLeft{flex:1;display:flex;flex-direction:column;}
+.badgeRow{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:6px;}
+.vegDot{width:14px;height:14px;border:1.5px solid;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;}
+.vegDot span{width:7px;height:7px;border-radius:50%;}
+.vegDot.v{border-color:#22c55e;}.vegDot.v span{background:#22c55e;}
+.vegDot.nv{border-color:#ef4444;}.vegDot.nv span{background:#ef4444;}
+.tagBadge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;}
+.tagBest{background:#f59e0b22;color:#fbbf24;border:1px solid #f59e0b55;}
+.tagChef{background:#a855f722;color:#c084fc;border:1px solid #a855f755;}
+.tagMust{background:#38bdf822;color:#38bdf8;border:1px solid #38bdf855;}
+.tagJain{background:#22c55e22;color:#4ade80;border:1px solid #22c55e55;}
+.tagSpicy{background:#ef444422;color:#f87171;}
+.tagOffer{background:#dc2626;color:#fff;}
+
+.dishName{font-size:16px;font-weight:700;margin-bottom:4px;color:#f8fafc;}
+.dishDesc{font-size:12.5px;color:#94a3b8;line-height:1.45;margin-bottom:8px;}
+
+/* PORTION SELECTOR PILLS (HALF / FULL) */
+.portionRow{display:flex;gap:6px;margin-bottom:8px;}
+.portionPill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;background:var(--bg-panel);border:1px solid var(--border-col);color:#cbd5e1;cursor:pointer;}
+.portionPill.active{border-color:var(--primary);color:var(--primary);background:rgba(197,168,128,0.12);}
+
+/* PAIRS WELL WITH UPSELL */
+.pairingBox{margin-top:6px;font-size:11.5px;color:#cbd5e1;background:var(--bg-panel);border:1px dashed var(--border-col);padding:5px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
+.pairingBox b{color:var(--primary);}
+
+.dishPrice{margin-top:auto;font-size:17px;font-weight:800;color:var(--primary);}
+.dishPrice del{font-size:12px;color:#64748b;margin-right:6px;font-weight:500;}
+
+.dishRight{width:105px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.dishRight img{width:105px;height:94px;object-fit:cover;border-radius:12px;background:var(--bg-panel);border:1px solid var(--border-col);cursor:zoom-in;}
+.shortlistAction{margin-top:-13px;z-index:2;}
+.shortBtn{background:var(--bg-card);border:1px solid var(--primary);color:var(--primary);font-weight:800;font-size:12px;padding:6px 13px;border-radius:8px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.45);}
+.shortStepper{display:flex;align-items:center;gap:10px;background:var(--primary);color:#05070f;padding:4px 10px;border-radius:8px;font-weight:800;box-shadow:0 4px 12px rgba(0,0,0,.45);}
+.shortStepper button{background:none;border:none;font-size:16px;font-weight:900;color:#05070f;cursor:pointer;}
+
+/* FLOATING ZOMATO-STYLE MENU JUMP BUTTON */
+.fabMenuBtn{position:fixed;right:18px;bottom:82px;background:#05070f;color:var(--primary);border:2px solid var(--primary);padding:10px 16px;border-radius:99px;font-size:13px;font-weight:800;box-shadow:0 10px 25px rgba(0,0,0,.7);cursor:pointer;z-index:85;display:flex;align-items:center;gap:7px;}
+
+/* REVIEW SHIELD */
+.reviewShield{margin:10px 14px 25px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:18px;text-align:center;}
+.reviewShield h3{font-size:16px;margin-bottom:4px;}
+.reviewShield p{font-size:12.5px;color:#94a3b8;margin-bottom:12px;}
+.starRow{display:flex;justify-content:center;gap:10px;font-size:26px;color:#475569;cursor:pointer;}
+.starRow i.selected{color:#fbbf24;}
+
+/* FLOATING SHORTLIST BAR */
+.shortlistBar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:calc(100% - 28px);max-width:450px;background:var(--primary);color:#05070f;padding:13px 18px;border-radius:14px;display:none;justify-content:space-between;align-items:center;font-weight:800;cursor:pointer;box-shadow:0 12px 30px rgba(0,0,0,.65);z-index:90;}
+
+/* MODALS & DRAWERS */
+.modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.76);display:none;justify-content:center;align-items:flex-end;z-index:200;}
+.modalOverlay.show{display:flex;}
+.drawerBox{width:100%;max-width:480px;background:var(--bg-panel);border-top:1px solid var(--border-col);border-radius:22px 22px 0 0;padding:20px;max-height:86vh;overflow-y:auto;}
+.drawerHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-col);}
+.closeBtn{background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="app" id="appRoot">
+    <!-- LIVE ANNOUNCEMENT BANNER -->
+    <div class="announceBar" id="announceBar"></div>
+
+    <!-- HERO HEADER -->
+    <div class="hero">
+        <div class="brandRow">
+            <div class="brandLogo">
+                <img id="restLogo" alt="Logo">
+                <i id="restIcon" class="fa-solid fa-utensils"></i>
+            </div>
+            <div class="brandInfo">
+                <h1 id="restName">Loading...</h1>
+                <p id="restTagline">Please wait...</p>
+            </div>
+        </div>
+        <div class="quickActions" id="quickActionsBar"></div>
+    </div>
+
+    <!-- STICKY SEARCH & FILTERS -->
+    <div class="stickyTop">
+        <div class="searchWrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="searchBox" type="text" placeholder="Search dishes, pairings, ingredients...">
+        </div>
+        <div class="filterPills">
+            <div class="fPill active" onclick="setSmartFilter('all', this)">All</div>
+            <div class="fPill" onclick="setSmartFilter('veg', this)">🟢 Pure Veg</div>
+            <div class="fPill" onclick="setSmartFilter('jain', this)">🕉️ Jain Option</div>
+            <div class="fPill" onclick="setSmartFilter('nonveg', this)">🔴 Non-Veg</div>
+            <div class="fPill" onclick="setSmartFilter('offers', this)">🔥 Live Offers</div>
+            <div class="fPill" onclick="setSmartFilter('bestseller', this)">⭐ Bestsellers</div>
+        </div>
+        <div class="categories" id="categoryBar"></div>
+    </div>
+
+    <!-- SPOTLIGHT LIVE OFFERS CAROUSEL -->
+    <div class="spotlightWrap" id="spotlightWrap">
+        <div class="secTitle"><i class="fa-solid fa-fire"></i> Live Offers & Happy Hour</div>
+        <div class="offerCarousel" id="offerCarousel"></div>
+    </div>
+
+    <!-- DISH CATALOG -->
+    <div class="products" id="productsContainer">
+        <div style="padding:60px 20px;text-align:center;color:#64748b;">Loading Menu...</div>
+    </div>
+
+    <!-- SMART GOOGLE REVIEW SHIELD -->
+    <div class="reviewShield">
+        <h3>Loved the Food & Hospitality?</h3>
+        <p>Tap a star to rate your experience with us today</p>
+        <div class="starRow" id="starRow">
+            <i class="fa-solid fa-star" onclick="handleRating(1)"></i>
+            <i class="fa-solid fa-star" onclick="handleRating(2)"></i>
+            <i class="fa-solid fa-star" onclick="handleRating(3)"></i>
+            <i class="fa-solid fa-star" onclick="handleRating(4)"></i>
+            <i class="fa-solid fa-star" onclick="handleRating(5)"></i>
+        </div>
+    </div>
+</div>
+
+<!-- FLOATING ZOMATO-STYLE CATEGORY JUMP BUTTON -->
+<button class="fabMenuBtn" onclick="openCategoryJumpModal()">
+    <i class="fa-solid fa-book-open"></i> Menu
+</button>
+
+<!-- FLOATING "SHOW TO WAITER" BAR -->
+<div class="shortlistBar" id="shortlistBar" onclick="openShortlistDrawer()">
+    <div>
+        <div id="shortlistCount" style="font-size:14px;">0 Dishes Shortlisted</div>
+        <div id="shortlistSubtotal" style="font-size:12px;opacity:0.85;">Est. Total: ₹0</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:14px;">
+        Waiter Pad <i class="fa-solid fa-clipboard-list"></i>
+    </div>
+</div>
+
+<!-- SHORTLIST DRAWER (WITH SPLIT BILL & WHATSAPP SHARE) -->
+<div class="modalOverlay" id="shortlistModal">
+    <div class="drawerBox">
+        <div class="drawerHeader">
+            <div>
+                <h3 style="font-size:18px;">📋 My Table Shortlist</h3>
+                <p style="font-size:12px;color:#94a3b8;">Show this to your waiter or send via WhatsApp</p>
+            </div>
+            <button class="closeBtn" onclick="closeShortlistDrawer()">×</button>
+        </div>
+        <div id="shortlistItemsBox"></div>
+        <div id="shortlistSummaryBox" style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border-col);"></div>
+
+        <!-- SPLIT BILL BY FRIENDS CALCULATOR -->
+        <div style="background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;padding:11px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12.5px;color:#cbd5e1;">
+                👥 Split Bill Among:
+                <button onclick="changeSplitCount(-1)" style="margin:0 6px;padding:2px 8px;border-radius:6px;border:1px solid var(--primary);background:none;color:var(--primary);font-weight:800;cursor:pointer;">−</button>
+                <b id="splitFriendsCount">1</b>
+                <button onclick="changeSplitCount(1)" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid var(--primary);background:none;color:var(--primary);font-weight:800;cursor:pointer;">+</button>
+            </div>
+            <div style="font-size:14px;font-weight:800;color:var(--primary);" id="splitPerPerson">₹0 / person</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+            <button onclick="shareShortlistWhatsApp()" style="padding:12px;border-radius:10px;border:none;background:#25d366;color:#05070f;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <i class="fa-brands fa-whatsapp"></i> Send on WhatsApp
+            </button>
+            <button onclick="clearAllShortlist()" style="padding:12px;border-radius:10px;border:1px solid #dc2626;background:transparent;color:#f87171;font-weight:700;cursor:pointer;">
+                Clear List
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CATEGORY JUMP MODAL -->
+<div class="modalOverlay" id="catJumpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="drawerBox">
+        <div class="drawerHeader">
+            <h3>📖 Jump to Category</h3>
+            <button class="closeBtn" onclick="document.getElementById('catJumpModal').classList.remove('show')">×</button>
+        </div>
+        <div id="catJumpList"></div>
+    </div>
+</div>
+
+<!-- DISH IMAGE LIGHTBOX MODAL -->
+<div class="modalOverlay" id="lightboxModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="drawerBox" id="lightboxContent"></div>
+</div>
+
+<!-- WIFI & INFO MODAL -->
+<div class="modalOverlay" id="infoModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="drawerBox">
+        <div class="drawerHeader">
+            <h3>Restaurant Details</h3>
+            <button class="closeBtn" onclick="document.getElementById('infoModal').classList.remove('show')">×</button>
+        </div>
+        <div id="infoModalContent" style="line-height:1.7;font-size:14px;color:#cbd5e1;"></div>
+    </div>
+</div>
+
+<script>
+let MENU = [];
+let ACTIVE_CATEGORY = "All";
+let SMART_FILTER = "all";
+let SELECTED_PORTIONS = {}; // item.id -> "Full" | "Half"
+let SPLIT_FRIENDS = 2;
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadRestaurantSettings();
+
+    if (SETTINGS.NotFound) {
+        document.getElementById("appRoot").innerHTML = `
+            <div style="padding:80px 25px;text-align:center;">
+                <i class="fa-solid fa-store-slash" style="font-size:48px;color:#ef4444;margin-bottom:16px;"></i>
+                <h2>Menu Not Found</h2>
+                <p style="color:#94a3b8;margin-top:8px;">Please check the QR code link.</p>
+            </div>`;
+        return;
+    }
+
+    if (SETTINGS.IsActive === false) {
+        document.getElementById("appRoot").innerHTML = `
+            <div style="padding:80px 25px;text-align:center;">
+                <i class="fa-solid fa-clock" style="font-size:48px;color:#f59e0b;margin-bottom:16px;"></i>
+                <h2>${escapeHTML(SETTINGS.Name)}</h2>
+                <p style="color:#94a3b8;margin-top:10px;">Our digital menu is currently undergoing maintenance. Please ask your server for assistance.</p>
+            </div>`;
+        return;
+    }
+
+    renderHeader();
+    api("incrementScan");
+
+    const res = await api("getMenu");
+    MENU = (res && res.success) ? res.data : [];
+
+    buildCategories();
+    renderSpotlightOffers();
+    renderProducts();
+    updateShortlistBar();
+
+    document.getElementById("searchBox").addEventListener("input", renderProducts);
+});
+
+function renderHeader() {
+    document.title = SETTINGS.Name + " — Digital Menu";
+    document.getElementById("restName").innerText = SETTINGS.Name;
+    document.getElementById("restTagline").innerText = SETTINGS.Tagline || "";
+
+    if (SETTINGS.Announcement && SETTINGS.Announcement.trim() !== "") {
+        const ann = document.getElementById("announceBar");
+        ann.innerText = SETTINGS.Announcement;
+        ann.style.display = "block";
+    }
+
+    if (SETTINGS.Logo && SETTINGS.Logo.trim() !== "") {
+        const img = document.getElementById("restLogo");
+        img.src = SETTINGS.Logo;
+        img.style.display = "block";
+        document.getElementById("restIcon").style.display = "none";
+    }
+
+    const bar = document.getElementById("quickActionsBar");
+    let chips = "";
+    if (SETTINGS.WifiName) chips += `<div class="actionChip" onclick="openInfoModal()"><i class="fa-solid fa-wifi"></i> Free Wi-Fi</div>`;
+    if (SETTINGS.WhatsApp) chips += `<div class="actionChip" onclick="inquirePartyWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Book Table / Party</div>`;
+    if (SETTINGS.Phone) chips += `<a class="actionChip" href="tel:${escapeHTML(SETTINGS.Phone)}"><i class="fa-solid fa-phone"></i> Call</a>`;
+    if (SETTINGS.Instagram) chips += `<a class="actionChip" href="${escapeHTML(SETTINGS.Instagram)}" target="_blank"><i class="fa-brands fa-instagram"></i> Instagram</a>`;
+    if (SETTINGS.Address) chips += `<div class="actionChip" onclick="openInfoModal()"><i class="fa-solid fa-location-dot"></i> Address</div>`;
+    bar.innerHTML = chips;
+}
+
+function openInfoModal() {
+    document.getElementById("infoModalContent").innerHTML = `
+        ${SETTINGS.WifiName ? `
+            <div style="background:var(--bg-card);padding:14px;border-radius:12px;margin-bottom:12px;border:1px solid var(--border-col);">
+                <div style="font-size:12px;color:#94a3b8;">Wi-Fi Network</div>
+                <div style="font-weight:700;font-size:16px;color:#fff;">${escapeHTML(SETTINGS.WifiName)}</div>
+                <div style="font-size:12px;color:#94a3b8;margin-top:8px;">Password</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <code style="font-size:15px;color:var(--primary);font-weight:700;">${escapeHTML(SETTINGS.WifiPassword || "Ask Server")}</code>
+                    ${SETTINGS.WifiPassword ? `<button onclick="navigator.clipboard.writeText('${escapeHTML(SETTINGS.WifiPassword)}');this.innerText='Copied!'" style="background:var(--primary);border:none;padding:5px 10px;border-radius:6px;font-weight:700;cursor:pointer;">Copy</button>` : ""}
+                </div>
+            </div>` : ""}
+        ${SETTINGS.Address ? `<p><b>📍 Address:</b> ${escapeHTML(SETTINGS.Address)}</p>` : ""}
+        ${SETTINGS.Phone ? `<p><b>📞 Phone:</b> ${escapeHTML(SETTINGS.Phone)}</p>` : ""}
+    `;
+    document.getElementById("infoModal").classList.add("show");
+}
+
+function inquirePartyWhatsApp() {
+    const clean = String(SETTINGS.WhatsApp || "").replace(/\D/g, "");
+    if (!clean) return;
+    const msg = `Hi *${SETTINGS.Name}*, I checked your QR Menu and wanted to inquire about a table / party reservation.`;
+    window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+function setSmartFilter(filter, el) {
+    SMART_FILTER = filter;
+    document.querySelectorAll(".fPill").forEach(p => p.classList.remove("active"));
+    el.classList.add("active");
+    renderProducts();
+}
+
+function buildCategories() {
+    const rawCats = [...new Set(MENU.map(i => i.category).filter(Boolean))];
+    const sortedCats = ["All", ...sortCategoriesNaturally(rawCats)];
+    const holder = document.getElementById("categoryBar");
+    holder.innerHTML = sortedCats.map(c => `
+        <div class="catTab ${c === ACTIVE_CATEGORY ? 'active' : ''}" onclick="selectCategory('${escapeJS(c)}')">${escapeHTML(c)}</div>
+    `).join("");
+}
+
+function selectCategory(cat) {
+    ACTIVE_CATEGORY = cat;
+    buildCategories();
+    renderProducts();
+    document.getElementById("catJumpModal").classList.remove("show");
+}
+
+function openCategoryJumpModal() {
+    const rawCats = sortCategoriesNaturally([...new Set(MENU.map(i => i.category).filter(Boolean))]);
+    const list = document.getElementById("catJumpList");
+    list.innerHTML = `
+        <div onclick="selectCategory('All')" style="display:flex;justify-content:space-between;padding:12px 10px;border-bottom:1px solid var(--border-col);cursor:pointer;font-weight:700;">
+            <span>All Categories</span><span style="color:var(--primary);">${MENU.length}</span>
+        </div>
+    ` + rawCats.map(c => {
+        const cnt = MENU.filter(m => m.category === c).length;
+        return `
+            <div onclick="selectCategory('${escapeJS(c)}')" style="display:flex;justify-content:space-between;padding:12px 10px;border-bottom:1px solid var(--border-col);cursor:pointer;">
+                <span>${escapeHTML(c)}</span><span style="color:var(--primary);font-weight:700;">${cnt}</span>
+            </div>`;
+    }).join("");
+    document.getElementById("catJumpModal").classList.add("show");
+}
+
+function renderSpotlightOffers() {
+    const offerItems = MENU.filter(i => i.isOfferActive && i.available);
+    const wrap = document.getElementById("spotlightWrap");
+    if (offerItems.length === 0) { wrap.style.display = "none"; return; }
+    wrap.style.display = "block";
+    document.getElementById("offerCarousel").innerHTML = offerItems.map(item => `
+        <div class="offerCard" onclick="changeShortlist('${escapeHTML(item.id)}', 1)">
+            <img src="${imageOrDefault(item.image)}" onerror="this.src='${CONFIG.UI.DEFAULT_IMAGE}'">
+            <div>
+                <span class="offerCardTag">${escapeHTML(item.offerLabel || "SPECIAL DEAL")}</span>
+                <div class="offerCardName">${escapeHTML(item.name)}</div>
+                <div class="offerCardPrice"><del>${formatMoney(item.originalPrice)}</del>${formatMoney(item.price)}</div>
+            </div>
+        </div>
+    `).join("");
+}
+
+function selectPortion(itemId, portion) {
+    SELECTED_PORTIONS[itemId] = portion;
+    renderProducts();
+}
+
+function renderProducts() {
+    const box = document.getElementById("productsContainer");
+    const kw = document.getElementById("searchBox").value.trim().toLowerCase();
+
+    const filtered = MENU.filter(item => {
+        const catOk = (kw !== "" || ACTIVE_CATEGORY === "All") ? true : item.category === ACTIVE_CATEGORY;
+        const searchOk = item.name.toLowerCase().includes(kw) ||
+                         (item.description || "").toLowerCase().includes(kw) ||
+                         (item.pairsWith || "").toLowerCase().includes(kw);
+
+        let filterOk = true;
+        if (SMART_FILTER === "veg") filterOk = item.veg === true;
+        else if (SMART_FILTER === "jain") filterOk = item.jain === true;
+        else if (SMART_FILTER === "nonveg") filterOk = item.veg === false;
+        else if (SMART_FILTER === "offers") filterOk = item.isOfferActive === true;
+        else if (SMART_FILTER === "bestseller") filterOk = item.bestseller || item.chefsSpecial || item.mustTry;
+
+        return catOk && searchOk && filterOk;
+    });
+
+    if (filtered.length === 0) {
+        box.innerHTML = `<div style="padding:50px 20px;text-align:center;color:#64748b;">No dishes match your filter.</div>`;
+        return;
+    }
+
+    // Group by natural reading category order
+    const catsToRender = ACTIVE_CATEGORY === "All"
+        ? sortCategoriesNaturally([...new Set(filtered.map(i => i.category))])
+        : [ACTIVE_CATEGORY];
+
+    let html = "";
+    catsToRender.forEach(catName => {
+        const groupItems = filtered.filter(i => i.category === catName);
+        if (groupItems.length === 0) return;
+        html += `<div class="catSectionHeader">${escapeHTML(catName)} <span>${groupItems.length} items</span></div>`;
+        html += groupItems.map(item => buildDishCardHTML(item)).join("");
+    });
+
+    box.innerHTML = html;
+}
+
+function buildDishCardHTML(item) {
+    const hasHalf = Number(item.halfPrice) > 0;
+    const activePortion = hasHalf ? (SELECTED_PORTIONS[item.id] || "Full") : "Full";
+    const qty = getShortlistQty(item.id, activePortion);
+
+    const displayPrice = (activePortion === "Half" && hasHalf) ? item.halfPrice : item.price;
+    const displayOrig = (activePortion === "Half" && hasHalf) ? item.halfOriginalPrice : item.originalPrice;
+    const hasDiscount = Number(displayOrig) > Number(displayPrice);
+
+    let badges = `<span class="vegDot ${item.veg ? 'v' : 'nv'}"><span></span></span>`;
+    if (item.bestseller) badges += `<span class="tagBadge tagBest">⭐ Bestseller</span>`;
+    if (item.chefsSpecial) badges += `<span class="tagBadge tagChef">👨‍🍳 Chef's Special</span>`;
+    if (item.mustTry) badges += `<span class="tagBadge tagMust">🔥 Must Try</span>`;
+    if (item.jain) badges += `<span class="tagBadge tagJain">🕉️ Jain Available</span>`;
+    if (item.spicy) badges += `<span class="tagBadge tagSpicy">🌶️ Spicy</span>`;
+    if (item.isOfferActive) badges += `<span class="tagBadge tagOffer">${escapeHTML(item.offerLabel)}</span>`;
+
+    const portionHTML = hasHalf ? `
+        <div class="portionRow">
+            <span class="portionPill ${activePortion === 'Half' ? 'active' : ''}" onclick="selectPortion('${escapeHTML(item.id)}', 'Half')">Half ${formatMoney(item.halfPrice)}</span>
+            <span class="portionPill ${activePortion === 'Full' ? 'active' : ''}" onclick="selectPortion('${escapeHTML(item.id)}', 'Full')">Full ${formatMoney(item.price)}</span>
+        </div>
+    ` : "";
+
+    let pairingHTML = "";
+    if (item.pairsWith && item.pairsWith.trim() !== "") {
+        const pairedObj = MENU.find(m => m.name.toLowerCase() === item.pairsWith.trim().toLowerCase() && m.available);
+        if (pairedObj) {
+            pairingHTML = `
+                <div class="pairingBox" onclick="changeShortlist('${escapeHTML(pairedObj.id)}', 1)">
+                    🍽️ Pairs with <b>${escapeHTML(pairedObj.name)} (${formatMoney(pairedObj.price)})</b> <span>+ Add</span>
+                </div>`;
+        } else {
+            pairingHTML = `<div class="pairingBox">🍽️ Pairs well with <b>${escapeHTML(item.pairsWith)}</b></div>`;
+        }
+    }
+
+    let controlHtml = "";
+    if (!item.available) {
+        controlHtml = `<button class="shortBtn" disabled style="border-color:#475569;color:#64748b;">Sold Out</button>`;
+    } else if (qty === 0) {
+        controlHtml = `<button class="shortBtn" onclick="changeShortlist('${escapeHTML(item.id)}', 1)">+ Shortlist</button>`;
+    } else {
+        controlHtml = `
+            <div class="shortStepper">
+                <button onclick="changeShortlist('${escapeHTML(item.id)}', -1)">−</button>
+                <span>${qty}</span>
+                <button onclick="changeShortlist('${escapeHTML(item.id)}', 1)">+</button>
+            </div>`;
+    }
+
+    const isGolden = item.bestseller || item.chefsSpecial;
+
+    return `
+        <div class="dishCard ${isGolden ? 'goldenGlow' : ''} ${!item.available ? 'outStock' : ''}">
+            <div class="dishLeft">
+                <div class="badgeRow">${badges}</div>
+                <div class="dishName">${escapeHTML(item.name)}</div>
+                <div class="dishDesc">${escapeHTML(item.description)}</div>
+                ${portionHTML}
+                <div class="dishPrice">
+                    ${hasDiscount ? `<del>${formatMoney(displayOrig)}</del>` : ""}
+                    ${formatMoney(displayPrice)}
+                    ${item.prepTime ? `<span style="font-size:11px;color:#64748b;font-weight:500;margin-left:8px;">⏱ ${escapeHTML(item.prepTime)}</span>` : ""}
+                </div>
+                ${pairingHTML}
+            </div>
+            <div class="dishRight">
+                <img src="${imageOrDefault(item.image)}" onclick="openDishLightbox('${escapeHTML(item.id)}')" onerror="this.src='${CONFIG.UI.DEFAULT_IMAGE}'">
+                <div class="shortlistAction">${controlHtml}</div>
+            </div>
+        </div>
+    `;
+}
+
+function openDishLightbox(id) {
+    const item = MENU.find(x => String(x.id) === String(id));
+    if (!item) return;
+    const hasHalf = Number(item.halfPrice) > 0;
+    const activePortion = hasHalf ? (SELECTED_PORTIONS[item.id] || "Full") : "Full";
+    const displayPrice = (activePortion === "Half" && hasHalf) ? item.halfPrice : item.price;
+    const box = document.getElementById("lightboxContent");
+    box.innerHTML = `
+        <div class="drawerHeader">
+            <h3>${escapeHTML(item.name)} ${hasHalf ? `<span style="font-size:13px;color:var(--primary);">(${activePortion})</span>` : ""}</h3>
+            <button class="closeBtn" onclick="document.getElementById('lightboxModal').classList.remove('show')">×</button>
+        </div>
+        <img src="${imageOrDefault(item.image)}" style="width:100%;height:230px;object-fit:cover;border-radius:14px;margin-bottom:14px;" onerror="this.src='${CONFIG.UI.DEFAULT_IMAGE}'">
+        <p style="color:#cbd5e1;font-size:14px;line-height:1.5;margin-bottom:12px;">${escapeHTML(item.description)}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:20px;font-weight:800;color:var(--primary);">${formatMoney(displayPrice)}</div>
+            ${item.available ? `<button onclick="changeShortlist('${escapeJS(item.id)}', 1, '${activePortion}');document.getElementById('lightboxModal').classList.remove('show')" style="background:var(--primary);color:#05070f;border:none;padding:10px 20px;border-radius:10px;font-weight:800;cursor:pointer;">+ Add ${hasHalf ? activePortion : ''} to Shortlist</button>` : ""}
+        </div>
+    `;
+    document.getElementById("lightboxModal").classList.add("show");
+}
+
+function changeShortlist(id, delta, explicitPortion = null) {
+    const item = MENU.find(x => String(x.id) === String(id));
+    if (!item || !item.available) return;
+    const portion = explicitPortion || (Number(item.halfPrice) > 0 ? (SELECTED_PORTIONS[item.id] || "Full") : "Full");
+    updateShortlistItem(item, delta, portion);
+    renderProducts();
+    updateShortlistBar();
+    if (document.getElementById("shortlistModal").classList.contains("show")) {
+        renderShortlistDrawer();
+    }
+}
+
+function updateShortlistBar() {
+    const list = loadShortlist();
+    const bar = document.getElementById("shortlistBar");
+    const totalCount = list.reduce((s, i) => s + i.qty, 0);
+    const sub = list.reduce((s, i) => s + i.price * i.qty, 0);
+
+    if (totalCount === 0) { bar.style.display = "none"; return; }
+    bar.style.display = "flex";
+    document.getElementById("shortlistCount").innerText = `${totalCount} ${totalCount === 1 ? "Dish" : "Dishes"} Shortlisted`;
+    document.getElementById("shortlistSubtotal").innerText = `Est. Total: ${formatMoney(sub)}`;
+}
+
+function openShortlistDrawer() {
+    renderShortlistDrawer();
+    document.getElementById("shortlistModal").classList.add("show");
+}
+
+function closeShortlistDrawer() {
+    document.getElementById("shortlistModal").classList.remove("show");
+}
+
+function clearAllShortlist() {
+    clearShortlist();
+    closeShortlistDrawer();
+    renderProducts();
+    updateShortlistBar();
+}
+
+function changeSplitCount(delta) {
+    SPLIT_FRIENDS = Math.max(1, Math.min(20, SPLIT_FRIENDS + delta));
+    renderShortlistDrawer();
+}
+
+function renderShortlistDrawer() {
+    const list = loadShortlist();
+    const box = document.getElementById("shortlistItemsBox");
+    const sumBox = document.getElementById("shortlistSummaryBox");
+
+    if (list.length === 0) {
+        box.innerHTML = `<p style="color:#94a3b8;text-align:center;padding:20px;">Your shortlist is empty.</p>`;
+        sumBox.innerHTML = "";
+        return;
+    }
+
+    let sub = 0;
+    box.innerHTML = list.map(i => {
+        sub += i.price * i.qty;
+        const pTag = i.portion ? ` (${i.portion})` : "";
+        return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-col);">
+                <div>
+                    <div style="font-weight:700;">${escapeHTML(i.name)}${escapeHTML(pTag)}</div>
+                    <div style="font-size:12px;color:var(--primary);">${formatMoney(i.price)} × ${i.qty} = ${formatMoney(i.price * i.qty)}</div>
+                </div>
+                <div class="shortStepper">
+                    <button onclick="changeShortlist('${escapeHTML(i.id)}', -1, '${escapeHTML(i.portion || 'Full')}')">−</button>
+                    <span>${i.qty}</span>
+                    <button onclick="changeShortlist('${escapeHTML(i.id)}', 1, '${escapeHTML(i.portion || 'Full')}')">+</button>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    const gstRate = Number(SETTINGS.GST || 0);
+    const gstAmt = (sub * gstRate) / 100;
+    const grand = sub + gstAmt;
+
+    sumBox.innerHTML = `
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:4px;">
+            <span>Subtotal</span><span>${formatMoney(sub)}</span>
+        </div>
+        ${gstRate > 0 ? `
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:6px;">
+            <span>Est. GST (${gstRate}%)</span><span>${formatMoney(gstAmt)}</span>
+        </div>` : ""}
+        <div style="display:flex;justify-content:space-between;font-size:17px;font-weight:800;color:var(--primary);">
+            <span>Estimated Total</span><span>${formatMoney(grand)}</span>
+        </div>
+    `;
+
+    document.getElementById("splitFriendsCount").innerText = SPLIT_FRIENDS;
+    document.getElementById("splitPerPerson").innerText = `${formatMoney(Math.ceil(grand / SPLIT_FRIENDS))} / person`;
+}
+
+function shareShortlistWhatsApp() {
+    const list = loadShortlist();
+    if (list.length === 0) return;
+    let sub = 0;
+    let text = `🍽️ *My Dish Shortlist — ${SETTINGS.Name}*\n\n`;
+    list.forEach(i => {
+        sub += i.price * i.qty;
+        text += `• ${i.qty} × ${i.name}${i.portion ? ' (' + i.portion + ')' : ''} — ${formatMoney(i.price * i.qty)}\n`;
+    });
+    const gst = (sub * Number(SETTINGS.GST || 0)) / 100;
+    text += `\n*Est. Total:* ${formatMoney(sub + gst)}`;
+
+    const cleanWA = String(SETTINGS.WhatsApp || "").replace(/\D/g, "");
+    const url = cleanWA
+        ? `https://wa.me/${cleanWA}?text=${encodeURIComponent(text)}`
+        : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+}
+
+function handleRating(stars) {
+    document.querySelectorAll("#starRow i").forEach((ic, idx) => ic.classList.toggle("selected", idx < stars));
+    if (stars >= 4) {
+        if (SETTINGS.ReviewLink && SETTINGS.ReviewLink.trim() !== "") {
+            window.open(SETTINGS.ReviewLink, "_blank");
+        } else {
+            alert("Thank you so much for your " + stars + "-star rating!");
+        }
+    } else {
+        const cleanWA = String(SETTINGS.WhatsApp || "").replace(/\D/g, "");
+        if (cleanWA) {
+            const msg = `Hi *${SETTINGS.Name}* management, I rated my visit ${stars}/5 stars and wanted to share private feedback: `;
+            window.open(`https://wa.me/${cleanWA}?text=${encodeURIComponent(msg)}`, "_blank");
+        } else {
+            alert("Thank you for your feedback! Please let our manager know how we can improve right away.");
+        }
+    }
+}
+</script>
+</body>
+</html>
