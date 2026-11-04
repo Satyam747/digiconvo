@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Digiconvo SaaS Super Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,sans-serif;}
+body{background:#05070f;color:#fff;min-height:100vh;padding:26px;}
+.container{max-width:1260px;margin:auto;}
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;padding-bottom:20px;border-bottom:1px solid #1f2940;margin-bottom:24px;}
+.header h1{font-size:25px;color:#c5a880;}
+.statsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:26px;}
+.statCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;padding:18px;}
+.statCard h4{color:#94a3b8;font-size:12.5px;margin-bottom:6px;}
+.statCard h2{font-size:28px;color:#c5a880;}
+
+.primaryBtn{background:#c5a880;color:#05070f;border:none;padding:11px 18px;border-radius:10px;font-weight:800;cursor:pointer;}
+.secondaryBtn{background:#141b2d;color:#fff;border:1px solid #293552;padding:8px 13px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+
+.tenantGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px;}
+.tenantCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px;}
+.tenantCard.paused{border-color:#7f1d1d;opacity:0.82;}
+.tenantCard.expiring{border-color:#d97706;}
+.statusPill{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;}
+.pillActive{background:#14532d;color:#4ade80;}
+.pillPaused{background:#7f1d1d;color:#fca5a5;}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.76);display:none;justify-content:center;align-items:center;z-index:999;padding:16px;}
+.modal.show{display:flex;}
+.modalBox{width:640px;max-width:100%;background:#0b0f19;border:1px solid #24304d;border-radius:18px;padding:24px;max-height:90vh;overflow-y:auto;}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+.formGrid label{display:block;font-size:12px;color:#94a3b8;margin-bottom:5px;font-weight:700;}
+.formGrid input,.formGrid select{width:100%;padding:11px;border-radius:10px;border:1px solid #293552;background:#141b2d;color:#fff;}
+.full{grid-column:1/3;}
+
+#masterLogin{position:fixed;inset:0;background:#05070f;display:flex;justify-content:center;align-items:center;z-index:9999;padding:20px;}
+.loginCard{background:#0b0f19;border:1px solid #24304d;border-radius:18px;padding:34px;max-width:380px;width:100%;text-align:center;}
+.loginCard input{width:100%;padding:13px;border-radius:10px;border:1px solid #293552;background:#141b2d;color:#fff;margin:18px 0;text-align:center;font-size:16px;}
+</style>
+</head>
+<body>
+
+<div id="masterLogin">
+    <div class="loginCard">
+        <i class="fa-solid fa-crown" style="font-size:38px;color:#c5a880;margin-bottom:12px;"></i>
+        <h2>SaaS Master Control</h2>
+        <p style="font-size:13px;color:#94a3b8;margin-top:4px;">Enter Super Admin Master Key</p>
+        <input type="password" id="masterSecretInput" placeholder="••••••••••••" autocomplete="off" onkeyup="if(event.key==='Enter')unlockMaster()">
+        <button class="primaryBtn" style="width:100%;" onclick="unlockMaster()">Unlock HQ</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1><i class="fa-solid fa-crown"></i> Digiconvo SaaS Super Admin</h1>
+            <p style="color:#94a3b8;font-size:13px;margin-top:4px;">Zero-Knowledge Bcrypt Security • Multi-Tenant Cloud</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="secondaryBtn" onclick="openMasterSecurityModal()"><i class="fa-solid fa-key"></i> Security & Billing Settings</button>
+            <button class="primaryBtn" onclick="openTenantModal()"><i class="fa-solid fa-plus"></i> Onboard New Restaurant</button>
+        </div>
+    </div>
+
+    <div class="statsGrid" id="saasStats"></div>
+    <div class="tenantGrid" id="tenantGrid"></div>
+</div>
+
+<!-- ONBOARD / EDIT RESTAURANT MODAL -->
+<div class="modal" id="tenantModal">
+    <div class="modalBox">
+        <h3 id="modalTitle" style="color:#c5a880;font-size:20px;">Onboard New Restaurant</h3>
+        <div class="formGrid">
+            <div>
+                <label>URL Slug (e.g. spicegarden)</label>
+                <input id="tSlug" placeholder="spicegarden">
+            </div>
+            <div>
+                <label>Restaurant Name</label>
+                <input id="tName" placeholder="Spice Garden Cafe">
+            </div>
+            <div>
+                <label>Tagline</label>
+                <input id="tTagline" placeholder="Fresh Food & Great Vibes">
+            </div>
+            <div>
+                <label id="pinLabel">Set Admin PIN (Bcrypt Hashed)</label>
+                <input type="password" id="tPin" placeholder="Enter new PIN to set/reset">
+            </div>
+            <div>
+                <label>Owner Name</label>
+                <input id="tOwner" placeholder="Owner Name">
+            </div>
+            <div>
+                <label>Owner WhatsApp (with 91)</label>
+                <input id="tPhone" placeholder="919876543210">
+            </div>
+            <div>
+                <label>Monthly Subscription (₹)</label>
+                <input type="number" id="tPlan" value="399">
+            </div>
+            <div>
+                <label>Valid Till Date</label>
+                <input type="date" id="tValid">
+            </div>
+            <div>
+                <label>Theme Color Preset</label>
+                <select id="tTheme">
+                    <option value="gold">✨ Royal Gold</option>
+                    <option value="emerald">🌿 Pure Veg Emerald</option>
+                    <option value="crimson">🔥 Cafe Terracotta</option>
+                    <option value="royal">🌊 Ocean Blue</option>
+                    <option value="plum">🍷 Velvet Plum</option>
+                </select>
+            </div>
+            <div>
+                <label>Restaurant Address</label>
+                <input id="tAddress" placeholder="Main Road...">
+            </div>
+            <div class="full" style="margin-top:6px;">
+                <label style="display:flex;align-items:center;gap:8px;color:#fff;cursor:pointer;">
+                    <input type="checkbox" id="tClone" checked style="width:18px;height:18px;">
+                    Pre-load Demo Menu Starter Pack (9 Dishes)
+                </label>
+            </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
+            <button class="secondaryBtn" onclick="document.getElementById('tenantModal').classList.remove('show')">Cancel</button>
+            <button class="primaryBtn" onclick="saveTenant()">Save Restaurant</button>
+        </div>
+    </div>
+</div>
+
+<!-- CHANGE MASTER PASSWORD & PROVIDER BILLING MODAL -->
+<div class="modal" id="securityModal">
+    <div class="modalBox">
+        <h3 style="color:#c5a880;font-size:20px;">🔑 Master Key & Renewal Settings</h3>
+        <p style="font-size:12.5px;color:#94a3b8;margin-top:4px;">Your Master Key is Bcrypt-encrypted inside Supabase and never stored in code.</p>
+        <div class="formGrid">
+            <div class="full">
+                <label>New Master Secret Key (Leave blank to keep current key)</label>
+                <input type="password" id="mNewSecret" placeholder="Enter new Master Password">
+            </div>
+            <div>
+                <label>Your Personal WhatsApp (For Owner Renewal Button)</label>
+                <input id="mProviderWA" placeholder="e.g. 919876543210">
+            </div>
+            <div>
+                <label>Your UPI ID (Optional)</label>
+                <input id="mProviderUpi" placeholder="e.g. yourname@upi">
+            </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
+            <button class="secondaryBtn" onclick="document.getElementById('securityModal').classList.remove('show')">Cancel</button>
+            <button class="primaryBtn" onclick="saveMasterConfig()">Update Security Settings</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let TENANTS = [];
+let MASTER_SECRET = "";
+let PROVIDER_WA = "";
+let PROVIDER_UPI = "";
+
+document.addEventListener("DOMContentLoaded", () => {
+    const saved = sessionStorage.getItem(CONFIG.STORAGE.MASTER_KEY);
+    if (saved) {
+        document.getElementById("masterSecretInput").value = saved;
+        unlockMaster();
+    }
+});
+
+async function unlockMaster() {
+    const secret = document.getElementById("masterSecretInput").value.trim();
+    if (!secret) return;
+    const res = await api("saasList", { secret });
+    if (!res || !res.success) {
+        alert(res?.message || "Invalid Master Secret Key");
+        return;
+    }
+    MASTER_SECRET = secret;
+    PROVIDER_WA = res.provider_whatsapp || "";
+    PROVIDER_UPI = res.provider_upi || "";
+    sessionStorage.setItem(CONFIG.STORAGE.MASTER_KEY, secret);
+    document.getElementById("masterLogin").style.display = "none";
+    TENANTS = res.data || [];
+    renderSaasBoard();
+}
+
+async function reloadTenants() {
+    const res = await api("saasList", { secret: MASTER_SECRET });
+    if (res && res.success) {
+        TENANTS = res.data || [];
+        PROVIDER_WA = res.provider_whatsapp || "";
+        PROVIDER_UPI = res.provider_upi || "";
+        renderSaasBoard();
+    }
+}
+
+function renderSaasBoard() {
+    const activeTenants = TENANTS.filter(t => t.is_active !== false);
+    const mrr = activeTenants.reduce((s, t) => s + Number(t.plan_price || 399), 0);
+    const totalScans = TENANTS.reduce((s, t) => s + Number(t.scan_count || 0), 0);
+
+    document.getElementById("saasStats").innerHTML = `
+        <div class="statCard"><h4>Total Restaurants</h4><h2>${TENANTS.length}</h2></div>
+        <div class="statCard"><h4>Active Subscriptions</h4><h2>${activeTenants.length}</h2></div>
+        <div class="statCard"><h4>Monthly Recurring Revenue (MRR)</h4><h2>₹${mrr}</h2></div>
+        <div class="statCard"><h4>Total QR Scans Across Network</h4><h2>${totalScans}</h2></div>
+    `;
+
+    const grid = document.getElementById("tenantGrid");
+    grid.innerHTML = TENANTS.map(t => {
+        const isActive = t.is_active !== false;
+        const daysLeft = t.subscription_valid_till ? Math.ceil((new Date(t.subscription_valid_till) - new Date()) / 86400000) : 30;
+        const isExpiring = isActive && daysLeft <= 5;
+        const menuLink = `index.html?r=${encodeURIComponent(t.slug)}`;
+        const dashLink = `dashboard.html?r=${encodeURIComponent(t.slug)}`;
+
+        return `
+            <div class="tenantCard ${!isActive ? 'paused' : ''} ${isExpiring ? 'expiring' : ''}">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h3 style="font-size:19px;">${escapeHTML(t.restaurant_name)}</h3>
+                        <code style="color:#c5a880;font-size:12px;">?r=${escapeHTML(t.slug)}</code>
+                    </div>
+                    <span class="statusPill ${isActive ? 'pillActive' : 'pillPaused'}">${isActive ? "ACTIVE" : "PAUSED"}</span>
+                </div>
+                <div style="font-size:13px;color:#94a3b8;line-height:1.65;">
+                    <div>👤 <b>Owner:</b> ${escapeHTML(t.owner_name || "-")} (${escapeHTML(t.owner_phone || "-")})</div>
+                    <div>🔒 <b>Admin PIN:</b> <span style="color:#4ade80;">Encrypted (Bcrypt)</span></div>
+                    <div>📊 <b>Usage:</b> ${t.item_count || 0} Dishes &nbsp;•&nbsp; ${t.scan_count || 0} QR Scans</div>
+                    <div>💳 <b>Plan:</b> ₹${t.plan_price || 399}/mo &nbsp;•&nbsp; Valid: <b style="color:${isExpiring ? '#fbbf24' : '#fff'};">${escapeHTML(t.subscription_valid_till || "-")}</b></div>
+                </div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:auto;padding-top:10px;border-top:1px solid #1f2940;">
+                    <a class="secondaryBtn" href="${menuLink}" target="_blank"><i class="fa-solid fa-eye"></i> Menu</a>
+                    <a class="secondaryBtn" href="${dashLink}" target="_blank"><i class="fa-solid fa-sliders"></i> Dashboard</a>
+                    <button class="secondaryBtn" onclick="editTenant('${escapeHTML(t.slug)}')"><i class="fa-solid fa-pen"></i> Edit / Reset PIN</button>
+                    <button class="secondaryBtn" style="border-color:#16a34a;color:#4ade80;" onclick="extendSub('${escapeHTML(t.slug)}')">+30 Days</button>
+                    ${t.owner_phone ? `<button class="secondaryBtn" onclick="sendRenewalWA('${escapeHTML(t.slug)}')"><i class="fa-brands fa-whatsapp"></i> Remind</button>` : ""}
+                    <button class="secondaryBtn" style="border-color:${isActive ? '#d97706' : '#16a34a'};color:${isActive ? '#fbbf24' : '#4ade80'};" onclick="toggleTenant('${escapeHTML(t.slug)}')">
+                        ${isActive ? "Pause" : "Activate"}
+                    </button>
+                    ${t.slug !== "demo" ? `<button class="secondaryBtn" style="border-color:#7f1d1d;color:#f87171;" onclick="deleteTenant('${escapeHTML(t.slug)}')"><i class="fa-solid fa-trash"></i></button>` : ""}
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function openTenantModal(tenant = null) {
+    document.getElementById("modalTitle").innerText = tenant ? `Edit ${tenant.restaurant_name}` : "Onboard New Restaurant";
+    document.getElementById("tSlug").value = tenant ? tenant.slug : "";
+    document.getElementById("tSlug").readOnly = Boolean(tenant);
+    document.getElementById("tName").value = tenant ? tenant.restaurant_name : "";
+    document.getElementById("tTagline").value = tenant ? (tenant.tagline || "") : "Fresh Food & Great Vibes";
+    document.getElementById("pinLabel").innerText = tenant ? "Reset Admin PIN (Leave blank to keep existing)" : "Initial Admin PIN (6 digits)";
+    document.getElementById("tPin").value = "";
+    document.getElementById("tOwner").value = tenant ? (tenant.owner_name || "") : "";
+    document.getElementById("tPhone").value = tenant ? (tenant.owner_phone || "") : "";
+    document.getElementById("tPlan").value = tenant ? (tenant.plan_price || 399) : 399;
+    document.getElementById("tTheme").value = tenant ? (tenant.theme_color || "gold") : "gold";
+    document.getElementById("tAddress").value = tenant ? (tenant.address || "") : "";
+
+    const nextMonth = new Date();
+    nextMonth.setDate(nextMonth.getDate() + 30);
+    document.getElementById("tValid").value = tenant?.subscription_valid_till || nextMonth.toISOString().split("T")[0];
+    document.getElementById("tClone").checked = !tenant;
+    document.getElementById("tenantModal").classList.add("show");
+}
+
+function editTenant(slug) {
+    const t = TENANTS.find(x => x.slug === slug);
+    if (t) openTenantModal(t);
+}
+
+async function saveTenant() {
+    const isNew = !document.getElementById("tSlug").readOnly;
+    const pinVal = document.getElementById("tPin").value.trim();
+    if (isNew && !pinVal) {
+        alert("Please set an initial Admin PIN for the new restaurant.");
+        return;
+    }
+    const payload = {
+        slug: document.getElementById("tSlug").value.trim().toLowerCase(),
+        restaurant_name: document.getElementById("tName").value.trim(),
+        tagline: document.getElementById("tTagline").value.trim(),
+        admin_pin: pinVal,
+        owner_name: document.getElementById("tOwner").value.trim(),
+        owner_phone: document.getElementById("tPhone").value.trim(),
+        whatsapp_number: document.getElementById("tPhone").value.trim(),
+        plan_price: Number(document.getElementById("tPlan").value || 399),
+        subscription_valid_till: document.getElementById("tValid").value,
+        theme_color: document.getElementById("tTheme").value,
+        address: document.getElementById("tAddress").value.trim(),
+        clone_demo: document.getElementById("tClone").checked,
+        is_active: true
+    };
+    if (!payload.slug || !payload.restaurant_name) {
+        alert("Enter both URL Slug and Restaurant Name.");
+        return;
+    }
+    const res = await api("saasUpsert", { secret: MASTER_SECRET, payload });
+    if (res && res.success) {
+        document.getElementById("tenantModal").classList.remove("show");
+        reloadTenants();
+    } else alert(res?.message || "Failed to save restaurant");
+}
+
+function openMasterSecurityModal() {
+    document.getElementById("mNewSecret").value = "";
+    document.getElementById("mProviderWA").value = PROVIDER_WA;
+    document.getElementById("mProviderUpi").value = PROVIDER_UPI;
+    document.getElementById("securityModal").classList.add("show");
+}
+
+async function saveMasterConfig() {
+    const newSecret = document.getElementById("mNewSecret").value.trim();
+    const wa = document.getElementById("mProviderWA").value.trim();
+    const upi = document.getElementById("mProviderUpi").value.trim();
+
+    const res = await api("saasUpdateMaster", {
+        currentSecret: MASTER_SECRET,
+        newSecret,
+        providerWhatsapp: wa,
+        providerUpi: upi
+    });
+    if (res && res.success) {
+        if (newSecret) {
+            MASTER_SECRET = newSecret;
+            sessionStorage.setItem(CONFIG.STORAGE.MASTER_KEY, newSecret);
+        }
+        document.getElementById("securityModal").classList.remove("show");
+        alert("Master Security & Billing Settings Updated!");
+        reloadTenants();
+    } else {
+        alert(res?.message || "Failed to update settings");
+    }
+}
+
+async function extendSub(slug) {
+    if (!confirm(`Extend subscription for "${slug}" by +30 days?`)) return;
+    await api("saasExtend", { secret: MASTER_SECRET, targetSlug: slug });
+    reloadTenants();
+}
+
+function sendRenewalWA(slug) {
+    const t = TENANTS.find(x => x.slug === slug);
+    if (!t || !t.owner_phone) return;
+    const clean = String(t.owner_phone).replace(/\D/g, "");
+    const msg = `Hi ${t.owner_name || "Partner"}, your *Digiconvo Smart QR Menu* subscription (₹${t.plan_price || 399}/month) for *${t.restaurant_name}* is due for renewal (Valid till: ${t.subscription_valid_till}).${PROVIDER_UPI ? '\n\nUPI ID for renewal: *' + PROVIDER_UPI + '*' : ''}\n\nThank you!`;
+    window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+async function toggleTenant(slug) {
+    await api("saasToggle", { secret: MASTER_SECRET, targetSlug: slug });
+    reloadTenants();
+}
+
+async function deleteTenant(slug) {
+    if (!confirm(`Delete restaurant "${slug}" and all its menu items permanently?`)) return;
+    await api("saasDelete", { secret: MASTER_SECRET, targetSlug: slug });
+    reloadTenants();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Restaurant Owner Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,sans-serif;}
+body{background:#05070f;color:#fff;min-height:100vh;display:flex;}
+.sidebar{width:250px;background:#0b0f19;border-right:1px solid #1f2940;display:flex;flex-direction:column;flex-shrink:0;}
+.logo{padding:22px;border-bottom:1px solid #1f2940;}
+.logo h2{font-size:20px;color:#c5a880;}
+.logo p{font-size:12px;color:#94a3b8;margin-top:4px;}
+.navMenu{padding:15px;flex:1;}
+.navItem{display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:14px;color:#cbd5e1;}
+.navItem:hover{background:#141b2d;}
+.navItem.active{background:#c5a880;color:#05070f;font-weight:700;}
+.main{flex:1;display:flex;flex-direction:column;overflow-x:hidden;}
+.topbar{height:66px;background:#0b0f19;border-bottom:1px solid #1f2940;display:flex;justify-content:space-between;align-items:center;padding:0 24px;}
+.page{padding:24px;display:none;max-width:1280px;width:100%;margin:auto;}
+.page.active{display:block;}
+
+.expiryBanner{background:#7f1d1d;border-bottom:1px solid #ef4444;padding:10px 24px;display:none;justify-content:space-between;align-items:center;font-size:13px;}
+
+.statsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px;}
+.statCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;padding:18px;display:flex;align-items:center;gap:15px;}
+.statCard i{font-size:26px;color:#c5a880;}
+.statCard h3{font-size:26px;}
+.statCard p{font-size:12px;color:#94a3b8;}
+
+.demandCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;padding:18px;margin-bottom:24px;}
+.demandPills{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.demandPill{background:#141b2d;border:1px solid #293552;padding:8px 13px;border-radius:10px;font-size:13px;}
+.demandPill b{color:#c5a880;}
+
+.sectionHeader{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.primaryButton{background:#c5a880;color:#05070f;border:none;padding:11px 20px;border-radius:10px;font-weight:700;cursor:pointer;}
+.secondaryButton{background:#1e293b;color:#fff;border:1px solid #334155;padding:11px 18px;border-radius:10px;font-weight:600;cursor:pointer;}
+
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.toolbar input,.toolbar select{background:#0b0f19;border:1px solid #293552;color:#fff;padding:11px 14px;border-radius:10px;min-width:210px;}
+
+.menuGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;}
+.menuCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;overflow:hidden;}
+.menuImage{height:170px;background:#141b2d;position:relative;}
+.menuImage img{width:100%;height:100%;object-fit:cover;}
+.menuBody{padding:16px;}
+.menuBody h3{font-size:18px;margin-bottom:6px;}
+.menuBody p{font-size:12.5px;color:#94a3b8;min-height:36px;margin-bottom:10px;}
+.price{font-size:20px;font-weight:800;color:#c5a880;margin-bottom:10px;}
+.badge{display:inline-block;padding:4px 9px;border-radius:20px;font-size:10.5px;font-weight:700;margin-right:5px;margin-bottom:5px;}
+.available{background:#14532d;color:#fff;}
+.unavailable{background:#7f1d1d;color:#fff;}
+.offerBadge{background:#2563eb;color:#fff;}
+.cardActions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+.cardActions button{border:none;padding:9px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;}
+.editBtn{background:#2563eb;}.offerBtn{background:#d97706;}.stockBtn{background:#16a34a;}.deleteBtn{background:#dc2626;}
+
+.settingsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;}
+.settingCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;padding:22px;}
+.settingCard h3{margin-bottom:14px;color:#c5a880;}
+.settingCard label{display:block;margin-top:12px;margin-bottom:6px;font-size:13px;font-weight:600;color:#cbd5e1;}
+.settingCard input,.settingCard textarea,.settingCard select{width:100%;padding:11px;background:#141b2d;border:1px solid #293552;border-radius:10px;color:#fff;}
+
+.standeeCard{max-width:380px;margin:auto;background:#fff;color:#05070f;border-radius:24px;padding:30px 24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.6);border:6px solid #c5a880;}
+.standeeQrBox{background:#f8fafc;padding:16px;border-radius:16px;display:inline-block;border:2px dashed #cbd5e1;margin:14px 0;}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;justify-content:center;align-items:center;z-index:999;padding:16px;}
+.modal.show{display:flex;}
+.modalBox{width:700px;max-width:100%;background:#0b0f19;border:1px solid #24304d;border-radius:18px;max-height:90vh;overflow-y:auto;}
+.modalHeader{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #24304d;}
+.modalBody{padding:22px;}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.formGrid label{display:block;margin-bottom:5px;font-size:12.5px;font-weight:600;color:#cbd5e1;}
+.formGrid input,.formGrid select,.formGrid textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #293552;background:#141b2d;color:#fff;}
+.fullWidth{grid-column:1/3;}
+.modalFooter{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+#loginScreen{position:fixed;inset:0;background:#05070f;display:flex;justify-content:center;align-items:center;z-index:9999;padding:20px;}
+.loginBox{background:#0b0f19;border:1px solid #24304d;border-radius:18px;padding:35px 28px;text-align:center;width:100%;max-width:360px;}
+.loginBox input{width:100%;padding:14px;border-radius:10px;border:1px solid #293552;background:#141b2d;color:#fff;font-size:22px;text-align:center;letter-spacing:6px;margin:20px 0;}
+#toast{position:fixed;right:20px;bottom:20px;background:#16a34a;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;opacity:0;pointer-events:none;transition:.3s;z-index:99999;}
+#toast.show{opacity:1;}
+
+@media(max-width:768px){
+    body{flex-direction:column;}
+    .sidebar{width:100%;border-right:none;border-bottom:1px solid #1f2940;}
+    .navMenu{display:flex;overflow-x:auto;gap:8px;padding:10px;}
+    .navItem{margin-bottom:0;white-space:nowrap;}
+    .formGrid{grid-template-columns:1fr;}
+    .fullWidth{grid-column:auto;}
+}
+@media print{
+    .sidebar,.topbar,.noPrint,.expiryBanner{display:none!important;}
+    body{background:#fff;}
+    .page{padding:0;}
+}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+    <div class="loginBox">
+        <i class="fa-solid fa-shield-halved" style="color:#c5a880;font-size:38px;margin-bottom:12px;"></i>
+        <h2 id="loginRestName">Owner Dashboard</h2>
+        <p style="color:#94a3b8;font-size:13px;margin-top:4px;">Enter your Restaurant Admin PIN</p>
+        <input type="password" id="loginPin" placeholder="••••••" maxlength="12" onkeyup="if(event.key==='Enter')attemptLogin()">
+        <button class="primaryButton" style="width:100%;padding:14px;" onclick="attemptLogin()">Unlock Dashboard</button>
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="logo">
+        <h2 id="sidebarRestName">Restaurant</h2>
+        <p>ID: <code id="sidebarSlug" style="color:#c5a880;">demo</code></p>
+    </div>
+    <div class="navMenu">
+        <div class="navItem active" onclick="switchTab('menuPage', this)">
+            <i class="fa-solid fa-utensils"></i><span>Menu & Offers</span>
+        </div>
+        <div class="navItem" onclick="switchTab('qrPage', this)">
+            <i class="fa-solid fa-qrcode"></i><span>QR Standee Card</span>
+        </div>
+        <div class="navItem" onclick="switchTab('settingsPage', this)">
+            <i class="fa-solid fa-sliders"></i><span>Settings & Theme</span>
+        </div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="expiryBanner" id="expiryBanner"></div>
+
+    <div class="topbar">
+        <div style="font-size:18px;font-weight:700;" id="topbarTitle">Menu & Offers</div>
+        <a id="liveMenuLink" target="_blank" class="secondaryButton" style="text-decoration:none;font-size:13px;">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> View Live QR Menu
+        </a>
+    </div>
+
+    <!-- TAB 1: MENU -->
+    <div class="page active" id="menuPage">
+        <div class="statsGrid" id="menuStats"></div>
+        <div class="demandCard" id="demandBox" style="display:none;">
+            <div style="font-size:13px;font-weight:800;color:#c5a880;text-transform:uppercase;">🔥 Most Shortlisted Dishes by Guests</div>
+            <div class="demandPills" id="demandPills"></div>
+        </div>
+        <div class="sectionHeader">
+            <h2>Menu Catalog</h2>
+            <button class="primaryButton" onclick="openMenuModal()"><i class="fa-solid fa-plus"></i> Add Dish</button>
+        </div>
+        <div class="toolbar">
+            <input id="menuSearch" placeholder="Search dishes..." onkeyup="filterMenu()">
+            <select id="categoryFilter" onchange="filterMenu()"><option value="">All Categories</option></select>
+        </div>
+        <div class="menuGrid" id="menuGrid"></div>
+    </div>
+
+    <!-- TAB 2: QR STANDEE -->
+    <div class="page" id="qrPage">
+        <div class="sectionHeader noPrint">
+            <div>
+                <h2>Print-Ready Table QR Standee</h2>
+                <p style="color:#94a3b8;font-size:14px;">Print this card for tables or counter — updates automatically in real time.</p>
+            </div>
+            <button class="primaryButton" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save PDF</button>
+        </div>
+        <div class="standeeCard" id="standeeCard"></div>
+    </div>
+
+    <!-- TAB 3: SETTINGS -->
+    <div class="page" id="settingsPage"></div>
+</div>
+
+<div class="modal" id="menuModal"></div>
+<div class="modal" id="offerModal"></div>
+<div id="toast"></div>
+
+<script>
+let MENU = [];
+let FILTERED_MENU = [];
+let CURRENT_ITEM = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadRestaurantSettings();
+    document.getElementById("loginRestName").innerText = SETTINGS.Name || "Owner Dashboard";
+    document.getElementById("sidebarRestName").innerText = SETTINGS.Name || "Restaurant";
+    document.getElementById("sidebarSlug").innerText = CONFIG.TENANT.SLUG;
+    document.getElementById("liveMenuLink").href = `index.html?r=${encodeURIComponent(CONFIG.TENANT.SLUG)}`;
+    document.getElementById("loginPin").focus();
+});
+
+function toast(msg, isErr = false) {
+    const t = document.getElementById("toast");
+    t.style.background = isErr ? "#dc2626" : "#16a34a";
+    t.innerText = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+async function attemptLogin() {
+    const pin = document.getElementById("loginPin").value.trim();
+    if (!pin) return;
+    const res = await api("verifyPin", { pin });
+    if (!res || !res.success) {
+        toast(res?.message || "Invalid PIN", true);
+        return;
+    }
+    sessionStorage.setItem(CONFIG.STORAGE.ADMIN_PIN, pin);
+    document.getElementById("loginScreen").style.display = "none";
+    checkSubscriptionBanner();
+    await loadMenu();
+    renderSettings();
+    renderQrStandee();
+}
+
+function checkSubscriptionBanner() {
+    if (!SETTINGS.ValidTill) return;
+    const daysLeft = Math.ceil((new Date(SETTINGS.ValidTill) - new Date()) / 86400000);
+    if (daysLeft <= 5) {
+        const b = document.getElementById("expiryBanner");
+        b.style.display = "flex";
+        const renewWA = String(SETTINGS.ProviderWhatsApp || "").replace(/\D/g, "");
+        const renewBtn = renewWA
+            ? `<a href="https://wa.me/${renewWA}?text=${encodeURIComponent('Hi, I want to renew my ₹' + (SETTINGS.PlanPrice || 399) + ' Digiconvo QR Menu subscription for ' + SETTINGS.Name)}" target="_blank" style="background:#fff;color:#7f1d1d;padding:5px 12px;border-radius:6px;font-weight:800;text-decoration:none;">Renew Now (₹${SETTINGS.PlanPrice || 399})</a>`
+            : `<span>Valid till: ${escapeHTML(SETTINGS.ValidTill)}</span>`;
+        b.innerHTML = `<span>⚠️ Your Digiconvo QR Menu subscription ${daysLeft < 0 ? 'has expired' : 'expires in ' + daysLeft + ' day(s)'} (${escapeHTML(SETTINGS.ValidTill)}).</span> ${renewBtn}`;
+    }
+}
+
+function switchTab(pageId, el) {
+    document.querySelectorAll(".navItem").forEach(n => n.classList.remove("active"));
+    el.classList.add("active");
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById(pageId).classList.add("active");
+    document.getElementById("topbarTitle").innerText = el.innerText.trim();
+    if (pageId === "qrPage") renderQrStandee();
+}
+
+async function loadMenu() {
+    const res = await api("getMenu");
+    if (!res.success) { toast("Unable to load menu", true); return; }
+    MENU = res.data || [];
+    FILTERED_MENU = [...MENU];
+    renderStats();
+    populateCategories();
+    filterMenu();
+}
+
+function renderStats() {
+    const activeOffers = MENU.filter(i => i.OfferType && i.OfferType !== "None").length;
+    const outOfStock = MENU.filter(i => !i.Available).length;
+    document.getElementById("menuStats").innerHTML = `
+        <div class="statCard"><i class="fa-solid fa-qrcode"></i><div><h3>${SETTINGS.ScanCount || 0}</h3><p>Total QR Menu Scans</p></div></div>
+        <div class="statCard"><i class="fa-solid fa-bowl-food"></i><div><h3>${MENU.length}</h3><p>Total Dishes</p></div></div>
+        <div class="statCard"><i class="fa-solid fa-fire"></i><div><h3>${activeOffers}</h3><p>Active / Scheduled Offers</p></div></div>
+        <div class="statCard"><i class="fa-solid fa-ban"></i><div><h3>${outOfStock}</h3><p>Out of Stock</p></div></div>
+    `;
+
+    const topShortlisted = [...MENU].filter(i => i.ShortlistCount > 0).sort((a, b) => b.ShortlistCount - a.ShortlistCount).slice(0, 5);
+    const dBox = document.getElementById("demandBox");
+    if (topShortlisted.length > 0) {
+        dBox.style.display = "block";
+        document.getElementById("demandPills").innerHTML = topShortlisted.map(i => `
+            <div class="demandPill">${escapeHTML(i.Name)} — <b>${i.ShortlistCount} shortlists</b></div>
+        `).join("");
+    } else {
+        dBox.style.display = "none";
+    }
+}
+
+function populateCategories() {
+    const sel = document.getElementById("categoryFilter");
+    const current = sel.value;
+    const cats = sortCategoriesNaturally([...new Set(MENU.map(x => x.Category).filter(Boolean))]);
+    sel.innerHTML = `<option value="">All Categories</option>` + cats.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
+    sel.value = current;
+}
+
+function filterMenu() {
+    const kw = (document.getElementById("menuSearch")?.value || "").toLowerCase();
+    const cat = document.getElementById("categoryFilter")?.value || "";
+    FILTERED_MENU = MENU.filter(i => i.Name.toLowerCase().includes(kw) && (!cat || i.Category === cat));
+    renderMenuCards();
+}
+
+function renderMenuCards() {
+    const grid = document.getElementById("menuGrid");
+    if (FILTERED_MENU.length === 0) {
+        grid.innerHTML = `<div class="settingCard">No dishes found. Click "Add Dish" to create one.</div>`;
+        return;
+    }
+    grid.innerHTML = FILTERED_MENU.map(item => {
+        let badges = item.Veg ? `<span class="badge available">🟢 VEG</span>` : `<span class="badge unavailable">🔴 NON-VEG</span>`;
+        if (item.Jain) badges += `<span class="badge available">🕉️ Jain</span>`;
+        if (item.Bestseller) badges += `<span class="badge" style="background:#b45309;">⭐ Bestseller</span>`;
+        if (item.ChefsSpecial) badges += `<span class="badge" style="background:#6d28d9;">👨‍🍳 Chef's Special</span>`;
+        if (item.OfferType && item.OfferType !== "None") {
+            badges += `<span class="badge offerBadge">${item.isOfferActive ? "🔥 Live: " : "⏰ "}${escapeHTML(item.OfferType)}</span>`;
+        }
+        badges += item.Available ? `<span class="badge available">In Stock</span>` : `<span class="badge unavailable">Sold Out</span>`;
+
+        return `
+            <div class="menuCard">
+                <div class="menuImage">
+                    <img src="${imageOrDefault(item.Image)}" onerror="this.src='${CONFIG.UI.DEFAULT_IMAGE}'">
+                </div>
+                <div class="menuBody">
+                    <div style="font-size:12px;color:#c5a880;font-weight:700;margin-bottom:4px;">${escapeHTML(item.Category)}</div>
+                    <h3>${escapeHTML(item.Name)}</h3>
+                    <p>${escapeHTML(item.Description)}</p>
+                    <div class="price">
+                        ${item.OriginalPrice > item.Price ? `<del style="font-size:13px;color:#64748b;margin-right:5px;">${formatMoney(item.OriginalPrice)}</del>` : ""}
+                        ${formatMoney(item.Price)}
+                        ${item.HalfPrice > 0 ? `<span style="font-size:12px;color:#94a3b8;font-weight:500;"> (Half: ${formatMoney(item.HalfPrice)})</span>` : ""}
+                    </div>
+                    <div>${badges}</div>
+                    <div class="cardActions">
+                        <button class="editBtn" onclick="openMenuModal('${escapeHTML(item.ID)}')">Edit</button>
+                        <button class="offerBtn" onclick="openOfferModal('${escapeHTML(item.ID)}')">Offer</button>
+                        <button class="stockBtn" onclick="toggleStock('${escapeHTML(item.ID)}')">${item.Available ? "Mark Out" : "In Stock"}</button>
+                        <button class="deleteBtn" onclick="deleteItem('${escapeHTML(item.ID)}')">Delete</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function openMenuModal(id = null) {
+    CURRENT_ITEM = id ? MENU.find(x => x.ID === id) : null;
+    const m = document.getElementById("menuModal");
+    m.classList.add("show");
+    m.innerHTML = `
+        <div class="modalBox">
+            <div class="modalHeader">
+                <h3>${CURRENT_ITEM ? "Edit Dish" : "Add New Dish"}</h3>
+                <button class="secondaryButton" onclick="document.getElementById('menuModal').classList.remove('show')">✕</button>
+            </div>
+            <div class="modalBody">
+                <div class="formGrid">
+                    <div><label>Dish Name</label><input id="fName" value="${escapeHTML(CURRENT_ITEM?.Name || "")}"></div>
+                    <div><label>Category</label><input id="fCategory" placeholder="Starters, Main Course..." value="${escapeHTML(CURRENT_ITEM?.Category || "")}"></div>
+                    <div><label>Full Price (${SETTINGS.Currency || "₹"})</label><input type="number" id="fPrice" value="${CURRENT_ITEM?.OriginalPrice || ""}"></div>
+                    <div><label>Half Portion Price (Optional — 0 for none)</label><input type="number" id="fHalfPrice" value="${CURRENT_ITEM?.HalfPrice || 0}"></div>
+                    <div>
+                        <label>Dietary Type</label>
+                        <select id="fVeg">
+                            <option value="true" ${CURRENT_ITEM?.Veg !== false ? "selected" : ""}>🟢 Pure Veg</option>
+                            <option value="false" ${CURRENT_ITEM?.Veg === false ? "selected" : ""}>🔴 Non-Veg</option>
+                        </select>
+                    </div>
+                    <div><label>Prep Time (Optional, e.g. 15 mins)</label><input id="fPrep" value="${escapeHTML(CURRENT_ITEM?.PrepTime || "")}"></div>
+                    <div class="fullWidth">
+                        <label>"Pairs Well With" Dish Name (Smart Cross-Sell Upsell)</label>
+                        <input id="fPairs" placeholder="e.g. Garlic Butter Naan or Mint Mojito" value="${escapeHTML(CURRENT_ITEM?.PairsWith || "")}">
+                    </div>
+                    <div class="fullWidth">
+                        <label>Smart Conversion Tags</label>
+                        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;">
+                            <label><input type="checkbox" id="fBest" ${CURRENT_ITEM?.Bestseller ? "checked" : ""}> ⭐ Bestseller</label>
+                            <label><input type="checkbox" id="fChef" ${CURRENT_ITEM?.ChefsSpecial ? "checked" : ""}> 👨‍🍳 Chef's Special</label>
+                            <label><input type="checkbox" id="fMust" ${CURRENT_ITEM?.MustTry ? "checked" : ""}> 🔥 Must Try</label>
+                            <label><input type="checkbox" id="fJain" ${CURRENT_ITEM?.Jain ? "checked" : ""}> 🕉️ Jain Available</label>
+                            <label><input type="checkbox" id="fSpicy" ${CURRENT_ITEM?.Spicy ? "checked" : ""}> 🌶️ Spicy</label>
+                        </div>
+                    </div>
+                    <div class="fullWidth"><label>Image URL</label><input id="fImage" value="${escapeHTML(CURRENT_ITEM?.Image || "")}"></div>
+                    <div class="fullWidth"><label>Description</label><textarea id="fDesc" rows="2">${escapeHTML(CURRENT_ITEM?.Description || "")}</textarea></div>
+                </div>
+                <div class="modalFooter">
+                    <button class="secondaryButton" onclick="document.getElementById('menuModal').classList.remove('show')">Cancel</button>
+                    <button class="primaryButton" onclick="saveDish()">Save Dish</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function saveDish() {
+    const payload = {
+        ID: CURRENT_ITEM ? CURRENT_ITEM.ID : randomID("DISH"),
+        Name: document.getElementById("fName").value.trim(),
+        Category: document.getElementById("fCategory").value.trim(),
+        OriginalPrice: Number(document.getElementById("fPrice").value),
+        Price: Number(document.getElementById("fPrice").value),
+        HalfPrice: Number(document.getElementById("fHalfPrice").value || 0),
+        Veg: document.getElementById("fVeg").value === "true",
+        PrepTime: document.getElementById("fPrep").value.trim(),
+        PairsWith: document.getElementById("fPairs").value.trim(),
+        Bestseller: document.getElementById("fBest").checked,
+        ChefsSpecial: document.getElementById("fChef").checked,
+        MustTry: document.getElementById("fMust").checked,
+        Jain: document.getElementById("fJain").checked,
+        Spicy: document.getElementById("fSpicy").checked,
+        Image: document.getElementById("fImage").value.trim(),
+        Description: document.getElementById("fDesc").value.trim(),
+        Available: CURRENT_ITEM ? CURRENT_ITEM.Available : true
+    };
+    if (!payload.Name || !payload.Category || payload.Price <= 0) {
+        toast("Please enter Name, Category, and valid Full Price.", true);
+        return;
+    }
+    const res = await api("saveMenuItem", payload);
+    if (res.success) {
+        toast("Dish Saved!");
+        document.getElementById("menuModal").classList.remove("show");
+        loadMenu();
+    } else toast(res.message || "Failed to save", true);
+}
+
+async function toggleStock(id) {
+    const res = await api("toggleAvailability", { id });
+    if (res.success) { toast("Stock Updated"); loadMenu(); }
+}
+
+async function deleteItem(id) {
+    if (!confirm("Delete this dish permanently?")) return;
+    const res = await api("deleteMenuItem", { id });
+    if (res.success) { toast("Dish Deleted"); loadMenu(); }
+}
+
+function openOfferModal(id) {
+    CURRENT_ITEM = MENU.find(x => x.ID === id);
+    const m = document.getElementById("offerModal");
+    m.classList.add("show");
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    m.innerHTML = `
+        <div class="modalBox">
+            <div class="modalHeader">
+                <h3>Offer & Dayparting — ${escapeHTML(CURRENT_ITEM.Name)}</h3>
+                <button class="secondaryButton" onclick="document.getElementById('offerModal').classList.remove('show')">✕</button>
+            </div>
+            <div class="modalBody">
+                <div class="formGrid">
+                    <div>
+                        <label>Offer Type</label>
+                        <select id="oType">
+                            <option value="None">No Offer</option>
+                            <option value="Happy Hour">Happy Hour (% Off)</option>
+                            <option value="Percentage">Percentage Discount (%)</option>
+                            <option value="Flat">Flat Discount (${SETTINGS.Currency || "₹"})</option>
+                        </select>
+                    </div>
+                    <div><label>Discount Value</label><input type="number" id="oVal" value="${CURRENT_ITEM.OfferValue || 0}"></div>
+                    <div><label>Start Time (Optional)</label><input type="time" id="oStart" value="${CURRENT_ITEM.StartTime || ""}"></div>
+                    <div><label>End Time (Optional)</label><input type="time" id="oEnd" value="${CURRENT_ITEM.EndTime || ""}"></div>
+                    <div class="fullWidth">
+                        <label>Active Days (Leave unchecked for Every Day)</label>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;" id="oDays">
+                            ${days.map(d => `<label><input type="checkbox" value="${d}" ${(CURRENT_ITEM.OfferDays || []).includes(d) ? "checked" : ""}> ${d}</label>`).join("")}
+                        </div>
+                    </div>
+                </div>
+                <div class="modalFooter">
+                    <button class="deleteBtn" style="padding:10px 16px;border-radius:8px;border:none;color:#fff;font-weight:700;margin-right:auto;cursor:pointer;" onclick="clearItemOffer()">Remove Offer</button>
+                    <button class="secondaryButton" onclick="document.getElementById('offerModal').classList.remove('show')">Cancel</button>
+                    <button class="primaryButton" onclick="saveItemOffer()">Save Offer</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById("oType").value = CURRENT_ITEM.OfferType || "None";
+}
+
+async function saveItemOffer() {
+    const days = [...document.querySelectorAll("#oDays input:checked")].map(c => c.value);
+    const payload = {
+        id: CURRENT_ITEM.ID,
+        offerType: document.getElementById("oType").value,
+        offerValue: Number(document.getElementById("oVal").value),
+        startTime: document.getElementById("oStart").value,
+        endTime: document.getElementById("oEnd").value,
+        days
+    };
+    const res = await api("saveOffer", payload);
+    if (res.success) {
+        toast("Offer Updated!");
+        document.getElementById("offerModal").classList.remove("show");
+        loadMenu();
+    } else toast(res.message || "Error", true);
+}
+
+async function clearItemOffer() {
+    const res = await api("removeOffer", { id: CURRENT_ITEM.ID });
+    if (res.success) {
+        toast("Offer Removed");
+        document.getElementById("offerModal").classList.remove("show");
+        loadMenu();
+    }
+}
+
+function renderQrStandee() {
+    const menuUrl = new URL(`index.html?r=${encodeURIComponent(CONFIG.TENANT.SLUG)}`, window.location.href).href;
+    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(menuUrl)}`;
+
+    document.getElementById("standeeCard").innerHTML = `
+        <div style="font-size:12px;font-weight:800;letter-spacing:1.5px;color:#b45309;margin-bottom:6px;">SCAN FOR LIVE DIGITAL MENU</div>
+        <h2>${escapeHTML(SETTINGS.Name)}</h2>
+        <p>${escapeHTML(SETTINGS.Tagline || "Fresh Food & Great Vibes")}</p>
+        <div class="standeeQrBox">
+            <img src="${qrImgUrl}" width="210" height="210" alt="Menu QR Code">
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;">
+            🔥 Live Offers • ⭐ Bestsellers • 📝 Shortlist & Split Bill
+        </div>
+        ${SETTINGS.WifiName ? `
+            <div style="background:#f1f5f9;padding:10px;border-radius:12px;font-size:12px;color:#334155;margin-top:8px;">
+                📶 <b>Free Wi-Fi:</b> ${escapeHTML(SETTINGS.WifiName)} &nbsp;|&nbsp; <b>Pass:</b> ${escapeHTML(SETTINGS.WifiPassword || "Ask Server")}
+            </div>
+        ` : ""}
+        <div style="font-size:10px;color:#94a3b8;margin-top:14px;">Powered by Digiconvo Smart QR Menu</div>
+    `;
+}
+
+function renderSettings() {
+    document.getElementById("settingsPage").innerHTML = `
+        <div class="sectionHeader">
+            <h2>Restaurant Branding, Theme & Marketing</h2>
+            <button class="primaryButton" onclick="saveAllSettings()">Save Changes</button>
+        </div>
+        <div class="settingsGrid">
+            <div class="settingCard">
+                <h3>Branding & Live Banner</h3>
+                <label>Restaurant Name</label><input id="sName" value="${escapeHTML(SETTINGS.Name || "")}">
+                <label>Tagline</label><input id="sTagline" value="${escapeHTML(SETTINGS.Tagline || "")}">
+                <label>📢 Top Live Announcement / Today's Special Banner</label>
+                <input id="sAnnounce" placeholder="e.g. 🎉 Unlimited Veg Thali @ ₹199 (12 PM - 3 PM)" value="${escapeHTML(SETTINGS.Announcement || "")}">
+                <label>🎨 Menu Color Theme Preset</label>
+                <select id="sTheme">
+                    <option value="gold" ${SETTINGS.ThemeColor === "gold" ? "selected" : ""}>✨ Royal Gold & Obsidian</option>
+                    <option value="emerald" ${SETTINGS.ThemeColor === "emerald" ? "selected" : ""}>🌿 Pure Veg Emerald Green</option>
+                    <option value="crimson" ${SETTINGS.ThemeColor === "crimson" ? "selected" : ""}>🔥 Cafe Terracotta Orange</option>
+                    <option value="royal" ${SETTINGS.ThemeColor === "royal" ? "selected" : ""}>🌊 Midnight Ocean Blue</option>
+                    <option value="plum" ${SETTINGS.ThemeColor === "plum" ? "selected" : ""}>🍷 Velvet Lounge Plum</option>
+                </select>
+                <label>Logo Image URL</label><input id="sLogo" value="${escapeHTML(SETTINGS.Logo || "")}">
+                <label>Address</label><textarea id="sAddress" rows="2">${escapeHTML(SETTINGS.Address || "")}</textarea>
+            </div>
+            <div class="settingCard">
+                <h3>Growth, Wi-Fi & Review Shield</h3>
+                <label>Phone Number</label><input id="sPhone" value="${escapeHTML(SETTINGS.Phone || "")}">
+                <label>WhatsApp Number (With Country Code, e.g. 919876543210)</label>
+                <input id="sWA" value="${escapeHTML(SETTINGS.WhatsApp || "")}">
+                <label>Google Review Direct Link (For 4 & 5 Star Taps)</label>
+                <input id="sReview" value="${escapeHTML(SETTINGS.ReviewLink || "")}">
+                <label>Instagram Profile Link</label>
+                <input id="sInsta" value="${escapeHTML(SETTINGS.Instagram || "")}">
+                <label>Guest Wi-Fi Name (SSID)</label>
+                <input id="sWifiName" value="${escapeHTML(SETTINGS.WifiName || "")}">
+                <label>Guest Wi-Fi Password</label>
+                <input id="sWifiPass" value="${escapeHTML(SETTINGS.WifiPassword || "")}">
+            </div>
+            <div class="settingCard">
+                <h3>Menu Rules & Security</h3>
+                <label>Currency Symbol</label><input id="sCur" value="${escapeHTML(SETTINGS.Currency || "₹")}">
+                <label>Estimated GST % (For Customer Shortlist Estimator)</label>
+                <input type="number" id="sGst" value="${SETTINGS.GST ?? 5}">
+                <label>Happy Hour Master Switch</label>
+                <select id="sHappy">
+                    <option value="TRUE" ${SETTINGS.HappyHourEnabled === "TRUE" ? "selected" : ""}>ENABLED (Active)</option>
+                    <option value="FALSE" ${SETTINGS.HappyHourEnabled === "FALSE" ? "selected" : ""}>DISABLED</option>
+                </select>
+                <label>Change Admin PIN (Encrypted in DB — Leave blank to keep current)</label>
+                <input type="password" id="sNewPin" placeholder="Enter new PIN">
+            </div>
+        </div>
+    `;
+}
+
+async function saveAllSettings() {
+    const payload = {
+        Name: document.getElementById("sName").value.trim(),
+        Tagline: document.getElementById("sTagline").value.trim(),
+        Announcement: document.getElementById("sAnnounce").value.trim(),
+        ThemeColor: document.getElementById("sTheme").value,
+        Phone: document.getElementById("sPhone").value.trim(),
+        Logo: document.getElementById("sLogo").value.trim(),
+        Address: document.getElementById("sAddress").value.trim(),
+        WhatsApp: document.getElementById("sWA").value.trim(),
+        ReviewLink: document.getElementById("sReview").value.trim(),
+        Instagram: document.getElementById("sInsta").value.trim(),
+        WifiName: document.getElementById("sWifiName").value.trim(),
+        WifiPassword: document.getElementById("sWifiPass").value.trim(),
+        Currency: document.getElementById("sCur").value.trim() || "₹",
+        GST: Number(document.getElementById("sGst").value || 0),
+        HappyHourEnabled: document.getElementById("sHappy").value,
+        NewAdminPIN: document.getElementById("sNewPin").value.trim()
+    };
+    const res = await api("saveSettings", payload);
+    if (res.success) {
+        toast("Settings Saved!");
+        await loadRestaurantSettings();
+        document.getElementById("sidebarRestName").innerText = SETTINGS.Name;
+        renderQrStandee();
+    } else toast(res.message || "Unable to save", true);
+}
+</script>
+</body>
+</html>
