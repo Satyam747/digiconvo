@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wmuihwywxetbzrrjzspm.supabase.co; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Doctor Cabin — ClinicOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js?v=20261113-6"></script>
+<script src="common.js?v=20261113-6"></script>
+<style>
+:root{
+    --primary:#059669;
+    --primary-light:#ecfdf5;
+    --accent:#10b981;
+    --bg-page:#f1f5f9;
+    --bg-surface:#ffffff;
+    --bg-muted:#f8fafc;
+    --text-main:#0f172a;
+    --text-secondary:#475569;
+    --text-muted:#64748b;
+    --border-col:#e2e8f0;
+    --shadow-sm:0 1px 3px rgba(15,23,42,0.06),0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md:0 10px 25px -5px rgba(15,23,42,0.08),0 8px 10px -6px rgba(15,23,42,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;}
+body{background:var(--bg-page);color:var(--text-main);min-height:100vh;}
+
+/* TOP BAR */
+.topbar{background:var(--bg-surface);border-bottom:1px solid var(--border-col);padding:12px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm);}
+.brandWrap{display:flex;align-items:center;gap:10px;}
+.brandIcon{width:36px;height:36px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.navLinks{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.navBtn{background:var(--bg-muted);color:var(--text-main);border:1.5px solid var(--border-col);padding:8px 14px;border-radius:10px;font-size:12.5px;font-weight:700;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:0.18s;}
+.navBtn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+
+.wrap{max-width:900px;margin:0 auto;padding:20px 18px 48px;}
+
+/* CURRENT PATIENT HERO CARD */
+.cabinCard{background:linear-gradient(135deg,#065f46,#047857);color:#ffffff;border-radius:22px;padding:24px;margin-bottom:18px;box-shadow:0 12px 28px -8px rgba(5,150,105,0.35);}
+.vitalsGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);padding:12px 16px;border-radius:14px;font-size:13px;}
+
+/* MAIN CABIN ACTION BAR */
+.actionBar{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:18px;}
+@media(max-width:720px){.actionBar{grid-template-columns:1fr;}}
+.mainBtn{border:none;border-radius:14px;padding:16px 18px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all 0.18s;box-shadow:var(--shadow-sm);}
+.mainBtn:hover{transform:translateY(-1px);}
+.btnCallNext{background:var(--primary);color:#ffffff;box-shadow:0 6px 16px rgba(5,150,105,0.28);}
+.btnCallNext:hover{background:#047857;}
+.btnLab{background:#0284c7;color:#ffffff;}
+.btnLab:hover{background:#0369a1;}
+.btnBell{background:#f59e0b;color:#ffffff;}
+.btnBell:hover{background:#d97706;}
+
+/* PRESCRIPTION PANEL */
+.rxPanel{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:20px;padding:22px;box-shadow:var(--shadow-sm);}
+.chip{background:var(--bg-muted);border:1.5px solid var(--border-col);color:var(--text-secondary);padding:7px 13px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;transition:0.15s;display:inline-flex;align-items:center;gap:6px;}
+.chip:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+.chip.active{background:var(--primary);color:#ffffff;border-color:var(--primary);box-shadow:0 2px 8px rgba(5,150,105,0.22);}
+
+label{display:block;font-size:11.5px;color:var(--text-muted);font-weight:800;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px;}
+textarea,input,select{width:100%;padding:11px 13px;border-radius:12px;border:1.5px solid var(--border-col);background:var(--bg-muted);color:var(--text-main);font-size:14px;font-weight:500;outline:none;transition:0.18s;}
+textarea:focus,input:focus,select:focus{border-color:var(--primary);background:var(--bg-surface);box-shadow:0 0 0 3px rgba(5,150,105,0.12);}
+
+/* LOGIN OVERLAY */
+#loginScreen{position:fixed;inset:0;background:var(--bg-page);display:flex;justify-content:center;align-items:center;z-index:9999;padding:20px;}
+.loginCard{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:24px;padding:36px 30px;max-width:410px;width:100%;text-align:center;box-shadow:var(--shadow-md);}
+.pinBox{letter-spacing:8px;font-size:24px;font-family:'JetBrains Mono',monospace;text-align:center;margin:14px 0 20px;padding:13px;}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);display:none;justify-content:center;align-items:center;z-index:999;padding:16px;}
+.modal.show{display:flex;}
+.modalContent{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:22px;padding:24px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);}
+@media print{body>*:not(#clinicosPrintMount){display:none!important;}body{background:#fff;}}
+</style>
+</head>
+<body>
+
+<!-- PER-DOCTOR 6-DIGIT PIN LOGIN -->
+<div id="loginScreen">
+    <div class="loginCard">
+        <div style="width:56px;height:56px;border-radius:16px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;">
+            <i class="fa-solid fa-user-doctor"></i>
+        </div>
+        <h2 id="loginClinicTitle" style="font-size:22px;font-weight:800;">Doctor Cabin Sign-In</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:4px;margin-bottom:18px;">Select your doctor profile and enter your personal 6-digit PIN</p>
+
+        <div style="text-align:left;margin-bottom:12px;">
+            <label for="loginDocSelect">Select Doctor Profile</label>
+            <select id="loginDocSelect" style="font-weight:700;"></select>
+        </div>
+
+        <div style="text-align:left;">
+            <label for="docPinInput">Personal 6-Digit PIN</label>
+            <input type="password" id="docPinInput" class="pinBox" maxlength="6" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'')" onkeyup="if(event.key==='Enter')unlockDoctor()">
+        </div>
+
+        <button class="mainBtn btnCallNext" style="width:100%;padding:14px;font-size:14.5px;" onclick="unlockDoctor()">
+            <i class="fa-solid fa-unlock-keyhole"></i> Unlock My Cabin
+        </button>
+    </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="brandWrap">
+        <div class="brandIcon"><i class="fa-solid fa-stethoscope"></i></div>
+        <div>
+            <div style="font-size:17px;font-weight:800;" id="hdrClinicName">Doctor Cabin</div>
+            <div style="font-size:12px;color:var(--primary);font-weight:700;" id="hdrDocIdentity">Loading...</div>
+        </div>
+    </div>
+    <div class="navLinks">
+        <a id="linkReceptionPage" href="reception.html" class="navBtn"><i class="fa-solid fa-desktop"></i> Reception Desk</a>
+        <button class="navBtn" onclick="openDocSettingsModal()"><i class="fa-solid fa-sliders"></i> Templates & Reg. No.</button>
+        <button class="navBtn" onclick="relockDoctor()" title="Sign out or switch doctor"><i class="fa-solid fa-right-from-bracket"></i> Switch Doctor</button>
+    </div>
+</div>
+
+<div class="wrap">
+    <div id="statsBar" style="font-size:13.5px;color:var(--text-secondary);margin-bottom:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;"></div>
+
+    <!-- CURRENT PATIENT HERO BOX -->
+    <div class="cabinCard" id="cabinPatientBox"></div>
+
+    <!-- MAIN CABIN CONTROLS -->
+    <div class="actionBar">
+        <button class="mainBtn btnCallNext" onclick="completeAndCallNext()">
+            <i class="fa-solid fa-volume-high"></i> Complete & Call Next Patient
+        </button>
+        <button class="mainBtn btnLab" onclick="sendToLab()">
+            <i class="fa-solid fa-flask"></i> Send to Lab / X-Ray
+        </button>
+        <button class="mainBtn btnBell" onclick="callStaffBell()">
+            <i class="fa-solid fa-bell"></i> Call Staff
+        </button>
+    </div>
+
+    <!-- PRESCRIPTION & CLINICAL NOTES PAD -->
+    <div class="rxPanel">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+            <div>
+                <strong style="font-size:16px;color:var(--text-main);"><i class="fa-solid fa-prescription" style="color:var(--primary);margin-right:6px;"></i> Prescription & Clinical Notes</strong>
+                <span id="draftSaveIndicator" style="font-size:11.5px;color:var(--text-muted);margin-left:8px;"></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <button class="chip" style="background:#fef2f2;color:#dc2626;border-color:#fecaca;" id="voiceBtn" onclick="toggleVoice()">
+                    <i class="fa-solid fa-microphone"></i> Dictate
+                </button>
+                <select id="voiceLang" style="width:auto;padding:6px 10px;font-size:12.5px;font-weight:700;">
+                    <option value="en-IN">English (India)</option>
+                    <option value="hi-IN">Hindi (हिंदी)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- DOCTOR'S CUSTOM QUICK-INSERT TEMPLATES (NO HARDCODED DRUGS) -->
+        <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <label style="margin:0;">My Quick-Insert Clinical Templates</label>
+                <button class="chip" style="padding:3px 9px;font-size:11px;" onclick="openDocSettingsModal()">+ Edit My Templates</button>
+            </div>
+            <div id="customTemplatesBar" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+
+        <textarea id="rxNotesBox" rows="6" placeholder="Type or dictate clinical findings, diagnosis, investigations, and prescription notes..." oninput="saveRxDraft()"></textarea>
+
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-top:16px;align-items:end;">
+            <div>
+                <label>Follow-Up Recall Window (Sets Free Follow-Up Eligibility)</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                    <button type="button" class="chip recallBtn" data-days="5" onclick="setRecall(5)">5 Days</button>
+                    <button type="button" class="chip recallBtn" data-days="15" onclick="setRecall(15)">15 Days</button>
+                    <button type="button" class="chip recallBtn" data-days="30" onclick="setRecall(30)">30 Days</button>
+                    <input type="number" id="customRecallInput" min="1" max="365" value="5" style="width:78px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-weight:700;text-align:center;" onchange="setRecall(this.value)">
+                    <span style="font-size:12px;color:var(--text-muted);font-weight:600;">days</span>
+                </div>
+            </div>
+            <div>
+                <label for="marginMmInput">Letterhead Top Blank Margin (mm)</label>
+                <input type="number" id="marginMmInput" min="0" max="100" value="45" onchange="docMutate('saveSettings',{letterhead_margin_mm:this.value})">
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border-col);">
+            <button class="mainBtn" style="background:#0f172a;color:#ffffff;padding:13px;font-size:14px;" onclick="printRxA4()">
+                <i class="fa-solid fa-print"></i> Print on A4 Letterhead
+            </button>
+            <button class="mainBtn btnCallNext" style="padding:13px;font-size:14px;" onclick="sendRxWhatsApp()">
+                <i class="fa-brands fa-whatsapp"></i> Send Rx on WhatsApp
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- DOCTOR PROFILE, NMC REG. NO., TEMPLATES & PIN MODAL -->
+<div class="modal" id="docSettingsModal">
+    <div class="modalContent">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-col);">
+            <h3 style="font-size:18px;font-weight:800;"><i class="fa-solid fa-user-doctor" style="color:var(--primary);margin-right:6px;"></i> Doctor Profile & Rx Templates</h3>
+            <button class="navBtn" onclick="document.getElementById('docSettingsModal').classList.remove('show')">✕</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr;gap:14px;">
+            <div>
+                <label for="dRegNoInput">Medical Council Registration Number (Printed on Prescriptions)</label>
+                <input id="dRegNoInput" placeholder="e.g. MPMC Reg. No. 14892">
+            </div>
+            <div>
+                <label for="dTemplatesInput">My Quick-Insert Rx Templates (One line per template)</label>
+                <textarea id="dTemplatesInput" rows="5" placeholder="• Tab Paracetamol 650mg — 1 Tab SOS for fever&#10;• Advise: CBC, ESR, RBS & Digital X-Ray&#10;• Plenty of oral fluids & warm saline gargles"></textarea>
+            </div>
+            <div>
+                <label for="dNewPinInput">Change My Personal 6-Digit PIN (Leave blank to keep current)</label>
+                <input type="password" id="dNewPinInput" maxlength="6" placeholder="Enter new 6-digit numeric PIN" oninput="this.value=this.value.replace(/\D/g,'')">
+            </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:14px;border-top:1px solid var(--border-col);">
+            <button class="navBtn" onclick="document.getElementById('docSettingsModal').classList.remove('show')">Cancel</button>
+            <button class="mainBtn btnCallNext" style="padding:10px 18px;font-size:13.5px;" onclick="saveDoctorProfileSettings()">Save My Settings</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let STATE = null;
+let CURRENT_INSIDE = null;
+let SELECTED_RECALL = 5;
+let recognition = null;
+let rxSaveTimer = null;
+let rxSaveInFlight = false;
+let rxSavePromise = Promise.resolve({ success: true });
+let doctorRefreshTimer = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const slug = encodeURIComponent(CONFIG.TENANT.SLUG);
+    document.getElementById("linkReceptionPage").href = `reception.html?c=${slug}`;
+
+    await loadPublicDoctorsForLogin();
+
+    if (sessionStorage.getItem(CONFIG.STORAGE.DOCTOR_PIN)) {
+        startDoctor();
+    }
+    window.addEventListener("storage", () => {
+        if (sessionStorage.getItem(CONFIG.STORAGE.DOCTOR_PIN)) loadCabin();
+    });
+});
+
+async function loadPublicDoctorsForLogin() {
+    const res = await api("getPublicQueue", {});
+    if (res && res.success) {
+        document.getElementById("loginClinicTitle").innerText = res.clinic_name || "Doctor Cabin";
+        const docs = normalizeDoctorsList(res);
+        const savedDocId = sessionStorage.getItem(CONFIG.STORAGE.DOCTOR_ID) || docs[0].id;
+        const sel = document.getElementById("loginDocSelect");
+        setOptionsIfChanged(sel, docs.map(d =>
+            `<option value="${escapeHTML(d.id)}" ${d.id === savedDocId ? "selected" : ""}>${escapeHTML(d.name)}${d.reg_no ? ` (${escapeHTML(d.reg_no)})` : ""}</option>`
+        ).join(""));
+    }
+}
+
+async function unlockDoctor() {
+    const doctorId = document.getElementById("loginDocSelect").value;
+    const pin = document.getElementById("docPinInput").value.trim();
+    if (!doctorId) {
+        alert("Please select your Doctor profile.");
+        return;
+    }
+    if (!/^[0-9]{6}$/.test(pin)) {
+        alert("Please enter your 6-digit numeric PIN.");
+        return;
+    }
+    const res = await api("verifyDoctorPin", { pin, doctor_id: doctorId });
+    if (!res || !res.success) {
+        sessionStorage.removeItem(CONFIG.STORAGE.DOCTOR_PIN);
+        alert(res?.message || "Incorrect 6-digit PIN for selected doctor.");
+        return;
+    }
+    sessionStorage.setItem(CONFIG.STORAGE.DOCTOR_PIN, res.token);
+    sessionStorage.setItem(CONFIG.STORAGE.DOCTOR_ID, res.doctor_id || doctorId);
+    document.getElementById("docPinInput").value = "";
+    startDoctor();
+}
+
+let autoLockStarted = false;
+function startDoctor() {
+    document.getElementById("loginScreen").style.display = "none";
+    if (!autoLockStarted) {
+        initInactivityAutoLock([CONFIG.STORAGE.DOCTOR_PIN, CONFIG.STORAGE.DOCTOR_ID]);
+        autoLockStarted = true;
+    }
+    loadCabin();
+    if (!doctorRefreshTimer) doctorRefreshTimer = setInterval(loadCabin, 5000);
+}
+
+function relockDoctor() {
+    sessionStorage.removeItem(CONFIG.STORAGE.DOCTOR_PIN);
+    clearInterval(doctorRefreshTimer);
+    doctorRefreshTimer = null;
+    STATE = null;
+    loadPublicDoctorsForLogin();
+    document.getElementById("loginScreen").style.display = "flex";
+}
+
+async function loadCabin() {
+    const res = await api("getStaffDashboard", { role: "doctor" });
+    if (!res || !res.success) {
+        if (res && /PIN|paused|expired|Session|unauthorized/i.test(res.message || "")) relockDoctor();
+        return;
+    }
+    STATE = res.clinic;
+    renderCabin();
+}
+
+async function docMutate(op, payload) {
+    const res = await api("staffAction", { role: "doctor", op, payload });
+    if (res && res.success) {
+        STATE = res.clinic;
+        renderCabin();
+    } else {
+        alert(res?.message || "Action could not be completed.");
+        await loadCabin();
+    }
+    return res;
+}
+
+function renderCabin() {
+    if (!STATE) return;
+    const myDocId = STATE.authenticated_doctor_id || sessionStorage.getItem(CONFIG.STORAGE.DOCTOR_ID) || "doc1";
+    const docObj = getDoctorById(STATE, myDocId);
+
+    document.title = `${docObj.name} — ${STATE.clinic_name}`;
+    document.getElementById("hdrClinicName").innerText = STATE.clinic_name;
+    document.getElementById("hdrDocIdentity").innerText = docObj.reg_no
+        ? `${docObj.name} • Reg. No.: ${docObj.reg_no}`
+        : `${docObj.name} (Add Reg. No. in Templates & Reg. No.)`;
+
+    // Render Doctor's Own Custom Templates
+    const tplBar = document.getElementById("customTemplatesBar");
+    const templates = Array.isArray(docObj.rx_templates) ? docObj.rx_templates : [];
+    if (templates.length === 0) {
+        tplBar.innerHTML = `<span style="font-size:12px;color:var(--text-muted);">No custom templates saved yet. Click <b>+ Edit My Templates</b> to add your frequent medicines or advice.</span>`;
+    } else {
+        tplBar.innerHTML = templates.map(line =>
+            `<button type="button" class="chip" onclick="addMedicine('${escapeJS(line)}')">+ ${escapeHTML(line.length > 42 ? line.substring(0, 42) + "…" : line)}</button>`
+        ).join("");
+    }
+
+    const docTokens = (STATE.tokens || []).filter(t => t.doctor === myDocId);
+    const previousInsideId = CURRENT_INSIDE ? CURRENT_INSIDE.id : null;
+    CURRENT_INSIDE = docTokens.find(t => t.status === "inside") || null;
+
+    const arrivedWait = docTokens.filter(t => t.status === "waiting" && t.arrived).length;
+    const completedCnt = docTokens.filter(t => t.status === "completed" && t.completed_at && new Date(t.completed_at).toDateString() === new Date().toDateString()).length;
+
+    document.getElementById("statsBar").innerHTML = `
+        <div>Patients Present Outside: <b style="color:var(--primary);">${arrivedWait}</b> &nbsp;•&nbsp; Consultations Completed Today: <b style="color:var(--text-main);">${completedCnt}</b></div>
+        ${CURRENT_INSIDE ? `<button class="chip" style="padding:4px 10px;font-size:11.5px;" onclick="reAnnounceCurrent()"><i class="fa-solid fa-bullhorn"></i> Re-Announce #${CURRENT_INSIDE.token}</button>` : ""}
+    `;
+    document.getElementById("marginMmInput").value = STATE.letterhead_margin_mm ?? 45;
+
+    const box = document.getElementById("cabinPatientBox");
+    if (!CURRENT_INSIDE) {
+        box.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <div style="font-size:12px;color:#a7f3d0;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;">Cabin Status</div>
+                    <div style="font-size:20px;color:#ffffff;font-weight:800;margin-top:4px;">No patient currently inside cabin</div>
+                    <p style="font-size:13px;color:#d1fae5;margin-top:4px;">Click "Complete & Call Next Patient" below to call the next present patient.</p>
+                </div>
+            </div>`;
+        document.getElementById("rxNotesBox").value = "";
+        updateRecallButtonsUI(5);
+        return;
+    }
+
+    const p = CURRENT_INSIDE;
+    if (previousInsideId !== p.id) {
+        SELECTED_RECALL = Number(p.recall_days || 5);
+        document.getElementById("rxNotesBox").value = p.rx_notes || "";
+    } else if (document.activeElement !== document.getElementById("rxNotesBox") && !rxSaveTimer && !rxSaveInFlight) {
+        document.getElementById("rxNotesBox").value = p.rx_notes || "";
+    }
+    updateRecallButtonsUI(SELECTED_RECALL);
+
+    box.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;">
+            <div>
+                <div style="font-size:11.5px;color:#a7f3d0;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;">Now Consulting Inside Cabin</div>
+                <h1 style="font-size:28px;font-weight:800;margin-top:4px;">Token #${p.token} — ${escapeHTML(p.name)} (${p.age}${escapeHTML(p.gender)})</h1>
+                <p style="font-size:13.5px;color:#ecfdf5;margin-top:4px;">Visit Purpose: <b>${escapeHTML(p.visit_type)}</b> • Mobile: <b>${escapeHTML(p.phone)}</b></p>
+            </div>
+            <div class="vitalsGrid">
+                <div><b>BP:</b> ${escapeHTML(p.vitals?.bp || "—")}</div>
+                <div><b>Weight:</b> ${escapeHTML(p.vitals?.wt || "—")} kg</div>
+                <div><b>Temp:</b> ${escapeHTML(p.vitals?.temp || "—")} °F</div>
+                <div><b>SpO2:</b> ${escapeHTML(p.vitals?.spo2 || "—")} %</div>
+            </div>
+        </div>
+    `;
+}
+
+function updateRecallButtonsUI(days) {
+    const num = Math.max(1, Math.min(365, Number(days) || 5));
+    SELECTED_RECALL = num;
+    const customInput = document.getElementById("customRecallInput");
+    if (customInput && document.activeElement !== customInput) {
+        customInput.value = num;
+    }
+    document.querySelectorAll(".recallBtn").forEach(btn => {
+        btn.classList.toggle("active", Number(btn.dataset.days) === num);
+    });
+}
+
+async function flushPendingRxSave() {
+    clearTimeout(rxSaveTimer);
+    rxSaveTimer = null;
+    if (rxSaveInFlight) {
+        const prior = await rxSavePromise;
+        if (!prior || !prior.success) return false;
+    }
+    return true;
+}
+
+async function completeAndCallNext() {
+    if (!(await flushPendingRxSave())) return;
+    const rx = document.getElementById("rxNotesBox").value;
+    const expectedId = CURRENT_INSIDE ? CURRENT_INSIDE.id : "";
+    const previousCallTs = STATE?.last_voice_call?.ts;
+
+    const res = await docMutate("completeAndCallNext", {
+        expected_visit_id: expectedId,
+        rx_notes: rx,
+        recall_days: SELECTED_RECALL
+    });
+    if (res && res.success && STATE?.last_voice_call && STATE.last_voice_call.ts !== previousCallTs) {
+        announceTokenVoiceHindi(STATE.last_voice_call.token, "");
+    }
+}
+
+async function sendToLab() {
+    if (!CURRENT_INSIDE) {
+        alert("No active patient inside the cabin.");
+        return;
+    }
+    const patientId = CURRENT_INSIDE.id;
+    if (!(await flushPendingRxSave())) return;
+
+    const saved = await docMutate("saveRxDraft", {
+        id: patientId,
+        rx_notes: document.getElementById("rxNotesBox").value,
+        recall_days: SELECTED_RECALL
+    });
+    if (saved && saved.success) {
+        await docMutate("parkInLab", { id: patientId, expected_visit_id: patientId });
+    }
+}
+
+function reAnnounceCurrent() {
+    if (!CURRENT_INSIDE) return;
+    docMutate("reAnnounce", {});
+    announceTokenVoiceHindi(CURRENT_INSIDE.token, "");
+}
+
+function callStaffBell() {
+    playHospitalDingDong();
+    docMutate("togglePeonBell", { active: true });
+}
+
+function addMedicine(line) {
+    if (!CURRENT_INSIDE) {
+        alert("Call a patient into the cabin first before adding prescription notes.");
+        return;
+    }
+    const box = document.getElementById("rxNotesBox");
+    box.value = (box.value ? box.value.trim() + "\n" : "") + line;
+    saveRxDraft();
+}
+
+function setRecall(days) {
+    updateRecallButtonsUI(days);
+    if (CURRENT_INSIDE) saveRxDraft();
+}
+
+function saveRxDraft() {
+    if (!CURRENT_INSIDE) return;
+    clearTimeout(rxSaveTimer);
+    const patientId = CURRENT_INSIDE.id;
+    const notes = document.getElementById("rxNotesBox").value;
+    const recallDays = SELECTED_RECALL;
+    const ind = document.getElementById("draftSaveIndicator");
+    if (ind) ind.innerText = "Saving...";
+
+    rxSaveTimer = setTimeout(() => {
+        rxSaveTimer = null;
+        rxSaveInFlight = true;
+        rxSavePromise = docMutate("saveRxDraft", {
+            id: patientId,
+            rx_notes: notes,
+            recall_days: recallDays
+        }).then(r => {
+            if (ind) ind.innerText = r && r.success ? "✓ Saved" : "";
+            return r;
+        }).finally(() => {
+            rxSaveInFlight = false;
+        });
+    }, 500);
+}
+
+function toggleVoice() {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+        alert("Voice dictation requires Chrome or Edge browser.");
+        return;
+    }
+    if (!recognition) {
+        recognition = new SpeechRec();
+        recognition.continuous = false;
+        recognition.onresult = (e) => {
+            addMedicine("• " + e.results[0][0].transcript);
+            document.getElementById("voiceBtn").innerHTML = `<i class="fa-solid fa-microphone"></i> Dictate`;
+        };
+        recognition.onend = () => {
+            document.getElementById("voiceBtn").innerHTML = `<i class="fa-solid fa-microphone"></i> Dictate`;
+        };
+    }
+    recognition.lang = document.getElementById("voiceLang").value;
+    document.getElementById("voiceBtn").innerText = "🔴 Listening...";
+    recognition.start();
+}
+
+function printRxA4() {
+    if (!CURRENT_INSIDE) {
+        alert("No active patient inside the cabin.");
+        return;
+    }
+    CURRENT_INSIDE.rx_notes = document.getElementById("rxNotesBox").value;
+    CURRENT_INSIDE.recall_days = SELECTED_RECALL;
+    printPrescriptionLetterhead(CURRENT_INSIDE, STATE);
+}
+
+function sendRxWhatsApp() {
+    if (!CURRENT_INSIDE) {
+        alert("No active patient inside the cabin.");
+        return;
+    }
+    const rx = document.getElementById("rxNotesBox").value;
+    const myDocId = STATE.authenticated_doctor_id || sessionStorage.getItem(CONFIG.STORAGE.DOCTOR_ID);
+    const docObj = getDoctorById(STATE, myDocId);
+    const regLine = docObj.reg_no ? ` (${docObj.reg_no})` : "";
+    const msg = `*Digital Prescription — ${STATE.clinic_name}*\n*Consultant:* ${docObj.name}${regLine}\n*Patient:* ${CURRENT_INSIDE.name} (${CURRENT_INSIDE.age}/${CURRENT_INSIDE.gender}) • Token #${CURRENT_INSIDE.token}\n\n*℞ Prescription:*\n${rx || "As advised."}\n\n*Follow-Up Advised:* After ${SELECTED_RECALL} days.`;
+    openWhatsApp(CURRENT_INSIDE.phone, msg);
+}
+
+function openDocSettingsModal() {
+    const myDocId = STATE?.authenticated_doctor_id || sessionStorage.getItem(CONFIG.STORAGE.DOCTOR_ID);
+    const docObj = getDoctorById(STATE, myDocId);
+    document.getElementById("dRegNoInput").value = docObj.reg_no || "";
+    document.getElementById("dTemplatesInput").value = (docObj.rx_templates || []).join("\n");
+    document.getElementById("dNewPinInput").value = "";
+    document.getElementById("docSettingsModal").classList.add("show");
+}
+
+async function saveDoctorProfileSettings() {
+    const newPin = document.getElementById("dNewPinInput").value.trim();
+    if (newPin && !/^[0-9]{6}$/.test(newPin)) {
+        alert("Personal Doctor PIN must be 6 digits.");
+        return;
+    }
+    const regNo = document.getElementById("dRegNoInput").value.trim();
+    const templates = document.getElementById("dTemplatesInput").value
+        .split(/\n+/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        .slice(0, 25);
+
+    const res = await docMutate("saveSettings", {
+        reg_no: regNo,
+        rx_templates: templates,
+        new_pin: newPin
+    });
+    if (res && res.success) {
+        document.getElementById("docSettingsModal").classList.remove("show");
+        if (newPin) {
+            const myDocId = STATE.authenticated_doctor_id || sessionStorage.getItem(CONFIG.STORAGE.DOCTOR_ID);
+            const lg = await api("verifyDoctorPin", { pin: newPin, doctor_id: myDocId });
+            if (lg && lg.success) sessionStorage.setItem(CONFIG.STORAGE.DOCTOR_PIN, lg.token);
+            else relockDoctor();
+        }
+    }
+}
+</script>
+</body>
+</html>

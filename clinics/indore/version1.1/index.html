@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wmuihwywxetbzrrjzspm.supabase.co; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Book Appointment & Live OPD Queue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js?v=20261113-6"></script>
+<script src="common.js?v=20261113-6"></script>
+<style>
+:root{
+    --primary:#059669;
+    --primary-light:#ecfdf5;
+    --accent:#10b981;
+    --bg-page:#f1f5f9;
+    --bg-surface:#ffffff;
+    --bg-muted:#f8fafc;
+    --text-main:#0f172a;
+    --text-secondary:#475569;
+    --text-muted:#64748b;
+    --border-col:#e2e8f0;
+    --shadow-sm:0 1px 3px rgba(15,23,42,0.06),0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md:0 10px 25px -5px rgba(15,23,42,0.07),0 8px 10px -6px rgba(15,23,42,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;}
+body{background:var(--bg-page);color:var(--text-main);min-height:100vh;}
+
+/* PATIENT PORTAL SHELL */
+.app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg-page);padding-bottom:56px;}
+
+.statusBanner{padding:10px 16px;font-size:13px;font-weight:700;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.2px;}
+.statusRunning{background:#ecfdf5;color:#065f46;border-bottom:1px solid #a7f3d0;}
+.statusDelayed{background:#fffbeb;color:#92400e;border-bottom:1px solid #fde68a;}
+.statusClosed{background:#fef2f2;color:#991b1b;border-bottom:1px solid #fecaca;}
+.statusDot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.statusRunning .statusDot{background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.25);}
+.statusDelayed .statusDot{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.25);}
+.statusClosed .statusDot{background:#ef4444;}
+
+.hero{background:var(--bg-surface);padding:22px 18px 18px;border-bottom:1px solid var(--border-col);box-shadow:var(--shadow-sm);}
+.clinicBadge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:4px 10px;border-radius:99px;margin-bottom:8px;}
+.hero h1{font-size:22px;font-weight:800;line-height:1.25;color:var(--text-main);letter-spacing:-0.3px;}
+.hero p{font-size:13px;color:var(--text-secondary);margin-top:4px;display:flex;align-items:center;gap:6px;}
+
+.docSelectWrap{margin-top:16px;background:var(--bg-muted);padding:12px;border-radius:14px;border:1px solid var(--border-col);}
+.docSelectWrap label{display:block;font-size:11px;color:var(--text-muted);font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.docSelect{width:100%;padding:11px 12px;border-radius:10px;border:1.5px solid var(--primary);background:var(--bg-surface);color:var(--text-main);font-size:14px;font-weight:700;outline:none;cursor:pointer;transition:0.2s;}
+.docRegMeta{font-size:11.5px;color:var(--text-secondary);margin-top:6px;font-weight:600;}
+
+/* LIVE METRIC CARDS */
+.liveGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 14px 6px;}
+.statBox{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:var(--shadow-sm);transition:transform 0.2s;}
+.statBox.highlight{background:linear-gradient(145deg,#059669,#047857);color:#ffffff;border:none;box-shadow:0 10px 20px -5px rgba(5,150,105,0.35);}
+.statBox small{font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;display:block;letter-spacing:0.3px;}
+.statBox.highlight small{color:#a7f3d0;}
+.statBox strong{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--text-main);display:block;margin:4px 0;}
+.statBox.highlight strong{color:#ffffff;}
+.statBox span{font-size:11.5px;color:var(--text-secondary);font-weight:600;}
+.statBox.highlight span{color:#ecfdf5;}
+
+/* SURFACE CARDS */
+.card{margin:12px 14px;background:var(--bg-surface);border:1px solid var(--border-col);border-radius:18px;padding:18px;box-shadow:var(--shadow-sm);}
+.cardTitle{font-size:15.5px;font-weight:800;color:var(--text-main);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.full{grid-column:1/3;}
+label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:5px;font-weight:700;}
+input,select,textarea{width:100%;padding:11px 13px;border-radius:11px;border:1.5px solid var(--border-col);background:var(--bg-muted);color:var(--text-main);font-size:14px;font-weight:500;outline:none;transition:all 0.18s;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);background:var(--bg-surface);box-shadow:0 0 0 3px rgba(5,150,105,0.12);}
+
+.optionRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.optCard{padding:11px 8px;border-radius:12px;border:1.5px solid var(--border-col);background:var(--bg-muted);text-align:center;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text-secondary);transition:all 0.18s;}
+.optCard:hover{border-color:#cbd5e1;background:#f1f5f9;}
+.optCard.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary);box-shadow:0 2px 8px rgba(5,150,105,0.12);}
+
+.primaryBtn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--primary);color:#ffffff;font-weight:800;font-size:14.5px;cursor:pointer;margin-top:12px;box-shadow:0 4px 12px rgba(5,150,105,0.25);transition:all 0.18s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.primaryBtn:hover{background:#047857;transform:translateY(-1px);}
+.primaryBtn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+
+.secondaryBtn{padding:9px 14px;border-radius:10px;border:1.5px solid var(--border-col);background:var(--bg-surface);color:var(--text-main);font-weight:700;font-size:12.5px;cursor:pointer;transition:0.15s;}
+.secondaryBtn:hover{border-color:var(--primary);color:var(--primary);}
+
+/* DPDP CONSENT & SECURITY BOX */
+.consentBox{background:var(--bg-muted);border:1px solid var(--border-col);border-radius:12px;padding:12px;margin-top:4px;}
+.consentRow{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--text-secondary);line-height:1.45;cursor:pointer;}
+.consentRow input[type="checkbox"]{width:17px;height:17px;margin-top:2px;accent-color:var(--primary);flex-shrink:0;cursor:pointer;}
+.dpdpDetails{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-col);font-size:11.5px;color:var(--text-muted);line-height:1.5;}
+
+.captchaBox{display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1.5px solid var(--border-col);border-radius:12px;padding:10px 14px;margin-top:6px;}
+.otpStepBox{display:none;background:var(--primary-light);border:1.5px solid #6ee7b7;border-radius:14px;padding:14px;margin-top:12px;}
+
+/* WAITING QUEUE ITEMS */
+.queueItem{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:12px;background:var(--bg-muted);border:1px solid var(--border-col);margin-bottom:8px;font-size:13.5px;}
+.pill{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;}
+.pillIn{background:#d1fae5;color:#065f46;}
+.pillWait{background:#e2e8f0;color:#475569;}
+.pillVip{background:#ffedd5;color:#9a3412;margin-left:6px;}
+
+.familyTabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.familyChip{padding:5px 11px;border-radius:99px;font-size:11.5px;font-weight:700;border:1px solid var(--border-col);background:var(--bg-muted);color:var(--text-secondary);cursor:pointer;}
+.familyChip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+#patientApp.blocked>:not(#portalNotice){display:none;}
+#patientApp:not(.blocked)>#portalNotice{display:none;}
+
+/* FULL-SCREEN WAITING ROOM SMART TV (?view=tv) */
+#tvScreen{display:none;min-height:100vh;background:#0f172a;color:#ffffff;padding:28px 34px;flex-direction:column;justify-content:space-between;}
+.tvHeader{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e293b;padding-bottom:18px;flex-wrap:wrap;gap:14px;}
+.tvBody{display:grid;grid-template-columns:1.35fr 1fr;gap:28px;margin:auto 0;padding:20px 0;}
+.tvCurrent{background:linear-gradient(145deg,#065f46,#064e3b);border:3px solid #10b981;border-radius:28px;padding:48px 28px;text-align:center;box-shadow:0 25px 50px -12px rgba(16,185,129,0.28);}
+.tvQueue{background:#1e293b;border:1px solid #334155;border-radius:24px;padding:28px;}
+.tvFooter{background:#1e293b;border:1px solid #334155;padding:14px 22px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;font-size:15px;color:#cbd5e1;}
+@media(max-width:768px){
+    .tvBody{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- PUBLIC PATIENT PORTAL -->
+<div class="app" id="patientApp">
+    <div id="portalNotice"></div>
+
+    <div id="opdBanner" class="statusBanner statusRunning">
+        <span class="statusDot"></span>
+        <span id="opdBannerText">OPD is Open & Running</span>
+    </div>
+
+    <div class="hero">
+        <div class="clinicBadge"><i class="fa-solid fa-Notes-medical"></i> Verified Smart Clinic Queue</div>
+        <h1 id="cName">Loading Clinic...</h1>
+        <p id="cTagline"><i class="fa-solid fa-location-dot" style="color:var(--primary);"></i> <span>Please wait...</span></p>
+
+        <div class="docSelectWrap" id="docSelectorWrap">
+            <label for="publicDocSelect"><i class="fa-solid fa-user-doctor"></i> Consulting Doctor</label>
+            <select id="publicDocSelect" class="docSelect" onchange="onChangeDoctor(this.value)"></select>
+            <div id="selectedDocRegNo" class="docRegMeta"></div>
+        </div>
+    </div>
+
+    <!-- LIVE QUEUE METRICS -->
+    <div class="liveGrid">
+        <div class="statBox highlight">
+            <small>Inside Cabin</small>
+            <strong id="nowToken">--</strong>
+            <span id="nowName">Cabin Ready</span>
+        </div>
+        <div class="statBox">
+            <small>Waiting Queue</small>
+            <strong id="waitCount">0</strong>
+            <span id="arrivedCount">0 present</span>
+        </div>
+        <div class="statBox">
+            <small>Est. Wait Time</small>
+            <strong id="estWait">0m</strong>
+            <span>Live estimate</span>
+        </div>
+    </div>
+
+    <!-- PATIENT'S OWN TOKEN STATUS CARD (Supports Multiple Family Members) -->
+    <div class="card" id="myBookingCard" style="display:none;border:2px solid var(--primary);"></div>
+
+    <!-- BOOK APPOINTMENT TOKEN FORM -->
+    <div class="card">
+        <div class="cardTitle">
+            <span><i class="fa-solid fa-ticket" style="color:var(--primary);margin-right:6px;"></i> Book Appointment Token</span>
+            <small style="font-size:11.5px;color:var(--text-muted);font-weight:600;">Family Friendly</small>
+        </div>
+
+        <div class="formGrid">
+            <div class="full">
+                <label for="bName">Patient Full Name *</label>
+                <input id="bName" placeholder="Enter patient's full name" autocomplete="name">
+            </div>
+            <div>
+                <label for="bPhone">Mobile Number (10 digits) *</label>
+                <input id="bPhone" type="tel" maxlength="10" placeholder="98XXXXXXXX" oninput="onPhoneInputChange(this)" autocomplete="tel">
+            </div>
+            <div>
+                <label for="bAge">Age & Gender *</label>
+                <div style="display:flex;gap:6px;">
+                    <input id="bAge" type="number" min="0" max="120" step="1" placeholder="Yrs" style="width:52%;">
+                    <select id="bGender" style="width:48%;">
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                        <option value="O">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="full">
+                <label for="bShift">Preferred OPD Shift</label>
+                <select id="bShift">
+                    <option value="Morning OPD">Morning OPD</option>
+                    <option value="Evening OPD" selected>Evening OPD</option>
+                </select>
+            </div>
+            <div class="full">
+                <label>Visit Purpose</label>
+                <div class="optionRow">
+                    <div class="optCard active" id="vOptFresh" onclick="setVisitType('Fresh')">New Visit<br><span id="lblFeeFresh" style="font-size:13.5px;font-weight:800;">₹500</span></div>
+                    <div class="optCard" id="vOptFollow" onclick="setVisitType('Follow-up')">Follow-Up<br><span style="font-size:12px;">Within Recall</span></div>
+                    <div class="optCard" id="vOptReport" onclick="setVisitType('Report')">Report Check<br><span id="lblFeeReport" style="font-size:13.5px;font-weight:800;">₹200</span></div>
+                </div>
+            </div>
+
+            <div class="full" id="paySection">
+                <label>Payment Method</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                    <div class="optCard active" id="pOptUpi" onclick="setPayMode('UPI')"><i class="fa-solid fa-bolt"></i> Pay by UPI</div>
+                    <div class="optCard" id="pOptCash" onclick="setPayMode('Cash')"><i class="fa-solid fa-money-bill-wave"></i> Cash at Desk</div>
+                </div>
+                <div id="upiBox" style="background:var(--bg-muted);padding:13px;border-radius:12px;border:1px solid var(--border-col);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+                        <span style="font-size:12.5px;color:var(--text-secondary);">Clinic UPI: <b id="lblUpiId" style="color:var(--primary);font-family:'JetBrains Mono',monospace;">-</b></span>
+                        <a id="upiDeepLink" href="#" style="background:var(--primary);color:#ffffff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open UPI App</a>
+                    </div>
+                    <label for="bUtr">Last 4 Digits of UPI Transaction / UTR No. *</label>
+                    <input id="bUtr" maxlength="4" placeholder="e.g. 4829" oninput="this.value=this.value.replace(/\D/g,'')">
+                </div>
+            </div>
+
+            <!-- DPDP ACT 2023 CONSENT NOTICE -->
+            <div class="full">
+                <div class="consentBox">
+                    <label class="consentRow">
+                        <input type="checkbox" id="dpdpConsentCheck">
+                        <span>
+                            I consent to share my/family member's name, age, mobile number, and visit details with this clinic for OPD queue management and medical records under the <b>DPDP Act 2023</b>.
+                            <a href="javascript:void(0)" onclick="toggleDpdpDetails()" style="color:var(--primary);font-weight:700;text-decoration:underline;margin-left:4px;">Read Notice</a>
+                        </span>
+                    </label>
+                    <div id="dpdpDetailsBox" class="dpdpDetails">
+                        <b>Digital Personal Data Protection Act 2023 (India) Notice:</b><br>
+                        • <b>Purpose:</b> Your personal data (Name, Age, Gender, Phone, Vitals & Prescription) is collected solely to issue your OPD token, display masked queue updates, and maintain your clinical prescription history.<br>
+                        • <b>Data Rights:</b> You may request correction or erasure of your booking data at the clinic reception desk at any time.<br>
+                        • <b>सहमति सूचना:</b> आपका नाम, आयु और मोबाइल नंबर केवल ओपीडी टोकन और डॉक्टर के परामर्श रिकॉर्ड के लिए सुरक्षित रूप से उपयोग किया जाता है।
+                    </div>
+                </div>
+            </div>
+
+            <!-- HUMAN SECURITY CHECK + STEP 1 OTP REQUEST -->
+            <div class="full">
+                <div class="captchaBox">
+                    <label class="consentRow" style="margin:0;align-items:center;font-weight:700;color:var(--text-main);">
+                        <input type="checkbox" id="humanVerifyCheck" onchange="onHumanCheckChange(this)">
+                        <span>I am a human patient / family member</span>
+                    </label>
+                    <span style="font-size:11px;color:var(--text-muted);font-weight:700;"><i class="fa-solid fa-shield-halved" style="color:var(--primary);"></i> Anti-Spam Check</span>
+                </div>
+            </div>
+
+            <!-- STEP 2: 6-DIGIT OTP VERIFICATION BOX -->
+            <div class="full otpStepBox" id="otpVerificationStep">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px;">
+                    <label for="bOtpCode" style="color:#065f46;margin:0;font-weight:800;"><i class="fa-solid fa-key"></i> Enter 6-Digit Mobile Verification Code *</label>
+                    <span id="otpSentHint" style="font-size:11.5px;color:#047857;font-weight:700;"></span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <input id="bOtpCode" type="text" maxlength="6" placeholder="6-digit OTP" style="background:#ffffff;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;letter-spacing:4px;text-align:center;" oninput="this.value=this.value.replace(/\D/g,'')">
+                    <button type="button" class="secondaryBtn" onclick="requestOtpStep()" style="white-space:nowrap;">Resend OTP</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="primaryBtn" id="requestOtpBtn" onclick="requestOtpStep()">
+            <i class="fa-solid fa-paper-plane"></i> Verify Mobile & Get OTP
+        </button>
+        <button class="primaryBtn" id="submitBookingBtn" style="display:none;" onclick="submitBooking()">
+            <i class="fa-solid fa-check-circle"></i> Confirm OTP & Issue Token Request
+        </button>
+    </div>
+
+    <!-- LIVE WAITING QUEUE LIST -->
+    <div class="card">
+        <div class="cardTitle">
+            <span><i class="fa-solid fa-users-line" style="color:var(--primary);margin-right:6px;"></i> Live Waiting Queue</span>
+            <small id="qTotalBadge" style="color:var(--text-muted);font-size:12px;">0 waiting</small>
+        </div>
+        <div id="maskedQueueBox"></div>
+
+        <!-- Lookup by Private Booking Reference -->
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-col);">
+            <label for="lookupPhoneInput">Retrieve booking from another device (64-character reference):</label>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+                <input id="lookupPhoneInput" type="text" maxlength="64" placeholder="Paste 64-character booking reference" style="font-family:'JetBrains Mono',monospace;font-size:12px;">
+                <button class="secondaryBtn" onclick="checkMyTokenByRef()" style="white-space:nowrap;">Load Token</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PATIENT FEEDBACK & REVIEW SHIELD -->
+    <div class="card" style="text-align:center;">
+        <div style="font-size:15px;font-weight:800;color:var(--text-main);">How was your clinic experience today?</div>
+        <p style="font-size:12.5px;color:var(--text-muted);margin:4px 0 10px;">Tap a star rating below</p>
+        <div style="display:flex;justify-content:center;gap:10px;font-size:28px;color:#cbd5e1;cursor:pointer;" id="starBar">
+            <span onclick="rateVisit(1)">★</span><span onclick="rateVisit(2)">★</span><span onclick="rateVisit(3)">★</span><span onclick="rateVisit(4)">★</span><span onclick="rateVisit(5)">★</span>
+        </div>
+        <div id="reviewBox" style="display:none;margin-top:14px;text-align:left;"></div>
+    </div>
+</div>
+
+<!-- FULL-SCREEN WAITING ROOM SMART TV DISPLAY (?view=tv) -->
+<div id="tvScreen">
+    <div class="tvHeader">
+        <div>
+            <h1 id="tvClinicName" style="font-size:32px;font-weight:800;color:#ffffff;">Clinic</h1>
+            <p id="tvDocName" style="color:#34d399;font-size:19px;font-weight:700;margin-top:4px;"></p>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <select id="tvDocSelect" onchange="onChangeDoctor(this.value)" style="width:auto;background:#1e293b;border:1px solid #475569;color:#ffffff;padding:10px 14px;border-radius:12px;font-weight:700;font-size:14px;"></select>
+            <button onclick="triggerTvVoice()" style="background:#10b981;color:#052e16;border:none;padding:11px 18px;border-radius:12px;font-weight:800;cursor:pointer;font-size:14px;">
+                <i class="fa-solid fa-volume-high"></i> Announce Token
+            </button>
+            <div id="tvClock" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;background:#1e293b;padding:9px 16px;border-radius:12px;border:1px solid #334155;"></div>
+        </div>
+    </div>
+
+    <div id="tvNoticeBox" style="display:none;margin:auto;text-align:center;max-width:560px;background:#1e293b;padding:40px;border-radius:24px;border:1px solid #334155;"></div>
+
+    <div class="tvBody" id="tvMainGrid">
+        <div class="tvCurrent">
+            <div style="font-size:17px;font-weight:800;color:#a7f3d0;letter-spacing:1.5px;text-transform:uppercase;">Now Serving Inside Cabin</div>
+            <div id="tvBigToken" style="font-size:116px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1.05;margin:16px 0;color:#ffffff;">--</div>
+            <div id="tvBigName" style="font-size:32px;font-weight:800;color:#fde68a;">Cabin Ready</div>
+        </div>
+        <div class="tvQueue">
+            <h3 style="color:#34d399;font-size:18px;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">Next in Queue (Present at Clinic)</h3>
+            <div id="tvNextList"></div>
+            <h3 style="color:#38bdf8;font-size:16px;margin:24px 0 10px;text-transform:uppercase;letter-spacing:0.5px;">In Lab / X-Ray</h3>
+            <div id="tvLabList"></div>
+        </div>
+    </div>
+
+    <div class="tvFooter">
+        <span>Please wait for your token number to be announced</span>
+        <span id="tvOpdStatusText" style="color:#34d399;font-weight:800;">🟢 OPD RUNNING</span>
+    </div>
+</div>
+
+<script>
+let PUBLIC_DATA = null;
+let SELECTED_DOCTOR = "";
+let VISIT_TYPE = "Fresh";
+let PAY_MODE = "UPI";
+let LAST_ANNOUNCED_TS = 0;
+let SUBMITTING = false;
+let CAPTCHA_TOKEN = "";
+
+function createBookingReference() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function getSavedFamilyRefs() {
+    try {
+        const raw = localStorage.getItem(CONFIG.STORAGE.MY_BOOKING_REF + "_family");
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr.filter(x => x && /^[a-f0-9]{64}$/.test(x.ref)) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveFamilyRef(ref, labelName) {
+    const list = getSavedFamilyRefs().filter(x => x.ref !== ref);
+    list.unshift({ ref, label: labelName || "Patient", ts: Date.now() });
+    localStorage.setItem(CONFIG.STORAGE.MY_BOOKING_REF + "_family", JSON.stringify(list.slice(0, 6)));
+    localStorage.setItem(CONFIG.STORAGE.MY_BOOKING_REF, ref);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const isTv = new URLSearchParams(window.location.search).get("view") === "tv";
+    if (isTv) {
+        document.getElementById("patientApp").style.display = "none";
+        document.getElementById("tvScreen").style.display = "flex";
+    }
+    await loadPublicData();
+    window.addEventListener("storage", () => loadPublicData());
+    setInterval(loadPublicData, 4000);
+    setInterval(() => {
+        const el = document.getElementById("tvClock");
+        if (el) el.innerText = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    }, 1000);
+});
+
+function showPortalNotice(title, message, iconClass = "fa-hospital-user", iconColor = "#ef4444") {
+    const html = `
+        <div style="padding:80px 24px;text-align:center;">
+            <i class="fa-solid ${iconClass}" style="font-size:46px;color:${iconColor};margin-bottom:14px;"></i>
+            <h2 style="font-size:22px;font-weight:800;">${escapeHTML(title)}</h2>
+            <p style="color:#64748b;margin-top:8px;font-size:14px;line-height:1.5;">${escapeHTML(message)}</p>
+        </div>`;
+    document.getElementById("portalNotice").innerHTML = html;
+    document.getElementById("patientApp").classList.add("blocked");
+
+    // Also update TV screen if in TV mode
+    const tvNotice = document.getElementById("tvNoticeBox");
+    const tvGrid = document.getElementById("tvMainGrid");
+    if (tvNotice && tvGrid) {
+        tvGrid.style.display = "none";
+        tvNotice.style.display = "block";
+        tvNotice.innerHTML = `<h2 style="font-size:28px;color:#f87171;">${escapeHTML(title)}</h2><p style="color:#cbd5e1;margin-top:10px;font-size:16px;">${escapeHTML(message)}</p>`;
+    }
+}
+
+async function loadPublicData() {
+    if (!CONFIG.TENANT.SLUG) {
+        showPortalNotice("Clinic Link Incomplete", "Please open this page using the clinic's official link or scan the QR code at the reception desk.");
+        return;
+    }
+
+    const bookingRef = localStorage.getItem(CONFIG.STORAGE.MY_BOOKING_REF) || "";
+    const lookupInput = document.getElementById("lookupPhoneInput");
+    if (lookupInput && bookingRef && document.activeElement !== lookupInput) {
+        lookupInput.value = bookingRef;
+    }
+
+    const res = await api("getPublicQueue", { booking_ref: bookingRef, doctor: SELECTED_DOCTOR });
+
+    if (!res || !res.success) {
+        const title = res?.notFound ? "Clinic Not Found" : "Clinic Temporarily Unavailable";
+        const msg = res?.message || "Please check your internet connection and try again.";
+        showPortalNotice(title, msg);
+        return;
+    }
+
+    PUBLIC_DATA = res;
+    applyThemePreset(res.theme_color || "emerald");
+
+    if (res.is_active === false) {
+        showPortalNotice(res.clinic_name || "Clinic", "Online appointment booking is currently paused. Please visit the clinic reception desk directly.", "fa-clock", "#f59e0b");
+        return;
+    }
+
+    const docs = normalizeDoctorsList(res);
+    if (!SELECTED_DOCTOR || !docs.some(d => d.id === SELECTED_DOCTOR)) {
+        SELECTED_DOCTOR = res.active_doctor || docs[0].id;
+    }
+
+    if (res.last_voice_call && res.last_voice_call.ts > LAST_ANNOUNCED_TS) {
+        const isFirst = LAST_ANNOUNCED_TS === 0;
+        LAST_ANNOUNCED_TS = res.last_voice_call.ts;
+        if (!isFirst && new URLSearchParams(window.location.search).get("view") === "tv") {
+            announceTokenVoiceHindi(res.last_voice_call.token, "");
+        }
+    }
+
+    document.getElementById("patientApp").classList.remove("blocked");
+    const tvNotice = document.getElementById("tvNoticeBox");
+    const tvGrid = document.getElementById("tvMainGrid");
+    if (tvNotice && tvGrid) {
+        tvNotice.style.display = "none";
+        tvGrid.style.display = "grid";
+    }
+
+    renderPatientPortal(res, docs);
+    renderTvScreen(res, docs);
+}
+
+function renderPatientPortal(d, docs) {
+    document.title = `${d.clinic_name} — Appointment & Live Queue`;
+    document.getElementById("cName").innerText = d.clinic_name;
+    document.getElementById("cTagline").innerHTML = `<i class="fa-solid fa-location-dot" style="color:var(--primary);"></i> <span>${escapeHTML(d.tagline || d.address || "OPD Portal")}</span>`;
+
+    const docSel = document.getElementById("publicDocSelect");
+    setOptionsIfChanged(docSel, docs.map(doc =>
+        `<option value="${escapeHTML(doc.id)}" ${doc.id === SELECTED_DOCTOR ? "selected" : ""}>${escapeHTML(doc.name)}</option>`
+    ).join(""));
+
+    const activeDocObj = getDoctorById(d, SELECTED_DOCTOR);
+    const regEl = document.getElementById("selectedDocRegNo");
+    regEl.innerText = activeDocObj.reg_no ? `Medical Council Reg. No.: ${activeDocObj.reg_no}` : "";
+
+    const banner = document.getElementById("opdBanner");
+    const bannerTxt = document.getElementById("opdBannerText");
+    if (d.opd_status === "delayed") {
+        banner.className = "statusBanner statusDelayed";
+        bannerTxt.innerText = "Doctor is delayed by approx. 30 mins";
+    } else if (d.opd_status === "closed") {
+        banner.className = "statusBanner statusClosed";
+        bannerTxt.innerText = "OPD is currently closed for online bookings";
+    } else {
+        banner.className = "statusBanner statusRunning";
+        bannerTxt.innerText = "OPD is Open & Running";
+    }
+
+    document.getElementById("nowToken").innerText = d.now_serving ? `#${d.now_serving.token}` : "--";
+    document.getElementById("nowName").innerText = d.now_serving ? d.now_serving.masked_name : "Available";
+    document.getElementById("waitCount").innerText = d.waiting_count;
+    document.getElementById("arrivedCount").innerText = `${d.arrived_count} at clinic`;
+    document.getElementById("estWait").innerText = `~${d.est_wait_mins}m`;
+
+    document.getElementById("lblFeeFresh").innerText = `₹${d.fee_fresh}`;
+    document.getElementById("lblFeeReport").innerText = `₹${d.fee_report}`;
+    document.getElementById("lblUpiId").innerText = d.upi_id || "-";
+    updatePayBox();
+
+    // Render Patient / Family Member Token Card
+    const myCard = document.getElementById("myBookingCard");
+    const familyRefs = getSavedFamilyRefs();
+    const activeRef = localStorage.getItem(CONFIG.STORAGE.MY_BOOKING_REF) || "";
+
+    const familyTabsHtml = familyRefs.length > 1 ? `
+        <div class="familyTabs">
+            ${familyRefs.map(f => `
+                <span class="familyChip ${f.ref === activeRef ? 'active' : ''}" onclick="switchFamilyBookingRef('${escapeJS(f.ref)}')">
+                    <i class="fa-solid fa-user"></i> ${escapeHTML(f.label)}
+                </span>
+            `).join("")}
+        </div>
+    ` : "";
+
+    if (d.my_booking) {
+        myCard.style.display = "block";
+        if (d.my_booking.status === "inquiry") {
+            myCard.innerHTML = `
+                ${familyTabsHtml}
+                <div style="display:flex;align-items:center;gap:8px;font-weight:800;color:#b45309;font-size:15px;">
+                    <i class="fa-solid fa-hourglass-half"></i> Booking Request Sent to Reception
+                </div>
+                <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.45;">
+                    Patient: <b>${escapeHTML(d.my_booking.masked_name)}</b> • Doctor: <b>${escapeHTML(d.my_booking.doctor_name)}</b><br>
+                    Reception is verifying your request. Your token number will appear here automatically.
+                </p>
+            `;
+        } else if (d.my_booking.status === "rejected") {
+            myCard.innerHTML = `
+                ${familyTabsHtml}
+                <div style="font-weight:800;color:#dc2626;font-size:15px;">Booking Request Declined</div>
+                <p style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">Please contact the clinic reception desk for assistance.</p>
+            `;
+        } else {
+            myCard.innerHTML = `
+                ${familyTabsHtml}
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Confirmed Appointment Token</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--primary);font-family:'JetBrains Mono',monospace;margin-top:2px;">
+                            #${d.my_booking.token} — ${escapeHTML(d.my_booking.masked_name)}
+                        </div>
+                        <div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;">${escapeHTML(d.my_booking.doctor_name)} • ${escapeHTML(d.my_booking.visit_type)}</div>
+                    </div>
+                    <span class="pill ${d.my_booking.arrived ? 'pillIn' : 'pillWait'}">${d.my_booking.arrived ? "✓ Checked In" : "Booked"}</span>
+                </div>
+            `;
+        }
+    } else {
+        myCard.style.display = "none";
+    }
+
+    // Waiting List
+    document.getElementById("qTotalBadge").innerText = `${d.waiting_count} waiting`;
+    const qBox = document.getElementById("maskedQueueBox");
+    if (!d.waiting_list || d.waiting_list.length === 0) {
+        qBox.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:18px;font-size:13px;">No patients waiting in queue right now.</div>`;
+    } else {
+        qBox.innerHTML = d.waiting_list.map(w => `
+            <div class="queueItem">
+                <div>
+                    <b style="color:var(--primary);font-family:'JetBrains Mono',monospace;">#${w.token}</b> &nbsp;<b>${escapeHTML(w.masked_name)}</b> <small style="color:var(--text-muted);">(${escapeHTML(w.masked_phone)})</small>
+                    ${w.vip ? `<span class="pill pillVip">Priority</span>` : ""}
+                </div>
+                <span class="pill ${w.arrived ? 'pillIn' : 'pillWait'}">${w.arrived ? "Present" : "Booked"}</span>
+            </div>
+        `).join("");
+    }
+}
+
+function renderTvScreen(d, docs) {
+    document.getElementById("tvClinicName").innerText = d.clinic_name;
+    const docObj = getDoctorById(d, SELECTED_DOCTOR);
+    document.getElementById("tvDocName").innerText = docObj.reg_no ? `${docObj.name} (${docObj.reg_no})` : docObj.name;
+
+    const tvSel = document.getElementById("tvDocSelect");
+    setOptionsIfChanged(tvSel, docs.map(doc =>
+        `<option value="${escapeHTML(doc.id)}" ${doc.id === SELECTED_DOCTOR ? "selected" : ""}>${escapeHTML(doc.name)}</option>`
+    ).join(""));
+
+    document.getElementById("tvBigToken").innerText = d.now_serving ? `#${d.now_serving.token}` : "--";
+    document.getElementById("tvBigName").innerText = d.now_serving ? d.now_serving.masked_name : "Cabin Ready";
+
+    const arrivedNext = (d.waiting_list || []).filter(w => w.arrived).slice(0, 5);
+    document.getElementById("tvNextList").innerHTML = arrivedNext.length
+        ? arrivedNext.map(w => `
+            <div style="display:flex;justify-content:space-between;padding:12px 16px;background:#0f172a;border:1px solid #334155;border-radius:12px;margin-bottom:8px;font-size:18px;font-weight:700;">
+                <span style="color:#34d399;font-family:'JetBrains Mono',monospace;">Token #${w.token}</span>
+                <span>${escapeHTML(w.masked_name)}</span>
+            </div>`).join("")
+        : `<div style="color:#64748b;">No waiting patients</div>`;
+
+    document.getElementById("tvLabList").innerHTML = (d.lab_list || []).length
+        ? d.lab_list.map(l => `
+            <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#0c4a6e;border-radius:10px;margin-bottom:6px;font-size:15px;">
+                <b style="font-family:'JetBrains Mono',monospace;">Token #${l.token}</b><span>${escapeHTML(l.masked_name)}</span>
+            </div>`).join("")
+        : `<div style="color:#64748b;font-size:13px;">None</div>`;
+
+    // Dynamic TV OPD Status Footer (Fixed from v5.4)
+    const tvStatus = document.getElementById("tvOpdStatusText");
+    if (d.opd_status === "delayed") {
+        tvStatus.style.color = "#fbbf24";
+        tvStatus.innerText = "🟡 DOCTOR DELAYED (+30 MINS)";
+    } else if (d.opd_status === "closed") {
+        tvStatus.style.color = "#f87171";
+        tvStatus.innerText = "🔴 OPD CLOSED";
+    } else {
+        tvStatus.style.color = "#34d399";
+        tvStatus.innerText = "🟢 OPD RUNNING";
+    }
+}
+
+function switchFamilyBookingRef(ref) {
+    localStorage.setItem(CONFIG.STORAGE.MY_BOOKING_REF, ref);
+    loadPublicData();
+}
+
+function onChangeDoctor(docId) {
+    SELECTED_DOCTOR = docId;
+    loadPublicData();
+}
+
+function toggleDpdpDetails() {
+    const el = document.getElementById("dpdpDetailsBox");
+    el.style.display = el.style.display === "block" ? "none" : "block";
+}
+
+function onPhoneInputChange(input) {
+    input.value = input.value.replace(/\D/g, "");
+    document.getElementById("otpVerificationStep").style.display = "none";
+    document.getElementById("requestOtpBtn").style.display = "flex";
+    document.getElementById("submitBookingBtn").style.display = "none";
+}
+
+function onHumanCheckChange(chk) {
+    if (chk.checked) {
+        const rand = new Uint8Array(12);
+        crypto.getRandomValues(rand);
+        CAPTCHA_TOKEN = "human_v6_" + Array.from(rand, b => b.toString(16).padStart(2, "0")).join("");
+    } else {
+        CAPTCHA_TOKEN = "";
+    }
+}
+
+function setVisitType(vt) {
+    VISIT_TYPE = vt;
+    document.getElementById("vOptFresh").classList.toggle("active", vt === "Fresh");
+    document.getElementById("vOptFollow").classList.toggle("active", vt === "Follow-up");
+    document.getElementById("vOptReport").classList.toggle("active", vt === "Report");
+    updatePayBox();
+}
+
+function setPayMode(pm) {
+    PAY_MODE = pm;
+    document.getElementById("pOptUpi").classList.toggle("active", pm === "UPI");
+    document.getElementById("pOptCash").classList.toggle("active", pm === "Cash");
+    updatePayBox();
+}
+
+function updatePayBox() {
+    if (!PUBLIC_DATA) return;
+    const paySec = document.getElementById("paySection");
+    const upiBox = document.getElementById("upiBox");
+    if (VISIT_TYPE === "Follow-up") {
+        paySec.style.display = "none";
+        return;
+    }
+    paySec.style.display = "block";
+    upiBox.style.display = PAY_MODE === "UPI" ? "block" : "none";
+    const amt = VISIT_TYPE === "Report" ? PUBLIC_DATA.fee_report : PUBLIC_DATA.fee_fresh;
+    document.getElementById("upiDeepLink").href = `upi://pay?pa=${encodeURIComponent(PUBLIC_DATA.upi_id || '')}&pn=${encodeURIComponent(PUBLIC_DATA.clinic_name)}&am=${amt}&cu=INR`;
+}
+
+async function requestOtpStep() {
+    const name = document.getElementById("bName").value.trim();
+    const phone = document.getElementById("bPhone").value.trim();
+    const age = document.getElementById("bAge").value.trim();
+    const utr = document.getElementById("bUtr").value.trim();
+    const dpdp = document.getElementById("dpdpConsentCheck").checked;
+
+    if (!name || phone.length !== 10 || !Number.isInteger(Number(age)) || Number(age) < 0 || Number(age) > 120) {
+        alert("Please enter Patient Full Name, 10-digit Mobile Number, and valid Age (0-120).");
+        return;
+    }
+    if (VISIT_TYPE !== "Follow-up" && PAY_MODE === "UPI" && utr.length !== 4) {
+        alert("Please enter the last 4 digits of your UPI transaction number.");
+        return;
+    }
+    if (!dpdp) {
+        alert("Please accept the DPDP Act 2023 data privacy consent checkbox to proceed.");
+        return;
+    }
+    if (!CAPTCHA_TOKEN) {
+        alert("Please check the 'I am a human patient / family member' security box.");
+        return;
+    }
+
+    const btn = document.getElementById("requestOtpBtn");
+    btn.disabled = true;
+    let res;
+    try {
+        res = await api("requestBookingOtp", { phone, captcha_token: CAPTCHA_TOKEN });
+    } finally {
+        btn.disabled = false;
+    }
+
+    if (!res || !res.success) {
+        alert(res?.message || "Could not send OTP. Please try again.");
+        return;
+    }
+
+    document.getElementById("otpVerificationStep").style.display = "block";
+    document.getElementById("requestOtpBtn").style.display = "none";
+    document.getElementById("submitBookingBtn").style.display = "flex";
+
+    // Display verification code hint if no external SMS gateway webhook is attached yet
+    const hintEl = document.getElementById("otpSentHint");
+    if (res.otp_demo_code) {
+        hintEl.innerText = `Code: ${res.otp_demo_code}`;
+        document.getElementById("bOtpCode").value = res.otp_demo_code;
+    } else {
+        hintEl.innerText = `Sent to +91-${phone}`;
+    }
+    document.getElementById("bOtpCode").focus();
+}
+
+async function submitBooking() {
+    const name = document.getElementById("bName").value.trim();
+    const phone = document.getElementById("bPhone").value.trim();
+    const age = document.getElementById("bAge").value.trim();
+    const gender = document.getElementById("bGender").value;
+    const shift = document.getElementById("bShift").value;
+    const utr = document.getElementById("bUtr").value.trim();
+    const otpCode = document.getElementById("bOtpCode").value.trim();
+    const dpdpConsent = document.getElementById("dpdpConsentCheck").checked;
+
+    if (SUBMITTING) return;
+    if (otpCode.length !== 6) {
+        alert("Please enter the 6-digit verification OTP code.");
+        return;
+    }
+
+    const bookingRef = createBookingReference();
+    SUBMITTING = true;
+    const btn = document.getElementById("submitBookingBtn");
+    btn.disabled = true;
+
+    let res;
+    try {
+        res = await api("submitBooking", {
+            name,
+            phone,
+            age,
+            gender,
+            shift,
+            booking_ref: bookingRef,
+            doctor: SELECTED_DOCTOR,
+            visit_type: VISIT_TYPE,
+            pay_mode: VISIT_TYPE === "Follow-up" ? "Free" : PAY_MODE,
+            utr,
+            otp_code: otpCode,
+            dpdp_consent: dpdpConsent
+        });
+    } finally {
+        SUBMITTING = false;
+        btn.disabled = false;
+    }
+
+    if (res && res.success) {
+        saveFamilyRef(bookingRef, name.split(/\s+/)[0]);
+        document.getElementById("lookupPhoneInput").value = bookingRef;
+        document.getElementById("bName").value = "";
+        document.getElementById("bAge").value = "";
+        document.getElementById("bUtr").value = "";
+        document.getElementById("bOtpCode").value = "";
+        document.getElementById("otpVerificationStep").style.display = "none";
+        document.getElementById("requestOtpBtn").style.display = "flex";
+        document.getElementById("submitBookingBtn").style.display = "none";
+        await loadPublicData();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+        alert(res?.message || "Could not submit booking.");
+    }
+}
+
+function checkMyTokenByRef() {
+    const ref = document.getElementById("lookupPhoneInput").value.trim().toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(ref)) {
+        alert("Please enter a valid 64-character private booking reference.");
+        return;
+    }
+    saveFamilyRef(ref, "Saved");
+    loadPublicData();
+}
+
+function triggerTvVoice() {
+    if (PUBLIC_DATA && PUBLIC_DATA.now_serving) {
+        announceTokenVoiceHindi(PUBLIC_DATA.now_serving.token, "");
+    }
+}
+
+function reviewUrl() {
+    const u = String(PUBLIC_DATA?.review_link || "");
+    return /^https:\/\//i.test(u) ? u : "https://www.google.com/maps";
+}
+
+function rateVisit(stars) {
+    document.querySelectorAll("#starBar span").forEach((s, i) => s.style.color = i < stars ? "#f59e0b" : "#cbd5e1");
+    const box = document.getElementById("reviewBox");
+    box.style.display = "block";
+    if (stars >= 4) {
+        box.innerHTML = `<div style="font-size:13.5px;color:var(--primary);text-align:center;font-weight:700;padding:8px;background:var(--primary-light);border-radius:10px;">Thank you! <a href="${escapeHTML(reviewUrl())}" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:underline;">Share your review on Google Maps ↗</a></div>`;
+    } else {
+        box.innerHTML = `
+            <textarea id="privFeed" rows="2" placeholder="Tell us how we can improve your clinic experience..." style="margin-top:6px;"></textarea>
+            <button onclick="sendFeedback()" class="primaryBtn" style="margin-top:8px;padding:10px;">Send Direct Feedback to Clinic</button>
+            <div style="text-align:center;margin-top:8px;"><a href="${escapeHTML(reviewUrl())}" target="_blank" rel="noopener" style="color:var(--text-muted);font-size:12px;">Or leave a public Google review</a></div>
+        `;
+    }
+}
+
+function sendFeedback() {
+    const msg = document.getElementById("privFeed")?.value || "";
+    openWhatsApp(PUBLIC_DATA?.whatsapp_number, `Patient Feedback (${PUBLIC_DATA?.clinic_name}): ${msg}`);
+}
+</script>
+</body>
+</html>
