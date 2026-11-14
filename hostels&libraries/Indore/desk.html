@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library Desk</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div id="gate" class="wrap" style="max-width:400px;margin-top:9vh">
+  <div class="card grid" style="padding:22px">
+    <div style="font-size:34px">📚</div>
+    <h1 id="gname" style="margin:0">Library desk</h1>
+    <p class="muted" style="margin:0">Staff login</p>
+    <div class="row"><button class="btn" data-role="desk" style="flex:1">Front desk</button><button class="btn alt" data-role="owner" style="flex:1">Owner</button></div>
+    <input id="code" class="inp" placeholder="Staff code (leave empty for shared desk PIN)" autocomplete="username" autocapitalize="none">
+    <input id="pin" class="inp" type="password" inputmode="numeric" maxlength="6" placeholder="6-digit PIN" autocomplete="off">
+    <button id="go" class="btn">Log in</button>
+    <p id="msg" class="muted"></p>
+  </div>
+</div>
+
+<div id="app" class="wrap" hidden>
+  <div class="card">
+    <div class="row sp">
+      <div><b id="lname" style="font-family:Sora,sans-serif"></b><div class="muted" id="rolepill"></div></div>
+      <div class="row"><button class="btn" data-act="scan">📷 Scan</button><button class="btn alt" data-act="status" id="stbtn"></button><button class="btn alt" data-act="logout">Log out</button></div>
+    </div>
+    <div class="row sp muted" style="margin:12px 0 5px"><span id="occTxt"></span><span>Keys: 1-7 tabs · / search · S scan</span></div>
+    <div class="bar"><i id="occBar" style="width:0"></i></div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="view"></div>
+</div>
+<div class="modal" id="modal" hidden><div id="sheet"></div></div>
+
+<script>
+const SLUG = CONFIG.TENANT.SLUG, K = CONFIG.STORAGE, esc = escapeHTML, NAME_KEY = "libraryos_staff_name_" + SLUG;
+let role = sessionStorage.getItem(K.ROLE) || "desk", loginRole = "desk", L = null, ver = 0, timer = null, stream = null, scanTimer = null, lastScan = { c: "", t: 0 }, jsqrReady = false;
+const S = { tab: "seats", hall: "", shift: "Morning", q: "", f: "all" };
+const tokenKey = r => r === "owner" ? K.OWNER_TOKEN : K.DESK_TOKEN;
+const dayOf = t => new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+const UPI_OK = "Confirm: this UPI payment is visible in your payment app?";
+
+/*================ Login / session ================*/
+$$("[data-role]").forEach(b => b.onclick = () => { loginRole = b.dataset.role; $$("[data-role]").forEach(x => x.classList.toggle("alt", x !== b)); $("#code").hidden = loginRole !== "desk"; });
+$("#go").onclick = login;
+$("#pin").onkeydown = e => { if (e.key === "Enter") login(); };
+async function login() {
+    const pin = $("#pin").value.trim(), code = loginRole === "desk" ? $("#code").value.trim() : "";
+    if (!/^\d{6}$/.test(pin)) { $("#msg").textContent = "PIN must be 6 digits."; return; }
+    $("#go").classList.add("busy");
+    const r = code ? await api("loginNamed", { code, pin }) : await api("login", { role: loginRole, pin });
+    $("#go").classList.remove("busy");
+    if (!r.success) { $("#msg").textContent = r.message; return; }
+    role = loginRole; sessionStorage.setItem(tokenKey(role), r.token); sessionStorage.setItem(K.ROLE, role); sessionStorage.setItem(NAME_KEY, r.staff_name || "");
+    $("#pin").value = ""; $("#msg").textContent = ""; start();
+}
+async function start() {
+    if (!(await load())) return;
+    $("#gate").hidden = true; $("#app").hidden = false;
+    clearInterval(timer); timer = setInterval(poll, 12000);
+    initInactivityAutoLock(() => logout("Logged out after 15 minutes of inactivity."));
+}
+async function logout(msg) {
+    if (L) { try { await api("logout", { role }); } catch (e) { } }
+    sessionStorage.removeItem(tokenKey("desk")); sessionStorage.removeItem(tokenKey("owner")); sessionStorage.removeItem(K.ROLE); sessionStorage.removeItem(NAME_KEY);
+    clearInterval(timer); stopCam(); L = null; $("#app").hidden = true; $("#modal").hidden = true; $("#gate").hidden = false; $("#msg").textContent = typeof msg === "string" ? msg : "";
+}
+async function poll() {
+    if (document.hidden || !L) return;
+    const r = await api("version", { role });
+    if (!r.success) { if (/log in again/i.test(r.message || "")) logout(r.message); return; }
+    if (r.version !== ver) await load(true);
+}
+async function load(quiet) {
+    const v = await api("version", { role });          // version first, then data: a change in between is caught by the next poll
+    const r = await api("dashboard", { role });
+    if (!r.success) { if (/log in again/i.test(r.message || "")) logout(r.message); else if (!quiet) toast(r.message); return false; }
+    L = r.library; ver = v.success ? v.version : 0;
+    const busy = !$("#modal").hidden || /INPUT|SELECT|TEXTAREA/.test((document.activeElement || {}).tagName || "");
+    if (!quiet || !busy) render();
+    return true;
+}
+async function doOp(op, payload) {
+    const r = await api("staffAction", { role, op, payload });
+    if (!r.success) { toast(r.message || "Failed"); buzz([30, 40, 30]); if (/log in again/i.test(r.message || "")) logout(r.message); return false; }
+    L = r.library; render(); buzz(); return true;
+}
+
+/*================ Data helpers ================*/
+const ms = () => L.members || [], actv = () => ms().filter(m => m.status === "active");
+const memberAt = (h, n, sh) => actv().find(m => m.hall === h && m.seat === n && (m.shift === sh || m.shift === "Full Day" || sh === "Full Day"));
+const cls = m => daysLeft(m.valid_till) < 0 ? "due" : m.trial ? "trial" : "paid";
+const isIn = m => m.present && m.last_seen && dayOf(m.last_seen) === istToday();
+const hallName = id => (L.halls.find(h => h.id === id) || { name: id }).name;
+const firstFree = (h, sh) => { const x = L.halls.find(y => y.id === h); if (!x) return ""; for (let n = 1; n <= x.seats; n++) if (!memberAt(h, n, sh)) return n; return ""; };
+const nreq = () => ms().filter(m => m.status === "inquiry").length + actv().filter(m => m.renewal_request).length;
+const payOk = p => !p.voided;
+const dueList = () => actv().filter(m => daysLeft(m.valid_till) <= 3).sort((a, b) => a.valid_till.localeCompare(b.valid_till));
+
+/*================ Render ================*/
+function render() {
+    applyTheme(L.theme_color);
+    const staff = sessionStorage.getItem(NAME_KEY);
+    $("#lname").textContent = L.library_name; $("#rolepill").textContent = (role === "owner" ? "Owner" : "Front desk") + (staff ? " · " + staff : "");
+    $("#stbtn").textContent = L.status === "closed" ? "Bookings: Closed" : "Bookings: Open";
+    const a = actv().length, seatsTotal = L.halls.reduce((s, h) => s + h.seats, 0) * 2, inside = actv().filter(isIn).length;
+    $("#occTxt").textContent = `${inside} inside now · ${a} active members`;
+    $("#occBar").style.width = Math.min(100, seatsTotal ? a / seatsTotal * 100 : 0) + "%";
+    const tabs = [["seats", "Seats"], ["req", "Requests" + (nreq() ? ` (${nreq()})` : "")], ["members", "Members"], ["ledger", "Ledger"], ["insights", "Insights"], ["settings", "Settings"]];
+    if (role === "owner") tabs.push(["audit", "Audit"]);
+    $("#tabs").innerHTML = tabs.map(([k, t]) => `<button class="btn ${S.tab === k ? "" : "alt"}" data-act="tab" data-id="${k}">${t}</button>`).join("");
+    $("#view").innerHTML = ({ seats: vSeats, req: vReq, members: vMembers, ledger: vLedger, insights: vInsights, settings: vSettings, audit: () => '<div id="auditlist"><div class="sk"></div><div class="sk"></div></div>' }[S.tab] || vSeats)();
+    if (S.tab === "members") bindMembers();
+    if (S.tab === "insights") loadInsights();
+    if (S.tab === "settings" && role === "owner") loadStaff();
+    if (S.tab === "audit" && role === "owner") loadAudit();
+    if (S.tab === "ledger") countUp($("#ldtotal"), +$("#ldtotal").dataset.t);
+}
+
+function vSeats() {
+    if (!L.halls.some(h => h.id === S.hall)) S.hall = L.halls[0].id;
+    const h = L.halls.find(x => x.id === S.hall);
+    const inShift = actv().filter(m => m.hall === h.id && (m.shift === S.shift || m.shift === "Full Day"));
+    const hb = L.halls.length > 1 ? `<div class="tabs">${L.halls.map(x => `<button class="btn ${x.id === S.hall ? "" : "alt"}" data-act="hall" data-id="${x.id}">${esc(x.name)}</button>`).join("")}</div>` : "";
+    const sb = ["Morning", "Evening"].map(s => `<button class="btn ${S.shift === s ? "" : "alt"}" data-act="shift" data-id="${s}">${s === "Morning" ? "🌅" : "🌆"} ${s} · ${actv().filter(m => m.hall === h.id && (m.shift === s || m.shift === "Full Day")).length}/${h.seats}</button>`).join("");
+    const seats = Array.from({ length: h.seats }, (_, i) => i + 1).map((n, i) => {
+        const m = memberAt(h.id, n, S.shift);
+        return `<button class="seat ${m ? cls(m) : ""}" style="animation-delay:${Math.min(i * 12, 400)}ms" data-act="seat" data-id="${n}" ${m ? `draggable="true" data-m="${m.id}"` : ""}><b>${n}</b>${m ? esc(m.name.split(" ")[0]) : "Free"}${m && isIn(m) ? " 🟢" : ""}</button>`;
+    }).join("");
+    return `${hb}<div class="row" style="margin-bottom:10px">${sb}</div>
+        <div class="row muted" style="margin-bottom:10px"><span class="pill ok">Paid</span><span class="pill bad">Overdue (${inShift.filter(m => cls(m) === "due").length})</span><span class="pill warn">Trial</span><span class="pill">Free (${h.seats - inShift.length})</span><span>🟢 inside · drag a seat onto a free seat to move</span></div>
+        <div class="seats">${seats}</div>`;
+}
+
+function vReq() {
+    const inq = ms().filter(m => m.status === "inquiry"), ren = actv().filter(m => m.renewal_request);
+    const i = inq.map(m => `<div class="card"><div class="row sp"><b>${esc(m.name)}</b><span class="pill">${m.kind === "Trial" ? "Free trial" : inr(m.fee) + " · " + esc(m.pay_mode)}</span></div>
+        <div class="muted">${esc(m.exam || "")} · ${esc(m.phone)} · ${esc(m.shift)}${m.utr ? " · UTR …" + esc(m.utr) : ""}</div>
+        <div class="row" style="margin-top:8px"><select class="inp" style="width:auto" id="rq-h-${m.id}">${L.halls.map(h => `<option value="${h.id}" ${h.id === m.hall ? "selected" : ""}>${esc(h.name)}</option>`).join("")}</select>
+        <input class="inp" style="width:84px" id="rq-s-${m.id}" inputmode="numeric" placeholder="Seat" value="${firstFree(m.hall, m.shift)}">
+        <button class="btn ok" data-act="approve" data-id="${m.id}">Approve</button><button class="btn alt" data-act="reject" data-id="${m.id}">Reject</button></div></div>`).join("");
+    const r = ren.map(m => `<div class="card"><div class="row sp"><b>${esc(m.name)}</b><span class="pill">${inr(L.fees[m.shift])} · UTR …${esc(m.renewal_request.utr)}</span></div>
+        <div class="muted">Seat ${m.seat} · ${esc(m.shift)} · valid till ${fmtDate(m.valid_till)}</div>
+        <div class="row" style="margin-top:8px"><button class="btn ok" data-act="rconfirm" data-id="${m.id}">Confirm UPI received</button><button class="btn alt" data-act="rreject" data-id="${m.id}">Reject</button></div></div>`).join("");
+    const w = (L.waitlist || []).map(x => `<div class="card row sp"><div><b>${esc(x.name)}</b><div class="muted">${esc(x.exam || "")} · ${esc(x.phone)} · ${esc(hallName(x.hall))} · ${esc(x.shift)} · since ${dayOf(x.created_at)}</div></div>
+        <div class="row"><a class="btn ok" target="_blank" rel="noopener" href="${esc(waUrl(x.phone, `Namaste ${x.name} ji, ${L.library_name} mein ab seat khaali hai. Book karne ke liye is link par aayein: ${location.origin}${location.pathname.replace(/[^/]*$/, "")}index.html?l=${L.slug}`))}">💬 Seat free</a><button class="btn alt" data-act="wdel" data-id="${x.id}">Remove</button></div></div>`).join("");
+    if (!i && !r && !w) return `<p class="muted" style="text-align:center;padding:48px">✨ No requests waiting.</p>`;
+    return `<h3>Admission and trial requests</h3>${i || '<p class="muted">None</p>'}<h3>UPI renewals to verify</h3>${r || '<p class="muted">None</p>'}<h3>Waitlist</h3>${w || '<p class="muted">Nobody is waiting.</p>'}`;
+}
+
+function vMembers() {
+    const n = dueList().length;
+    return `<div class="row" style="margin-bottom:10px"><input id="q" class="inp" style="flex:1" placeholder="Search name or mobile ( / )" value="${esc(S.q)}">
+        <select id="f" class="inp" style="width:auto"><option value="all">All</option><option value="due">Due within 3 days</option><option value="in">Inside now</option></select>
+        <button class="btn ok" data-act="queue" ${n ? "" : "disabled"}>💬 Remind all due (${n})</button></div><div id="mlist"></div>`;
+}
+function bindMembers() {
+    $("#f").value = S.f;
+    $("#q").oninput = e => { S.q = e.target.value; mlist(); };
+    $("#f").onchange = e => { S.f = e.target.value; mlist(); };
+    mlist();
+}
+function mlist() {
+    const q = S.q.toLowerCase();
+    let a = actv().filter(m => !q || m.name.toLowerCase().includes(q) || m.phone.includes(q));
+    if (S.f === "due") a = a.filter(m => daysLeft(m.valid_till) <= 3);
+    if (S.f === "in") a = a.filter(isIn);
+    a.sort((x, y) => x.valid_till.localeCompare(y.valid_till));
+    $("#mlist").innerHTML = a.map(m => `<div class="card row sp"><div><b>${esc(m.name)}</b> <span class="pill ${cls(m) === "due" ? "bad" : m.trial ? "warn" : "ok"}">${cls(m) === "due" ? "Overdue" : m.trial ? "Trial" : "Paid"}</span>${isIn(m) ? " 🟢" : ""}
+        <div class="muted">${esc(hallName(m.hall))} · seat ${m.seat} · ${esc(m.shift)} · till ${fmtDate(m.valid_till)}</div></div>
+        <div class="row"><a class="btn ok" target="_blank" rel="noopener" href="${esc(waUrl(m.phone, reminderMsg(m, L)))}">💬</a>
+        <button class="btn" data-act="renew" data-id="${m.id}" data-mode="Cash">Renew cash</button></div></div>`).join("") || '<p class="muted">No members found.</p>';
+}
+
+function vLedger() {
+    const ps = L.payments || [], t = istToday(), td = ps.filter(p => p.date === t), sum = a => a.filter(payOk).reduce((s, p) => s + Number(p.amount), 0);
+    const upi = sum(td.filter(p => p.mode === "UPI")), cash = sum(td.filter(p => p.mode === "Cash"));
+    const due = actv().filter(m => daysLeft(m.valid_till) < 0 && !m.trial).reduce((s, m) => s + Number(L.fees[m.shift] || 0), 0);
+    const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(Date.now() - i * 864e5).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); return [d, sum(ps.filter(p => p.date === d))]; });
+    const mx = Math.max(1, ...days.map(d => d[1]));
+    const msg = `📒 ${L.library_name} hisab ${t}\nTotal ${inr(upi + cash)}\nUPI ${inr(upi)}\nCash ${inr(cash)}\nPending dues ${inr(due)}\nInside now: ${actv().filter(isIn).length}`;
+    return `<div class="card" style="text-align:center"><div class="muted">Today's collection · ${t}</div><div class="stat" id="ldtotal" data-t="${upi + cash}">${inr(upi + cash)}</div><div class="muted">UPI ${inr(upi)} · Cash ${inr(cash)}</div></div>
+        <div class="card">Pending dues: <b>${inr(due)}</b></div>
+        ${td.map(p => `<div class="card row sp" style="${p.voided ? "opacity:.5" : ""}"><span style="${p.voided ? "text-decoration:line-through" : ""}">#${p.receipt} ${esc(p.name)} <span class="muted">· ${esc(p.mode)}${p.utr ? " …" + esc(p.utr) : ""}</span>${p.voided ? ` <span class="pill bad">void: ${esc(p.void_reason)}</span>` : ""}</span>
+        <span class="row"><b>${inr(p.amount)}</b><button class="btn alt" data-act="receipt" data-id="${p.id}">🖨</button>${role === "owner" && !p.voided ? `<button class="btn alt" data-act="void" data-id="${p.id}">Void</button>` : ""}</span></div>`).join("") || '<p class="muted">Nothing collected yet today.</p>'}
+        <a class="btn ok full" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">📤 Share hisab on WhatsApp</a>
+        <h3>Last 7 days</h3><div class="card">${days.map(([d, v]) => `<div class="row" style="margin-bottom:6px"><span class="muted" style="width:90px">${fmtDate(d).slice(0, 6)}</span><div class="bar" style="flex:1"><i style="width:${v / mx * 100}%"></i></div><b style="width:80px;text-align:right">${inr(v)}</b></div>`).join("")}</div>`;
+}
+
+function vInsights() {
+    const a = actv(), week = a.filter(m => { const d = daysLeft(m.valid_till); return d >= 0 && d <= 7; });
+    const risk = week.reduce((s, m) => s + Number(L.fees[m.shift] || 0), 0);
+    const occ = L.halls.map(h => ["Morning", "Evening"].map(s => {
+        const c = a.filter(m => m.hall === h.id && (m.shift === s || m.shift === "Full Day")).length;
+        return `<div class="row" style="margin-bottom:6px"><span class="muted" style="width:150px">${esc(h.name)} · ${s}</span><div class="bar" style="flex:1"><i style="width:${c / h.seats * 100}%"></i></div><b style="width:64px;text-align:right">${c}/${h.seats}</b></div>`;
+    }).join("")).join("");
+    return `<div id="att"><div class="sk"></div></div>
+        <div class="grid" style="grid-template-columns:1fr 1fr"><div class="card"><div class="muted">Renewals due in 7 days</div><div class="stat">${week.length}</div></div><div class="card"><div class="muted">Revenue at stake</div><div class="stat">${inr(risk)}</div></div></div>
+        <div class="card"><b>Seat occupancy</b><div style="margin-top:10px">${occ}</div></div>`;
+}
+async function loadInsights() {
+    const el = $("#att"); if (!el) return;
+    const r = await api("attSummary", { role });
+    if (!r.success) { el.innerHTML = `<p class="muted">${esc(r.message)}</p>`; return; }
+    const mx = Math.max(1, ...r.hourly);
+    el.innerHTML = `<div class="grid" style="grid-template-columns:1fr 1fr"><div class="card"><div class="muted">Visited today</div><div class="stat">${r.today_in}</div></div><div class="card"><div class="muted">Inside now</div><div class="stat">${r.inside_now}</div></div></div>
+        <div class="card"><b>Busiest hours (last 14 days)</b><div style="display:flex;align-items:flex-end;gap:3px;height:92px;margin-top:12px">${r.hourly.slice(5, 24).map((c, i) => `<div title="${i + 5}:00 · ${c} check-ins" style="flex:1;border-radius:5px 5px 0 0;height:${Math.max(4, c / mx * 100)}%;background:linear-gradient(var(--primary),color-mix(in srgb,var(--primary) 25%,transparent))"></div>`).join("")}</div>
+        <div class="row sp muted"><span>5 am</span><span>2 pm</span><span>11 pm</span></div></div>`;
+}
+
+function vSettings() {
+    const pin = `<div class="card grid"><b>Change PIN</b><input id="s-pin" class="inp" inputmode="numeric" maxlength="6" placeholder="New 6-digit PIN for the shared ${role === "owner" ? "owner" : "desk"} login">
+        ${role === "owner" ? '<input id="s-dpin" class="inp" inputmode="numeric" maxlength="6" placeholder="New shared front-desk PIN (optional)">' : ""}
+        <button class="btn alt" data-act="pin">Change PIN</button><p class="muted">Changing the PIN you are logged in with logs you out everywhere.</p></div>`;
+    if (role !== "owner") return `<p class="muted">Library details, fees, halls and staff can only be changed by the owner.</p>${pin}`;
+    return `<div class="card grid"><b>Library</b>
+        <input id="s-name" class="inp" value="${esc(L.library_name)}" placeholder="Library name"><input id="s-tag" class="inp" value="${esc(L.tagline)}" placeholder="Tagline">
+        <input id="s-addr" class="inp" value="${esc(L.address)}" placeholder="Address"><input id="s-upi" class="inp" value="${esc(L.upi_id)}" placeholder="UPI ID">
+        <input id="s-wa" class="inp" value="${esc(L.whatsapp_number)}" placeholder="WhatsApp number">
+        <b>Monthly fees (₹)</b><div class="row">${SHIFTS.map((s, i) => `<label class="muted" style="flex:1">${s}<input id="s-f${i}" class="inp" inputmode="numeric" value="${esc(L.fees[s])}"></label>`).join("")}</div>
+        <b>Halls (one per line, Name:Seats)</b><textarea id="s-halls" class="inp" rows="4">${esc(L.halls.map(h => `${h.name}:${h.seats}`).join("\n"))}</textarea>
+        <button class="btn" data-act="save">Save settings</button></div>
+        <div class="card grid"><b>Staff accounts</b><p class="muted" style="margin:0">Give each person their own code and PIN so the audit log shows who did what.</p><div id="stafflist"><div class="sk"></div></div>
+        <div class="row"><input id="st-code" class="inp" style="flex:1" placeholder="code (e.g. ravi)"><input id="st-name" class="inp" style="flex:2" placeholder="Name"><input id="st-pin" class="inp" style="flex:1" inputmode="numeric" maxlength="6" placeholder="PIN"></div>
+        <button class="btn alt" data-act="sadd">Add staff</button></div>${pin}`;
+}
+async function loadStaff() {
+    const r = await api("staffManage", { action: "list" }), el = $("#stafflist"); if (!el) return;
+    if (!r.success) { el.innerHTML = `<p class="muted">${esc(r.message)}</p>`; return; }
+    el.innerHTML = r.data.map(s => `<div class="row sp" style="margin-bottom:6px"><span><b>${esc(s.name)}</b> <span class="muted">code ${esc(s.code)}</span> <span class="pill ${s.active ? "ok" : "bad"}">${s.active ? "Active" : "Off"}</span></span>
+        <span class="row"><button class="btn alt" data-act="spin" data-id="${s.id}">Reset PIN</button><button class="btn alt" data-act="stoggle" data-id="${s.id}">${s.active ? "Disable" : "Enable"}</button></span></div>`).join("") || '<p class="muted">No individual accounts yet. The shared desk PIN still works.</p>';
+}
+async function loadAudit() {
+    const r = await api("auditList", { limit: 150 }), el = $("#auditlist"); if (!el) return;
+    if (!r.success) { el.innerHTML = `<p class="muted">${esc(r.message)}</p>`; return; }
+    el.innerHTML = r.data.map(a => `<div class="card" style="padding:10px 14px"><div class="row sp"><b>${esc(String(a.action).replace(/_/g, " "))}</b><span class="muted">${new Date(a.at).toLocaleString("en-IN")}</span></div><div class="muted">by ${esc(a.actor)} · ${esc(JSON.stringify(a.detail).slice(0, 160))}</div></div>`).join("") || '<p class="muted">No activity yet.</p>';
+}
+
+/*================ Modals ================*/
+const openM = h => { $("#sheet").innerHTML = h + `<button class="btn alt full" style="margin-top:12px" data-act="close">Close</button>`; $("#modal").hidden = false; };
+const closeM = () => { stopCam(); $("#modal").hidden = true; };
+$("#modal").onclick = e => { if (e.target.id === "modal") closeM(); };
+
+function openSeat(n) {
+    const m = memberAt(S.hall, n, S.shift);
+    if (!m) {
+        openM(`<h3>Admit to seat ${n} · ${esc(hallName(S.hall))}</h3><div class="grid">
+            <input id="a-name" class="inp" placeholder="Student name"><input id="a-ph" class="inp" inputmode="tel" maxlength="10" placeholder="10-digit mobile">
+            <input id="a-ex" class="inp" placeholder="Preparing for (e.g. MPPSC)">
+            <select id="a-sh" class="inp">${SHIFTS.map(s => `<option ${s === S.shift ? "selected" : ""}>${s}</option>`).join("")}</select>
+            <select id="a-pm" class="inp"><option>Cash</option><option>UPI</option></select>
+            <button class="btn" data-act="admit" data-id="${n}">Collect fee and admit</button></div>
+            <p class="muted">Fees: Morning ${inr(L.fees.Morning)} · Evening ${inr(L.fees.Evening)} · Full Day ${inr(L.fees["Full Day"])}</p>`);
+        return;
+    }
+    const d = daysLeft(m.valid_till);
+    openM(`<h3>${esc(m.name)} · seat ${m.seat}</h3><p class="muted">${esc(m.exam || "")} · ${esc(hallName(m.hall))} · ${esc(m.shift)} · ${esc(m.phone)}</p>
+        <p><span class="pill">${m.trial ? "Free trial" : "Member"}</span> <span class="pill ${d < 0 ? "bad" : "ok"}">${d < 0 ? `Overdue ${-d} day(s)` : `${d} day(s) left`}</span> <span class="muted">valid till ${fmtDate(m.valid_till)}</span></p>
+        <div class="grid"><a class="btn ok" target="_blank" rel="noopener" href="${esc(waUrl(m.phone, reminderMsg(m, L)))}">💬 WhatsApp fee reminder</a>
+        <button class="btn" data-act="renew" data-id="${m.id}" data-mode="Cash">Renew 30 days · cash ${inr(L.fees[m.shift])}</button>
+        <button class="btn" data-act="renew" data-id="${m.id}" data-mode="UPI">Renew 30 days · UPI ${inr(L.fees[m.shift])}</button>
+        <button class="btn alt" data-act="present" data-id="${m.id}">${isIn(m) ? "Check out" : "Check in"}</button>
+        <button class="btn alt" data-act="recover" data-id="${m.id}">🔗 Link member's phone / new device</button>
+        <div class="row"><select id="mv-h" class="inp" style="flex:2">${L.halls.map(h => `<option value="${h.id}" ${h.id === m.hall ? "selected" : ""}>${esc(h.name)}</option>`).join("")}</select>
+        <input id="mv-n" class="inp" style="flex:1" inputmode="numeric" value="${m.seat}"><select id="mv-s" class="inp" style="flex:2">${SHIFTS.map(s => `<option ${s === m.shift ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+        <button class="btn alt" data-act="move" data-id="${m.id}">Move seat</button>
+        <button class="btn bad" data-act="release" data-id="${m.id}">Release seat (member left)</button></div>`);
+}
+
+function openVoid(pid) {
+    const p = (L.payments || []).find(x => x.id === pid); if (!p) return;
+    openM(`<h3>Void payment #${p.receipt}</h3><p class="muted">${esc(p.name)} · ${inr(p.amount)} · ${esc(p.mode)}. The entry stays in the ledger, marked void, and the action is recorded in the audit log.</p>
+        <div class="grid"><input id="v-r" class="inp" placeholder="Reason (required)"><label class="muted"><input id="v-rv" type="checkbox"> Also take 30 days back off this member</label>
+        <button class="btn bad" data-act="dovoid" data-id="${pid}">Void payment</button></div>`);
+}
+
+/*---- WhatsApp reminder queue (one tap per member, remembers who was done today) ----*/
+const sentKey = () => "los_sent_" + SLUG + "_" + istToday();
+const sentSet = () => new Set(JSON.parse(localStorage.getItem(sentKey()) || "[]"));
+const markSent = id => { const s = sentSet(); s.add(id); localStorage.setItem(sentKey(), JSON.stringify([...s])); };
+function openQueue() {
+    const d = dueList(), sent = sentSet(), left = d.filter(m => !sent.has(m.id)), done = d.length - left.length, n = left[0];
+    openM(`<h3>WhatsApp reminder queue</h3><div class="bar"><i style="width:${d.length ? done / d.length * 100 : 100}%"></i></div><p class="muted">${done} of ${d.length} done today</p>
+        ${n ? `<div class="card"><b>${esc(n.name)}</b><div class="muted">seat ${n.seat} · ${esc(n.shift)} · ${daysLeft(n.valid_till) < 0 ? "overdue" : "due soon"} · ${inr(L.fees[n.shift])}</div></div>
+        <div class="row"><button class="btn ok" style="flex:1" data-act="rnext" data-id="${n.id}">Open WhatsApp and mark sent</button><button class="btn alt" data-act="rskip" data-id="${n.id}">Skip</button></div>` : "<p>🎉 All reminders are done for today.</p>"}`);
+}
+
+/*---- QR check-in ----*/
+function stopCam() { clearInterval(scanTimer); scanTimer = null; if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
+function loadJsQR() {
+    return new Promise((res, rej) => { if (window.jsQR) return res(); const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+}
+async function openScan() {
+    openM(`<h3>Scan member QR</h3><video id="cam" playsinline muted style="width:100%;border-radius:16px;background:#000;min-height:180px"></video>
+        <div id="sc-res" style="margin:10px 0"></div><div class="row"><input id="sc-code" class="inp" style="flex:1" placeholder="or paste the member's code"><button class="btn" data-act="scancode">Go</button></div>`);
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        const v = $("#cam"); v.srcObject = stream; await v.play();
+        const det = "BarcodeDetector" in window ? new BarcodeDetector({ formats: ["qr_code"] }) : null;
+        if (!det) await loadJsQR();
+        const cv = document.createElement("canvas"), cx = cv.getContext("2d", { willReadFrequently: true });
+        scanTimer = setInterval(async () => {
+            if (!v.videoWidth) return; let code = "";
+            if (det) { const r = await det.detect(v).catch(() => []); code = r[0] ? r[0].rawValue : ""; }
+            else { cv.width = v.videoWidth; cv.height = v.videoHeight; cx.drawImage(v, 0, 0); const q = window.jsQR(cx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height); code = q ? q.data : ""; }
+            if (code) doScan(code);
+        }, 450);
+    } catch (e) { $("#sc-res").innerHTML = `<p class="muted">Camera unavailable. Paste the member's code instead.</p>`; }
+}
+async function doScan(code, memberId) {
+    const now = Date.now(); if (!memberId && code === lastScan.c && now - lastScan.t < 4000) return; lastScan = { c: code, t: now };
+    const r = await api("scan", { role, code, member_id: memberId });
+    const el = $("#sc-res"), ok = r.success;
+    if (ok) buzz(r.overdue ? [60, 40, 60] : 20); else buzz([30, 40, 30]);
+    const html = ok ? `<div class="card" style="border-color:var(--${r.overdue ? "warn" : "ok"})"><b style="font-size:18px">${r.action === "in" ? "✅ Checked IN" : "👋 Checked OUT"} · ${esc(r.name)}</b><div class="muted">Seat ${r.seat} · ${esc(r.shift)}</div>
+        ${r.overdue ? `<div class="pill bad" style="margin-top:6px">Fee overdue by ${-r.days_left} day(s). Ask for the renewal.</div>` : ""}</div>` : `<div class="card" style="border-color:var(--bad)">⚠️ ${esc(r.message)}</div>`;
+    if (el) el.innerHTML = html; else toast(ok ? `${r.action === "in" ? "Checked in" : "Checked out"}: ${r.name}` : r.message);
+    if (ok) load(true);
+}
+
+/*================ Actions ================*/
+const HEAVY = new Set(["admit", "renew", "move", "release", "approve", "reject", "rconfirm", "rreject", "save", "pin", "dovoid", "sadd", "spin", "stoggle", "status", "present", "wdel", "recover"]);
+document.addEventListener("click", async e => {
+    const el = e.target.closest("[data-act]"); if (!el) return;
+    const a = el.dataset.act;
+    if (HEAVY.has(a)) await withBusy(el, () => handle(a, el)); else await handle(a, el);
+});
+async function handle(a, el) {
+    const id = el.dataset.id, mode = el.dataset.mode;
+    if (a === "tab") { S.tab = id; render(); }
+    else if (a === "hall") { S.hall = id; render(); }
+    else if (a === "shift") { S.shift = id; render(); }
+    else if (a === "seat") openSeat(+id);
+    else if (a === "close") closeM();
+    else if (a === "logout") logout();
+    else if (a === "scan") openScan();
+    else if (a === "scancode") { const c = $("#sc-code").value.trim(); if (c) doScan(c); }
+    else if (a === "queue") openQueue();
+    else if (a === "rnext") { const m = ms().find(x => x.id === id); window.open(waUrl(m.phone, reminderMsg(m, L)), "_blank", "noopener"); markSent(id); openQueue(); }
+    else if (a === "rskip") { markSent(id); openQueue(); }
+    else if (a === "status") await doOp("setStatus", { status: L.status === "closed" ? "open" : "closed" });
+    else if (a === "admit") {
+        const pm = $("#a-pm").value; if (pm === "UPI" && !confirm(UPI_OK)) return;
+        if (await doOp("walkIn", { name: $("#a-name").value.trim(), phone: $("#a-ph").value.replace(/\D/g, ""), exam: $("#a-ex").value.trim(), hall: S.hall, seat: +id, shift: $("#a-sh").value, pay_mode: pm, payment_confirmed: pm === "UPI" })) closeM();
+    }
+    else if (a === "renew") {
+        if (mode === "UPI" && !confirm(UPI_OK)) return;
+        if (await doOp("renew", { id, pay_mode: mode, payment_confirmed: mode === "UPI" })) { closeM(); toast("Renewed for 30 days"); }
+    }
+    else if (a === "present") { closeM(); await doScan("", id).catch(() => { }); }
+    else if (a === "move") { if (await doOp("moveSeat", { id, hall: $("#mv-h").value, seat: +$("#mv-n").value, shift: $("#mv-s").value })) closeM(); }
+    else if (a === "release") { if (confirm("Release this seat? The member will be marked as left.") && await doOp("releaseSeat", { id })) closeM(); }
+    else if (a === "approve") {
+        const m = ms().find(x => x.id === id), upi = m.pay_mode === "UPI"; if (upi && !confirm(UPI_OK)) return;
+        if (await doOp("approveInquiry", { id, hall: $("#rq-h-" + id).value, seat: +$("#rq-s-" + id).value, payment_confirmed: upi })) toast("Approved");
+    }
+    else if (a === "reject") { if (confirm("Reject this request?")) await doOp("rejectInquiry", { id }); }
+    else if (a === "rconfirm") { if (confirm(UPI_OK)) await doOp("confirmRenewal", { id, payment_confirmed: true }); }
+    else if (a === "rreject") await doOp("rejectRenewal", { id });
+    else if (a === "receipt") { const p = (L.payments || []).find(x => x.id === id); if (p) printReceipt(p, L, ms().find(x => x.id === p.member_id)); }
+    else if (a === "wdel") { const r = await api("waitlistRemove", { role, id }); if (r.success) { L = r.library; render(); } else toast(r.message); }
+    else if (a === "recover") {
+        const r = await api("issueRecovery", { role, member_id: id }); if (!r.success) return toast(r.message);
+        const link = `${location.origin}${location.pathname.replace(/[^/]*$/, "")}index.html?l=${L.slug}`;
+        openM(`<h3>Link ${esc(r.name)}'s phone</h3><div class="stat" style="text-align:center;letter-spacing:.2em;margin:14px 0">${esc(r.code)}</div>
+            <p class="muted">Valid for 24 hours, works once. The member opens the library page, taps "New phone?", and enters their mobile number and this code. After that their pass and QR work on that phone.</p>
+            <a class="btn ok full" target="_blank" rel="noopener" href="${esc(waUrl(r.phone, `Namaste ${r.name} ji, aapke ${L.library_name} pass ka code: ${r.code} (24 ghante valid). Link: ${link}`))}">💬 Send code on WhatsApp</a>`);
+    }
+    else if (a === "void") openVoid(id);
+    else if (a === "dovoid") {
+        const r = await api("voidPayment", { paymentId: id, reason: $("#v-r").value, revert: $("#v-rv").checked });
+        if (!r.success) return toast(r.message);
+        L = r.library; closeM(); render(); toast("Payment voided");
+    }
+    else if (a === "save") {
+        await doOp("saveSettings", { library_name: $("#s-name").value, tagline: $("#s-tag").value, address: $("#s-addr").value, upi_id: $("#s-upi").value.trim(),
+            whatsapp_number: $("#s-wa").value, fees: { Morning: $("#s-f0").value.trim(), Evening: $("#s-f1").value.trim(), "Full Day": $("#s-f2").value.trim() },
+            halls: parseHalls($("#s-halls").value, L.halls) });
+    }
+    else if (a === "pin") {
+        const p = $("#s-pin").value.trim(), d = $("#s-dpin") ? $("#s-dpin").value.trim() : "";
+        if (!p && !d) { toast("Enter a new PIN first."); return; }
+        const payload = {}; if (p) payload.new_pin = p; if (d) payload.new_desk_pin = d;
+        if (await doOp("saveSettings", payload)) { if (p) logout("PIN changed. Please log in again."); else toast("Front-desk PIN changed."); }
+    }
+    else if (a === "sadd") {
+        const r = await api("staffManage", { action: "add", payload: { code: $("#st-code").value, name: $("#st-name").value, pin: $("#st-pin").value } });
+        toast(r.success ? "Staff added" : r.message); if (r.success) { ["#st-code", "#st-name", "#st-pin"].forEach(s => $(s).value = ""); loadStaff(); }
+    }
+    else if (a === "spin") {
+        const p = prompt("New 6-digit PIN for this staff member"); if (!p) return;
+        const r = await api("staffManage", { action: "reset_pin", payload: { id, pin: p.trim() } }); toast(r.success ? "PIN reset" : r.message);
+    }
+    else if (a === "stoggle") { const r = await api("staffManage", { action: "toggle", payload: { id } }); toast(r.success ? "Updated" : r.message); loadStaff(); }
+}
+
+/*---- drag a member onto a free seat ----*/
+$("#view").addEventListener("dragstart", e => { const s = e.target.closest(".seat[data-m]"); if (s) e.dataTransfer.setData("text/plain", s.dataset.m); });
+$("#view").addEventListener("dragover", e => { if (e.target.closest(".seat")) e.preventDefault(); });
+$("#view").addEventListener("drop", async e => {
+    const t = e.target.closest(".seat"); if (!t) return; e.preventDefault();
+    const m = ms().find(x => x.id === e.dataTransfer.getData("text/plain")); if (!m || (+t.dataset.id === m.seat && S.hall === m.hall)) return;
+    await doOp("moveSeat", { id: m.id, hall: S.hall, seat: +t.dataset.id, shift: m.shift });
+});
+
+/*---- keyboard shortcuts ----*/
+document.addEventListener("keydown", e => {
+    if (!L || e.ctrlKey || e.metaKey) return;
+    if (e.key === "Escape") { closeM(); return; }
+    if (/INPUT|SELECT|TEXTAREA/.test((document.activeElement || {}).tagName || "")) return;
+    const tabs = ["seats", "req", "members", "ledger", "insights", "settings", "audit"];
+    if (/^[1-7]$/.test(e.key) && (tabs[e.key - 1] !== "audit" || role === "owner")) { S.tab = tabs[e.key - 1]; render(); }
+    else if (e.key === "/") { e.preventDefault(); S.tab = "members"; render(); $("#q") && $("#q").focus(); }
+    else if (e.key.toLowerCase() === "s") openScan();
+});
+
+/*================ Boot ================*/
+(async () => {
+    $("#code").hidden = false;
+    if (!SLUG) { $("#msg").textContent = "Open this page with your library link (desk.html?l=your-library)."; $("#go").disabled = true; return; }
+    const r = await api("getPublic");
+    if (r.success) { $("#gname").textContent = r.library_name; applyTheme(r.theme_color); }
+    if (sessionStorage.getItem(tokenKey(role))) start();
+})();
+</script>
+</body>
+</html>

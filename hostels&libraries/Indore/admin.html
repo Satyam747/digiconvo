@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LibraryOS Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div id="gate" class="wrap" style="max-width:400px;margin-top:8vh">
+  <div class="card grid" style="padding:22px">
+    <div style="font-size:32px">🛡️</div><h1 style="margin:0" id="gtitle"></h1><p class="muted" style="margin:0">Platform admin</p>
+    <div id="step1" class="grid">
+      <input id="em" class="inp" type="email" placeholder="Admin email" autocomplete="username">
+      <input id="pw" class="inp" type="password" placeholder="Password" autocomplete="current-password">
+      <button id="go" class="btn">Sign in</button>
+      <details><summary class="muted" style="cursor:pointer">Use master secret instead</summary><div class="grid" style="margin-top:8px"><input id="sec" class="inp" type="password" placeholder="Master secret" autocomplete="off"><button id="gosec" class="btn alt">Unlock with secret</button></div></details>
+    </div>
+    <div id="step2" class="grid" hidden>
+      <div id="enroll" class="grid" hidden><p class="muted" style="margin:0">Scan this with an authenticator app (Google Authenticator, Authy, 1Password), then enter the 6-digit code.</p><img id="qr" alt="MFA QR code" style="width:180px;background:#fff;border-radius:12px;padding:8px;margin:0 auto"><code id="qrs" class="muted" style="word-break:break-all"></code></div>
+      <input id="otp" class="inp" inputmode="numeric" maxlength="6" placeholder="6-digit authenticator code" autocomplete="one-time-code">
+      <button id="vf" class="btn">Verify</button>
+    </div>
+    <p id="msg" class="muted"></p>
+  </div>
+</div>
+
+<div id="app" class="wrap" hidden>
+  <div class="card row sp"><div><b style="font-family:Sora,sans-serif" id="atitle"></b><div class="muted" id="amode"></div></div><button class="btn alt" id="out">Sign out</button></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))" id="stats"></div>
+  <div id="list"></div>
+
+  <div class="card grid">
+    <h3 id="ftitle" style="margin:0">Onboard a library</h3>
+    <p class="muted" style="margin:0">For an existing slug only business details and the subscription change; halls, fees and staff are managed by the owner in the app. Leave PINs blank to keep them.</p>
+    <input id="n-slug" class="inp" placeholder="slug (e.g. bhawarkuan-study-library)">
+    <input id="n-name" class="inp" placeholder="Library name"><input id="n-tag" class="inp" placeholder="Tagline"><input id="n-addr" class="inp" placeholder="Address (e.g. Bhawarkuan, Indore)">
+    <input id="n-ph" class="inp" inputmode="tel" placeholder="Owner WhatsApp number"><input id="n-upi" class="inp" placeholder="Library UPI ID">
+    <div class="row"><input id="n-plan" class="inp" style="flex:1" inputmode="numeric" placeholder="Plan price / month (₹)"><input id="n-sub" class="inp" style="flex:1" type="date"></div>
+    <b>Halls (one per line, Name:Seats)</b><textarea id="n-halls" class="inp" rows="3">Main Reading Hall:30</textarea>
+    <b>Monthly fees (₹)</b>
+    <div class="row"><input id="n-f0" class="inp" style="flex:1" inputmode="numeric" value="800" placeholder="Morning"><input id="n-f1" class="inp" style="flex:1" inputmode="numeric" value="700" placeholder="Evening"><input id="n-f2" class="inp" style="flex:1" inputmode="numeric" value="1200" placeholder="Full Day"></div>
+    <div class="row"><input id="n-dpin" class="inp" style="flex:1" inputmode="numeric" maxlength="6" placeholder="Front-desk PIN"><input id="n-opin" class="inp" style="flex:1" inputmode="numeric" maxlength="6" placeholder="Owner PIN"></div>
+    <button class="btn" id="save">Save library</button>
+  </div>
+
+  <div class="card grid">
+    <h3 style="margin:0">Provider settings</h3>
+    <input id="m-wa" class="inp" inputmode="tel" placeholder="Your WhatsApp"><input id="m-upi" class="inp" placeholder="Your UPI ID">
+    <input id="m-new" class="inp" type="password" placeholder="New master secret (16+ characters, optional)">
+    <button class="btn alt" id="msave">Save provider settings</button>
+    <button class="btn alt" id="sl"></button>
+  </div>
+</div>
+
+<script>
+const K = CONFIG.STORAGE, esc = escapeHTML, sb = supabaseClient;
+let secret = "", mode = "", rows = [], secretLogin = true;
+const base = location.href.split("?")[0].split("#")[0].replace(/[^/]*$/, "");
+const say = m => { $("#msg").textContent = m || ""; };
+const ago = ts => { const m = Math.round((Date.now() - new Date(ts)) / 6e4); return m < 2 ? "just now" : m < 90 ? m + " min ago" : m < 2880 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
+$("#gtitle").textContent = CONFIG.BRAND.PRODUCT + " · " + CONFIG.BRAND.COMPANY;
+$("#atitle").textContent = CONFIG.BRAND.COMPANY + " · " + CONFIG.BRAND.PRODUCT + " admin";
+
+/*================ Sign in: Supabase Auth + TOTP, or (until disabled) the master secret ================*/
+$("#go").onclick = async () => {
+    if (!sb) return say("Server not configured. Set the Supabase URL and key in config.js.");
+    const { error } = await sb.auth.signInWithPassword({ email: $("#em").value.trim(), password: $("#pw").value });
+    if (error) return say(error.message); say(""); mfaStep();
+};
+async function mfaStep() {
+    const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal && aal.currentLevel === "aal2") return enter("auth");
+    $("#step1").hidden = true; $("#step2").hidden = false;
+    const { data: f } = await sb.auth.mfa.listFactors();
+    let fac = (f.totp || [])[0];
+    if (!fac) {
+        for (const u of (f.all || []).filter(x => x.status === "unverified")) await sb.auth.mfa.unenroll({ factorId: u.id });
+        const e = await sb.auth.mfa.enroll({ factorType: "totp" });
+        if (e.error) return say(e.error.message);
+        fac = { id: e.data.id }; $("#qr").src = e.data.totp.qr_code; $("#qrs").textContent = e.data.totp.secret; $("#enroll").hidden = false;
+    }
+    $("#vf").onclick = async () => {
+        const ch = await sb.auth.mfa.challenge({ factorId: fac.id }); if (ch.error) return say(ch.error.message);
+        const v = await sb.auth.mfa.verify({ factorId: fac.id, challengeId: ch.data.id, code: $("#otp").value.trim() });
+        if (v.error) return say(v.error.message); enter("auth");
+    };
+}
+$("#gosec").onclick = async () => {
+    const r = await api("saasList", { secret: $("#sec").value }); if (!r.success) return say(r.message);
+    secret = $("#sec").value; $("#sec").value = ""; enter("secret");
+};
+async function enter(m) {
+    mode = m; $("#gate").hidden = true; $("#app").hidden = false;
+    $("#amode").textContent = m === "auth" ? "Signed in with admin account + MFA" : "Master secret session (turn this off once MFA works)";
+    await load();
+}
+$("#out").onclick = async () => { if (sb) await sb.auth.signOut(); secret = ""; location.reload(); };
+
+/*================ Dashboard ================*/
+async function load() {
+    const [l, u] = await Promise.all([api("saasList", { secret }), api("saasUsage", { secret })]);
+    if (!l.success || !u.success) { toast((l.message || u.message)); if (/authoris|master/i.test(l.message || u.message || "")) location.reload(); return; }
+    rows = l.data.map(x => ({ ...x, ...(u.data.find(y => y.slug === x.slug) || {}) })); secretLogin = u.secret_login;
+    $("#m-wa").value = l.provider_whatsapp || ""; $("#m-upi").value = l.provider_upi || "";
+    const live = rows.filter(r => r.is_active), mrr = live.reduce((s, r) => s + Number(r.plan_price || 0), 0), exp = rows.filter(r => r.days_left >= 0 && r.days_left <= 7).length;
+    const stat = (k, v, id) => `<div class="card" style="margin:0"><div class="muted">${k}</div><div class="stat" id="${id}" data-v="0">${v}</div></div>`;
+    $("#stats").innerHTML = stat("Libraries", rows.length, "s1") + stat("Active members", rows.reduce((s, r) => s + Number(r.active_members || 0), 0), "s2") + stat("Monthly recurring", inr(mrr), "s3") + stat("Expiring in 7 days", exp, "s4") + stat("Billed to date", inr(rows.reduce((s, r) => s + Number(r.billed_total || 0), 0)), "s5");
+    $("#list").innerHTML = rows.map(r => `<div class="card"><div class="row sp"><b>${esc(r.library_name)}</b><span class="pill ${r.is_active ? "ok" : "bad"}">${r.is_active ? "Active" : "Paused / expired"}</span></div>
+        <div class="muted">${esc(r.slug)} · plan ${inr(r.plan_price)} · ${r.days_left >= 0 ? r.days_left + " days left" : "expired " + (-r.days_left) + " days ago"} · last activity ${ago(r.last_activity)}</div>
+        <div class="row muted" style="margin:8px 0"><span class="pill">${r.active_members} members</span><span class="pill">${inr(r.revenue_30d)} collected (30d)</span><span class="pill">${r.visits_7d} visits (7d)</span><span class="pill">${r.staff} staff logins</span><span class="pill">${inr(r.billed_total)} billed</span></div>
+        <div class="row"><a class="btn alt" target="_blank" rel="noopener" href="${base}index.html?l=${encodeURIComponent(r.slug)}">Public</a><a class="btn alt" target="_blank" rel="noopener" href="${base}desk.html?l=${encodeURIComponent(r.slug)}">Staff app</a>
+        <button class="btn alt" data-a="copy" data-s="${esc(r.slug)}">Copy links</button><button class="btn alt" data-a="edit" data-s="${esc(r.slug)}">Edit</button>
+        <button class="btn" data-a="bill" data-s="${esc(r.slug)}">Record payment +30d</button><button class="btn alt" data-a="toggle" data-s="${esc(r.slug)}">Pause / resume</button><button class="btn bad" data-a="del" data-s="${esc(r.slug)}">Delete</button></div></div>`).join("") || '<p class="muted">No libraries yet.</p>';
+    $("#sl").textContent = secretLogin ? "Disable master-secret login (recommended)" : "Enable master-secret login";
+    ["s2", "s4"].forEach(id => countUp($("#" + id), +$("#" + id).textContent, String));
+}
+$("#list").onclick = async e => {
+    const b = e.target.closest("[data-a]"); if (!b) return; const s = b.dataset.s, a = b.dataset.a, r0 = rows.find(x => x.slug === s); let r;
+    if (a === "copy") { await navigator.clipboard.writeText(`Public: ${base}index.html?l=${s}\nStaff: ${base}desk.html?l=${s}`); return toast("Links copied"); }
+    if (a === "edit") {
+        $("#n-slug").value = r0.slug; $("#n-name").value = r0.library_name; $("#n-tag").value = r0.tagline || ""; $("#n-ph").value = r0.owner_phone || ""; $("#n-upi").value = r0.upi_id || "";
+        $("#n-plan").value = r0.plan_price || ""; $("#n-sub").value = r0.subscription_valid_till || ""; $("#ftitle").textContent = "Edit " + r0.slug; return $("#n-slug").scrollIntoView({ behavior: "smooth" });
+    }
+    if (a === "bill") {
+        const amt = prompt(`Amount received from ${r0.library_name} (₹)`, r0.plan_price || ""); if (!amt) return; const note = prompt("Note (optional: UPI ref, month)") || "";
+        r = await api("saasBilling", { secret, targetSlug: s, amount: Number(amt), note });
+    } else if (a === "toggle") r = await api("saasToggle", { secret, targetSlug: s });
+    else if (a === "del") { if (prompt(`Type "${s}" to permanently delete this library and all its data`) !== s) return; r = await api("saasDelete", { secret, targetSlug: s }); }
+    toast(r.success ? "Done" : r.message); if (r.success) load();
+};
+$("#save").onclick = async () => {
+    const payload = { slug: $("#n-slug").value.trim().toLowerCase(), library_name: $("#n-name").value.trim(), tagline: $("#n-tag").value.trim(), address: $("#n-addr").value.trim(),
+        owner_phone: $("#n-ph").value, upi_id: $("#n-upi").value.trim(), plan_price: $("#n-plan").value, subscription_valid_till: $("#n-sub").value,
+        halls: parseHalls($("#n-halls").value, []), fees: { Morning: $("#n-f0").value.trim(), Evening: $("#n-f1").value.trim(), "Full Day": $("#n-f2").value.trim() },
+        desk_pin: $("#n-dpin").value.trim(), owner_pin: $("#n-opin").value.trim() };
+    const r = await api("saasUpsert", { secret, payload }); toast(r.success ? "Saved" : r.message);
+    if (r.success) { $("#n-dpin").value = ""; $("#n-opin").value = ""; $("#ftitle").textContent = "Onboard a library"; load(); }
+};
+$("#msave").onclick = async () => {
+    const nw = $("#m-new").value, r = await api("saasMaster", { currentSecret: secret, newSecret: nw, whatsapp: $("#m-wa").value, upi: $("#m-upi").value });
+    toast(r.success ? "Saved" : r.message); if (r.success && nw) { secret = nw; $("#m-new").value = ""; }
+};
+$("#sl").onclick = async () => {
+    if (secretLogin && !confirm("Disable master-secret login? You will only be able to sign in with your admin account and MFA.")) return;
+    const r = await api("saasSecretLogin", { secret, allow: !secretLogin }); toast(r.success ? "Updated" : r.message); if (r.success) load();
+};
+(async () => { if (sb) { const { data } = await sb.auth.getSession(); if (data && data.session) mfaStep(); } })();
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0d1f">
+<title>Study Library</title>
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="wrap" style="max-width:640px">
+  <div id="head"></div>
+  <div id="pass"></div>
+  <h3 id="hTitle"></h3>
+  <div id="halls" class="grid"></div>
+  <h3 id="fTitle"></h3>
+  <div id="fees" class="row" style="margin-bottom:14px;flex-wrap:nowrap"></div>
+  <div id="formBox"></div>
+  <div id="restoreBox"></div>
+  <div id="ts" style="margin:10px 0"></div>
+  <a id="wa" class="btn ok full" target="_blank" rel="noopener" hidden>💬 WhatsApp</a>
+  <p class="muted" style="text-align:center;margin-top:22px"><a id="staffLink" href="#" style="color:inherit"></a> · <span id="brand"></span><span id="legal"></span></p>
+</div>
+<script>
+const SLUG = CONFIG.TENANT.SLUG, K = CONFIG.STORAGE, esc = escapeHTML;
+let LIB = null, qrTimer = null, installEvt = null, formVals = null;
+const freeFor = (h, s) => s === "Morning" ? h.free_morning : s === "Evening" ? h.free_evening : Math.min(h.free_morning, h.free_evening);
+const upiHref = amt => `upi://pay?pa=${encodeURIComponent(LIB.upi_id)}&pn=${encodeURIComponent(LIB.library_name)}&am=${amt}&cu=INR`;
+const randHex = () => [...crypto.getRandomValues(new Uint8Array(32))].map(x => x.toString(16).padStart(2, "0")).join("");
+
+/*================ Data ================*/
+async function refresh() {
+    if (!SLUG) { $("#head").innerHTML = `<div class="card"><b>Open this page with your library link</b><p class="muted">Example: index.html?l=your-library</p></div>`; return; }
+    const r = await api("getPublic", { booking_ref: getBookingRef() });
+    if (!r.success) { $("#head").innerHTML = `<div class="card"><b>${esc(r.message)}</b></div>`; return; }
+    LIB = r; applyTheme(r.theme_color); document.title = r.library_name; setupPwa(); renderAll();
+}
+
+/*================ Render ================*/
+function renderAll() {
+    const open = LIB.is_active && LIB.status !== "closed";
+    $("#head").innerHTML = `<div class="card" style="padding:20px"><div class="row sp"><span class="pill ${open ? "ok" : "bad"}">${open ? t("open") : t("closed")}</span>
+        <span class="row"><button class="btn alt" style="padding:5px 12px" data-lang="${LANG === "en" ? "hi" : "en"}">${LANG === "en" ? "हिन्दी" : "English"}</button><button id="inst" class="btn alt" style="padding:5px 12px" ${installEvt ? "" : "hidden"}>⬇ ${t("install")}</button></span></div>
+        <h1 style="margin:12px 0 4px">${esc(LIB.library_name)}</h1><div class="muted">${esc(LIB.tagline || "")}</div><div class="muted">📍 ${esc(LIB.address || "")}</div></div>`;
+    $("#hTitle").textContent = t("seatsToday"); $("#fTitle").textContent = t("fees");
+    $("#halls").innerHTML = LIB.halls.map(h => `<div class="card" style="margin:0"><div class="row sp"><b>${esc(h.name)}</b><span class="muted">${h.seats} ${t("seat").toLowerCase()}</span></div>
+        ${["Morning", "Evening"].map(s => { const f = freeFor(h, s), pct = Math.round((h.seats - f) / h.seats * 100); return `<div class="row" style="margin-top:8px"><span class="muted" style="width:78px">${s === "Morning" ? "🌅" : "🌆"} ${t("sh_" + s)}</span><div class="bar" style="flex:1"><i style="width:${pct}%"></i></div><span class="pill ${f ? "ok" : "bad"}">${f} ${t("free")}</span></div>`; }).join("")}</div>`).join("");
+    $("#fees").innerHTML = SHIFTS.map(s => `<div class="card" style="margin:0;flex:1;text-align:center;padding:12px 6px"><div class="muted">${t("sh_" + s)}</div><div class="stat" style="font-size:20px">${inr(LIB.fees[s])}</div></div>`).join("");
+    if (LIB.whatsapp_number) { $("#wa").href = waUrl(LIB.whatsapp_number, `Namaste, I would like to know about ${LIB.library_name}.`); $("#wa").hidden = false; }
+    $("#staffLink").href = `desk.html?l=${SLUG}`; $("#staffLink").textContent = t("staff");
+    const B = CONFIG.BRAND; $("#brand").textContent = `${B.PRODUCT} by ${B.COMPANY}`;
+    $("#legal").innerHTML = [[B.TERMS_URL, "Terms"], [B.PRIVACY_URL, "Privacy"]].filter(x => x[0]).map(x => ` · <a href="${esc(x[0])}" style="color:inherit" rel="noopener">${x[1]}</a>`).join("");
+    renderPass(LIB.my_booking);
+    $("#formBox").innerHTML = open && !LIB.my_booking ? formHTML() : "";
+    $("#restoreBox").innerHTML = !LIB.my_booking ? restoreHTML() : "";
+    if (formVals) restoreForm();
+    if (!LIB.my_booking && open) syncForm();
+    initTurnstile();
+}
+
+function renderPass(b) {
+    clearTimeout(qrTimer);
+    if (!b) { $("#pass").innerHTML = ""; return; }
+    if (b.status === "inquiry") { $("#pass").innerHTML = `<div class="card"><div class="muted">${esc(b.masked_name)}</div><h3>⏳ ${t("waiting")}</h3><div class="muted">${esc(b.hall)} · ${t("sh_" + b.shift)}</div></div>`; return; }
+    const d = b.days_left, over = d < 0, pct = Math.max(0, Math.min(100, d / 30 * 100));
+    $("#pass").innerHTML = `<div class="card" style="padding:20px"><div class="row sp"><div class="muted">${t("yourPass")} · ${esc(b.masked_name)}</div><span class="pill ${over ? "bad" : b.trial ? "warn" : "ok"}">${b.trial ? "Trial" : over ? "●" : "Active"}</span></div>
+        <div class="row" style="gap:16px;margin:14px 0"><div style="width:92px;height:92px;border-radius:50%;background:conic-gradient(var(--${over ? "bad" : "ok"}) ${pct}%,var(--bg-panel) 0);display:grid;place-items:center">
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--bg-card);display:grid;place-items:center;text-align:center"><div><div class="stat" style="font-size:24px">${Math.abs(d)}</div><div class="muted" style="font-size:10px">${over ? t("overdue") : t("daysLeft")}</div></div></div></div>
+        <div><div class="stat" style="font-size:22px">${t("seat")} ${b.seat}</div><div class="muted">${esc(b.hall)} · ${t("sh_" + b.shift)}</div><div class="muted">→ ${fmtDate(b.valid_till)}</div></div></div>
+        <div id="qrBox" style="background:#fff;border-radius:16px;padding:10px;width:fit-content;margin:0 auto"></div><div class="bar" style="margin:10px auto 4px;max-width:200px"><i id="qrBar" style="width:100%"></i></div><div class="muted" style="text-align:center">${t("qrHint")}</div>
+        ${b.renewal_pending ? `<p class="pill warn" style="margin-top:12px">⏳ ${t("waiting")}</p>` : LIB.upi_id ? `<div class="grid" style="margin-top:14px"><a class="btn alt" href="${esc(upiHref(LIB.fees[b.shift]))}">${t("payUpi")} · ${inr(LIB.fees[b.shift])}</a>
+        <input id="r-utr" class="inp" inputmode="numeric" maxlength="4" placeholder="${t("utr")}"><button class="btn" data-act="renew">${t("paidNotify")}</button></div>` : ""}</div>`;
+    loadQr();
+}
+async function loadQr() {
+    const r = await api("myQr", { booking_ref: getBookingRef() }), box = $("#qrBox"); if (!box) return;
+    if (!r.success) { box.style.display = "none"; return; }
+    try {
+        if (!window.qrcode) await new Promise((ok, no) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+        const q = window.qrcode(0, "M"); q.addData(r.code); q.make(); box.innerHTML = q.createSvgTag({ cellSize: 5, margin: 0, scalable: true }); box.firstChild.style.cssText = "width:190px;height:190px;display:block";
+    } catch (e) { box.innerHTML = `<code style="color:#000;word-break:break-all">${esc(r.code)}</code>`; }
+    const bar = $("#qrBar"); if (bar) { bar.style.transition = "none"; bar.style.width = "100%"; requestAnimationFrame(() => { bar.style.transition = `width ${r.expires_in}s linear`; bar.style.width = "0"; }); }
+    qrTimer = setTimeout(loadQr, Math.max(8, r.expires_in - 3) * 1000);
+}
+
+function formHTML() {
+    return `<div class="card grid"><h3 style="margin:0">${t("reserve")}</h3>
+        <select id="f-kind" class="inp"><option value="Trial">${t("optTrial")}</option><option value="Admission">${t("optJoin")}</option></select>
+        <input id="f-name" class="inp" placeholder="${t("name")}" autocomplete="name"><input id="f-ph" class="inp" inputmode="tel" maxlength="10" placeholder="${t("phone")}" autocomplete="tel">
+        <input id="f-ex" class="inp" placeholder="${t("exam")}">
+        <select id="f-hall" class="inp">${LIB.halls.map(h => `<option value="${esc(h.id)}">${esc(h.name)}</option>`).join("")}</select>
+        <select id="f-shift" class="inp">${SHIFTS.map(s => `<option value="${s}">${t("sh_" + s)}</option>`).join("")}</select>
+        <div id="payBox" class="grid" hidden><select id="f-pm" class="inp"><option value="UPI">${t("payNow")}</option><option value="Cash">${t("payCash")}</option></select>
+        <div id="upiBox" class="grid"><a id="upiLink" class="btn alt" href="#">${t("payUpi")}</a><input id="f-utr" class="inp" inputmode="numeric" maxlength="4" placeholder="${t("utr")}"></div></div>
+        <button id="f-go" class="btn" data-act="submit"></button></div>`;
+}
+function restoreHTML() {
+    return `<details class="card"><summary style="cursor:pointer;font-weight:700">${t("restoreTitle")}</summary><div class="grid" style="margin-top:10px">
+        <input id="rs-ph" class="inp" inputmode="tel" maxlength="10" placeholder="${t("phone")}"><input id="rs-code" class="inp" inputmode="numeric" maxlength="6" placeholder="${t("restoreCode")}">
+        <button class="btn alt" data-act="restore">${t("restoreBtn")}</button></div></details>`;
+}
+const FIELDS = ["f-kind", "f-name", "f-ph", "f-ex", "f-hall", "f-shift", "f-pm", "f-utr"];
+const saveForm = () => { if ($("#f-kind")) formVals = Object.fromEntries(FIELDS.map(i => [i, $("#" + i) ? $("#" + i).value : ""])); };
+function restoreForm() { if (formVals && $("#f-kind")) FIELDS.forEach(i => { if ($("#" + i) && formVals[i] !== "") $("#" + i).value = formVals[i]; }); formVals = null; }
+function syncForm() {
+    const adm = $("#f-kind").value === "Admission", sh = $("#f-shift").value, h = LIB.halls.find(x => x.id === $("#f-hall").value), full = freeFor(h, sh) <= 0;
+    $("#payBox").hidden = !adm || full; $("#upiBox").hidden = $("#f-pm").value !== "UPI" || !LIB.upi_id;
+    if (adm) $("#upiLink").href = upiHref(LIB.fees[sh]);
+    $("#f-go").textContent = full ? t("waitBtn") : adm ? `${t("send")} (${inr(LIB.fees[sh])})` : t("trialBtn");
+    $("#f-go").className = "btn " + (full ? "alt" : "");
+}
+document.addEventListener("change", e => { if (/^f-(kind|hall|shift|pm)$/.test(e.target.id)) syncForm(); });
+
+/*================ Actions ================*/
+document.addEventListener("click", async e => {
+    const lg = e.target.closest("[data-lang]"); if (lg) { saveForm(); setLang(lg.dataset.lang); renderAll(); return; }
+    if (e.target.closest("#inst") && installEvt) { installEvt.prompt(); installEvt = null; $("#inst").hidden = true; return; }
+    const el = e.target.closest("[data-act]"); if (!el) return;
+    const a = el.dataset.act;
+    if (a === "submit") await withBusy(el, submit); else if (a === "renew") await withBusy(el, renew); else if (a === "restore") await withBusy(el, restore);
+});
+async function submit() {
+    const v = Object.fromEntries(FIELDS.map(i => [i, $("#" + i) ? $("#" + i).value.trim() : ""]));
+    const h = LIB.halls.find(x => x.id === v["f-hall"]), full = freeFor(h, v["f-shift"]) <= 0;
+    const base = { name: v["f-name"], phone: v["f-ph"].replace(/\D/g, ""), exam: v["f-ex"], hall: v["f-hall"], shift: v["f-shift"] };
+    if (full) { const r = await api("joinWaitlist", { payload: base }); toast(r.success ? t("waitSent") : r.message); if (r.success) refresh(); return; }
+    const adm = v["f-kind"] === "Admission";
+    const payload = { ...base, kind: v["f-kind"], pay_mode: adm ? v["f-pm"] : "UPI", utr: (v["f-utr"] || "").replace(/\D/g, ""), booking_ref: getBookingRef() };
+    let r = await api("submitBooking", { payload });
+    if (!r.success && /already been used/i.test(r.message || "")) { localStorage.removeItem(K.MY_BOOKING_REF); payload.booking_ref = getBookingRef(); r = await api("submitBooking", { payload }); }
+    toast(r.success ? t("sent") : r.message); buzz(r.success ? 20 : [30, 40, 30]); if (r.success) refresh();
+}
+async function renew() {
+    const r = await api("submitRenewal", { booking_ref: getBookingRef(), utr: $("#r-utr").value.replace(/\D/g, "") });
+    toast(r.success ? t("sent") : r.message); if (r.success) refresh();
+}
+async function restore() {
+    const nr = randHex(), r = await api("restoreBooking", { phone: $("#rs-ph").value.replace(/\D/g, ""), code: $("#rs-code").value.trim(), new_ref: nr });
+    if (r.success) { localStorage.setItem(K.MY_BOOKING_REF, nr); toast("✅ " + t("restoreBtn")); refresh(); } else toast(r.message);
+}
+
+/*================ Turnstile, install, PWA ================*/
+function initTurnstile() {
+    if (!CONFIG.GATE.ENABLED || !CONFIG.GATE.TURNSTILE_SITE_KEY || $("#ts").dataset.ready) return; $("#ts").dataset.ready = "1";
+    const s = document.createElement("script"); s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"; s.async = true;
+    s.onload = () => { window.turnstile.render("#ts", { sitekey: CONFIG.GATE.TURNSTILE_SITE_KEY, callback: tk => { window.__tsToken = tk; }, "expired-callback": () => { window.__tsToken = ""; } }); };
+    document.head.appendChild(s);
+}
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; if ($("#inst")) $("#inst").hidden = false; });
+function setupPwa() {
+    if (setupPwa.done) return; setupPwa.done = true;
+    const m = { name: LIB.library_name, short_name: LIB.library_name.slice(0, 12), start_url: location.href, scope: location.href.replace(/[^/]*$/, ""), display: "standalone", background_color: "#0a0d1f", theme_color: "#0a0d1f",
+        icons: [192, 512].map(n => ({ src: new URL(`icon-${n}.png`, location.href).href, sizes: `${n}x${n}`, type: "image/png", purpose: "any" })) };
+    const l = document.createElement("link"); l.rel = "manifest"; l.href = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: "application/manifest+json" })); document.head.appendChild(l);
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => { });
+}
+
+refresh();
+setInterval(() => { const f = $("#f-name"); if (!/INPUT|SELECT|TEXTAREA/.test((document.activeElement || {}).tagName || "") && !(f && f.value)) refresh(); }, 30000);
+</script>
+</body>
+</html>
