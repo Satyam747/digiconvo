@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' https: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex">
+<title>Welcome</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="customer.css">
+</head>
+<body class="page-index">
+<main class="container">
+  <div class="logo"><img id="restaurantLogo" alt="" hidden referrerpolicy="no-referrer"><i id="logoIcon" class="fa-solid fa-utensils"></i></div>
+  <h1 id="restaurantName">&nbsp;</h1>
+  <p class="subtitle" id="restaurantTagline"></p>
+  <div id="notice" class="notice" hidden></div>
+  <form id="checkinForm" novalidate>
+    <div class="form-group">
+      <label for="customerName">Your Name</label>
+      <input id="customerName" class="input" type="text" maxlength="60" autocomplete="name" required>
+    </div>
+    <div class="form-group">
+      <label for="tableNumber">Table Number</label>
+      <input id="tableNumber" class="input" type="text" maxlength="20" autocomplete="off" required>
+    </div>
+    <div id="captchaBox" class="captchaBox"></div>
+    <div id="formError" class="formError" role="alert"></div>
+    <button id="startBtn" class="button" type="submit" disabled>Start Ordering</button>
+  </form>
+  <div class="footer">Powered by DigiConvo QR Ordering</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="index.js"></script>
+</body>
+</html>
