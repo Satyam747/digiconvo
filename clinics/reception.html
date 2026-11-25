@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: https:; frame-src https://challenges.cloudflare.com; connect-src 'self' https://wmuihwywxetbzrrjzspm.supabase.co https://challenges.cloudflare.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reception Desk — ClinicOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js?v=20261125-80"></script>
+<script src="common.js?v=20261125-80"></script>
+<style>
+:root{
+    --primary:#059669;
+    --primary-light:#ecfdf5;
+    --accent:#10b981;
+    --bg-page:#f1f5f9;
+    --bg-surface:#ffffff;
+    --bg-muted:#f8fafc;
+    --text-main:#0f172a;
+    --text-secondary:#475569;
+    --text-muted:#64748b;
+    --border-col:#e2e8f0;
+    --shadow-sm:0 1px 3px rgba(15,23,42,0.06),0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md:0 10px 25px -5px rgba(15,23,42,0.08),0 8px 10px -6px rgba(15,23,42,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;}
+body{background:var(--bg-page);color:var(--text-main);min-height:100vh;}
+
+.topbar{background:var(--bg-surface);border-bottom:1px solid var(--border-col);padding:12px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm);}
+.brandTitle{font-size:18px;font-weight:800;color:var(--text-main);display:flex;align-items:center;gap:10px;}
+.brandIcon{width:34px;height:34px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.navLinks{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.navBtn{background:var(--bg-muted);color:var(--text-main);border:1.5px solid var(--border-col);padding:8px 13px;border-radius:10px;font-size:12.5px;font-weight:700;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:0.18s;}
+.navBtn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+.navBtn.soundWarn{background:#fffbeb;border-color:#f59e0b;color:#92400e;}
+
+.peonBanner{background:linear-gradient(90deg,#f59e0b,#d97706);color:#ffffff;padding:11px 22px;font-weight:800;display:none;justify-content:space-between;align-items:center;font-size:14px;flex-wrap:wrap;gap:8px;}
+.newInqBanner{background:linear-gradient(90deg,#0284c7,#0369a1);color:#ffffff;padding:10px 22px;font-weight:700;display:none;justify-content:space-between;align-items:center;font-size:13.5px;flex-wrap:wrap;gap:8px;}
+.approvedWaBanner{background:#ecfdf5;border-bottom:1.5px solid #6ee7b7;color:#065f46;padding:10px 22px;font-weight:700;display:none;justify-content:space-between;align-items:center;font-size:13.5px;flex-wrap:wrap;gap:8px;}
+
+.container{max-width:1240px;margin:0 auto;padding:18px 18px 52px;}
+
+.shiftControlStrip{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:16px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:var(--shadow-sm);}
+.shiftSeg{display:inline-flex;background:var(--bg-muted);padding:4px;border-radius:12px;border:1px solid var(--border-col);gap:4px;}
+.shiftSegBtn{border:none;padding:8px 14px;border-radius:9px;background:transparent;color:var(--text-secondary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:0.15s;}
+.shiftSegBtn.active{background:var(--primary);color:#ffffff;font-weight:800;box-shadow:0 2px 6px rgba(5,150,105,0.22);}
+
+.panel{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.walkinGrid{display:grid;grid-template-columns:1.1fr 1.4fr 1.3fr 0.55fr 0.55fr;gap:10px;align-items:end;margin-top:12px;}
+.walkinGrid2{display:grid;grid-template-columns:2fr 1fr 0.9fr 1.1fr;gap:10px;align-items:end;margin-top:10px;}
+@media(max-width:920px){.walkinGrid,.walkinGrid2{grid-template-columns:1fr 1fr;}}
+
+label{display:block;font-size:11px;color:var(--text-muted);font-weight:800;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px;}
+input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border-col);background:var(--bg-muted);color:var(--text-main);font-size:13.5px;font-weight:600;outline:none;transition:0.18s;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);background:var(--bg-surface);box-shadow:0 0 0 3px rgba(5,150,105,0.12);}
+
+.btn{border:none;padding:9px 14px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:0.18s;text-decoration:none;}
+.btn:disabled{opacity:0.55;cursor:not-allowed;}
+.btnGreen{background:var(--primary);color:#ffffff;font-weight:800;box-shadow:0 2px 6px rgba(5,150,105,0.25);}
+.btnGreen:hover{background:#047857;}
+.btnDark{background:var(--bg-muted);color:var(--text-main);border:1.5px solid var(--border-col);}
+.btnDark:hover{border-color:var(--primary);color:var(--primary);}
+.btnAmber{background:#fef3c7;color:#92400e;border:1.5px solid #fde68a;}
+.btnAmber:hover{background:#fde68a;}
+.btnRed{background:#fee2e2;color:#b91c1c;border:1.5px solid #fecaca;}
+.btnRed:hover{background:#fecaca;}
+
+.familyLookupBar{display:none;margin-top:10px;padding:9px 12px;border-radius:10px;background:#ecfdf5;border:1px solid #6ee7b7;font-size:12px;color:#065f46;font-weight:700;flex-wrap:wrap;gap:6px;align-items:center;}
+.famPickBtn{border:1px solid #059669;background:#ffffff;color:#065f46;padding:4px 10px;border-radius:99px;font-size:11.5px;font-weight:700;cursor:pointer;}
+.famPickBtn:hover{background:#059669;color:#ffffff;}
+
+.tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;}
+.tab{padding:11px 18px;border-radius:12px;background:var(--bg-surface);border:1.5px solid var(--border-col);color:var(--text-secondary);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:0.18s;display:inline-flex;align-items:center;gap:8px;}
+.tab:hover{border-color:#cbd5e1;color:var(--text-main);}
+.tab.active{background:var(--primary);color:#ffffff;border-color:var(--primary);font-weight:800;box-shadow:0 4px 12px rgba(5,150,105,0.2);}
+.tabBadge{padding:2px 8px;border-radius:99px;font-size:11.5px;font-family:'JetBrains Mono',monospace;background:var(--bg-muted);color:var(--text-main);}
+.tab.active .tabBadge{background:rgba(255,255,255,0.22);color:#ffffff;}
+.tabBadge.alertPulse{background:#f59e0b;color:#ffffff;}
+
+.recallFilterBar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.rfPill{padding:7px 13px;border-radius:99px;border:1.5px solid var(--border-col);background:var(--bg-surface);color:var(--text-secondary);font-size:12px;font-weight:700;cursor:pointer;}
+.rfPill.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+.patientCard{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:16px;padding:15px 18px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
+.patientRow{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.tokenChip{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:var(--primary);background:var(--primary-light);padding:4px 10px;border-radius:8px;border:1px solid #a7f3d0;}
+.statusChip{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:800;text-transform:uppercase;}
+.stCompleted{background:#d1fae5;color:#065f46;}
+.stWaiting{background:#e0f2fe;color:#0369a1;}
+.stInside{background:#fef3c7;color:#92400e;}
+.stLab{background:#ede9fe;color:#5b21b6;}
+.stCancelled{background:#fee2e2;color:#991b1b;}
+.moreBox{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-col);}
+.moreBox.open{display:block;}
+
+.hisabGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px;}
+.hisabBox{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-sm);}
+.hisabBox small{font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;}
+.hisabBox strong{display:block;font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--text-main);margin-top:3px;}
+.hisabBox.totalBox{background:linear-gradient(135deg,#059669,#047857);color:#ffffff;border:none;}
+.hisabBox.totalBox small{color:#a7f3d0;}
+.hisabBox.totalBox strong{color:#ffffff;}
+
+#loginScreen{position:fixed;inset:0;background:var(--bg-page);display:flex;justify-content:center;align-items:center;z-index:9999;padding:20px;}
+.loginCard{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:24px;padding:34px 28px;max-width:410px;width:100%;text-align:center;box-shadow:var(--shadow-md);}
+.pinBox{letter-spacing:8px;font-size:24px;font-family:'JetBrains Mono',monospace;text-align:center;margin:12px 0;padding:12px;background:var(--bg-muted);}
+.captchaRow{display:flex;align-items:center;gap:8px;margin-top:6px;margin-bottom:14px;}
+.captchaImg{height:46px;border-radius:10px;border:1px solid #cbd5e1;background:#f1f5f9;}
+.captchaInput{flex:1;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;letter-spacing:3px;text-transform:uppercase;text-align:center;background:#ffffff;}
+.turnstileSlot{display:none;justify-content:center;margin:8px 0 14px;min-height:65px;}
+
+.docEditRow{display:grid;grid-template-columns:56px 1.2fr 1.1fr 0.9fr;gap:8px;align-items:center;margin-bottom:8px;}
+.docIdBadge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;color:var(--primary);background:var(--primary-light);padding:8px 4px;border-radius:8px;text-align:center;}
+
+.modal{position:fixed;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);display:none;justify-content:center;align-items:center;z-index:999;padding:16px;}
+.modal.show{display:flex;}
+.modalContent{background:var(--bg-surface);border:1px solid var(--border-col);border-radius:22px;padding:24px;max-width:650px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-md);}
+@media print{body>*:not(#clinicosPrintMount){display:none!important;}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+    <div class="loginCard">
+        <div style="width:54px;height:54px;border-radius:16px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 12px;">
+            <i class="fa-solid fa-desktop"></i>
+        </div>
+        <h2 id="loginClinicName" style="font-size:22px;font-weight:800;">Reception Desk</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:4px;margin-bottom:14px;">Enter 6-digit Reception PIN & security check</p>
+
+        <div style="text-align:left;">
+            <label for="recPinInput">6-Digit Reception PIN</label>
+            <input type="password" id="recPinInput" class="pinBox" maxlength="6" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'')" onkeyup="if(event.key==='Enter')unlockReception()">
+        </div>
+
+        <div id="recLoginCapSvgBox" style="text-align:left;">
+            <label for="recLoginCapInput">Security CAPTCHA Code</label>
+            <div class="captchaRow">
+                <img id="recLoginCapImg" class="captchaImg" alt="CAPTCHA">
+                <button type="button" class="btn btnDark" onclick="CaptchaWidget.load('recLoginCap')" style="padding:10px 12px;" title="Refresh CAPTCHA"><i class="fa-solid fa-rotate"></i></button>
+                <input id="recLoginCapInput" class="captchaInput" maxlength="6" placeholder="CODE" autocomplete="off" onkeyup="if(event.key==='Enter')unlockReception()">
+            </div>
+        </div>
+        <div id="recLoginCapTurnstile" class="turnstileSlot"></div>
+
+        <button class="btn btnGreen" id="unlockRecBtn" style="width:100%;justify-content:center;padding:14px;font-size:14.5px;" onclick="unlockReception()">
+            <i class="fa-solid fa-unlock-keyhole"></i> Unlock Reception Desk
+        </button>
+    </div>
+</div>
+
+<div class="topbar">
+    <div class="brandTitle">
+        <div class="brandIcon"><i class="fa-solid fa-hospital"></i></div>
+        <div>
+            <div id="hdrClinicName">Reception Desk</div>
+            <div id="hdrTodayDate" style="font-size:11.5px;color:var(--text-muted);font-weight:600;">OPD Queue & Daily Collection</div>
+        </div>
+    </div>
+    <div class="navLinks">
+        <select id="docDropdown" onchange="switchSelectedDoctorView(this.value)" style="width:auto;min-width:210px;font-weight:700;border-color:var(--primary);background:var(--primary-light);color:#065f46;"></select>
+        <button class="navBtn" id="docStatusModalBtn" onclick="openStatusDelayModal()">🟢 OPD Open</button>
+        <button class="navBtn soundWarn" id="audioUnlockBtn" onclick="enableDeskAudio()" style="display:none;"><i class="fa-solid fa-volume-xmark"></i> Enable Ring Sound</button>
+        <a id="linkDoctorPage" href="doctor.html" class="navBtn"><i class="fa-solid fa-user-doctor"></i> Doctor Cabin</a>
+        <a id="linkTvPage" href="index.html?view=tv" target="_blank" class="navBtn"><i class="fa-solid fa-tv"></i> TV Screen</a>
+        <button class="navBtn" onclick="openSettingsModal()"><i class="fa-solid fa-sliders"></i> Settings</button>
+        <button class="navBtn" onclick="relockReception()" title="Lock Reception Desk"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+</div>
+
+<div class="peonBanner" id="peonBanner">
+    <span><i class="fa-solid fa-bell fa-shake"></i> CABIN ALERT: Doctor is calling staff inside the consultation cabin</span>
+    <button class="btn" style="background:#ffffff;color:#92400e;font-weight:800;" onclick="staffMutate('togglePeonBell',{active:false})">Acknowledge ✓</button>
+</div>
+
+<div class="newInqBanner" id="newInqBanner">
+    <span id="newInqBannerText"><i class="fa-solid fa-bell"></i> New online booking request received!</span>
+    <div style="display:flex;gap:8px;">
+        <button class="btn" style="background:#ffffff;color:#0369a1;font-weight:800;" onclick="jumpToNewInquiry()">View Request</button>
+        <button class="btn" style="background:rgba(255,255,255,0.2);color:#ffffff;" onclick="document.getElementById('newInqBanner').style.display='none'">✕</button>
+    </div>
+</div>
+
+<div class="approvedWaBanner" id="approvedWaBanner">
+    <span id="approvedWaText"></span>
+    <div style="display:flex;gap:8px;align-items:center;">
+        <a id="approvedWaLink" href="#" target="_blank" rel="noopener" class="btn btnGreen"><i class="fa-brands fa-whatsapp"></i> Send Token on WhatsApp</a>
+        <button class="btn btnDark" onclick="document.getElementById('approvedWaBanner').style.display='none'">Dismiss</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="shiftControlStrip">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div class="shiftSeg">
+                <button type="button" class="shiftSegBtn" id="segMorning" onclick="switchShift('Morning')">🌅 Morning OPD</button>
+                <button type="button" class="shiftSegBtn" id="segEvening" onclick="switchShift('Evening')">🌆 Evening OPD</button>
+            </div>
+            <span id="shiftStatePill" style="font-size:12px;font-weight:700;color:var(--text-secondary);"></span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="btn btnAmber" id="completeShiftBtn" onclick="handleCompleteOrReopenShift()">
+                <i class="fa-solid fa-flag-checkered"></i> Complete Morning OPD
+            </button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <span id="walkinHeaderLabel" style="font-size:13.5px;font-weight:800;color:var(--primary);display:flex;align-items:center;gap:6px;">
+                <i class="fa-solid fa-bolt"></i> Issue Walk-In Token
+            </span>
+        </div>
+        <div id="returningLookupBar" class="familyLookupBar"></div>
+        <div id="walkinShiftEndedNote" style="display:none;margin-top:10px;padding:10px 12px;border-radius:10px;background:#fef2f2;color:#991b1b;font-size:12.5px;font-weight:700;"></div>
+
+        <div class="walkinGrid" id="walkinGrid">
+            <div>
+                <label for="wPhone">Mobile (10 digits) *</label>
+                <input id="wPhone" maxlength="10" placeholder="98XXXXXXXX" oninput="lookupReturningPatient(this.value)">
+            </div>
+            <div>
+                <label for="wName">Patient Full Name *</label>
+                <input id="wName" maxlength="80" placeholder="Enter full name">
+            </div>
+            <div>
+                <label for="wGuardian">Father's / Guardian's Name</label>
+                <input id="wGuardian" maxlength="80" placeholder="S/o / W/o / C/o">
+            </div>
+            <div>
+                <label for="wAge">Age *</label>
+                <input id="wAge" type="number" min="0" max="120" step="1" placeholder="Yrs">
+            </div>
+            <div>
+                <label for="wGender">Sex</label>
+                <select id="wGender"><option value="M">M</option><option value="F">F</option><option value="O">O</option></select>
+            </div>
+        </div>
+        <div class="walkinGrid2">
+            <div>
+                <label for="wAddress">Patient Address (Area / Village / City)</label>
+                <input id="wAddress" maxlength="200" placeholder="e.g. Vijay Nagar, Indore">
+            </div>
+            <div>
+                <label for="wVisit">Visit Purpose</label>
+                <select id="wVisit" onchange="onWalkinVisitChange()">
+                    <option value="Fresh">New Visit</option>
+                    <option value="Follow-up">Follow-Up (Free)</option>
+                    <option value="Report">Report Check</option>
+                </select>
+            </div>
+            <div>
+                <label for="wPay">Payment</label>
+                <select id="wPay">
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Free">Free</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn btnGreen" id="walkinSubmitBtn" style="width:100%;justify-content:center;padding:11px;" onclick="issueWalkIn()">
+                    <i class="fa-solid fa-plus"></i> Issue Token
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" id="tabBtn-waiting" onclick="setTab('waiting')">
+            <i class="fa-solid fa-chair"></i> Waiting Queue <span class="tabBadge" id="cntWait">0</span>
+        </button>
+        <button class="tab" id="tabBtn-inquiries" onclick="setTab('inquiries')">
+            <i class="fa-solid fa-bell"></i> Online Requests <span class="tabBadge" id="cntInq">0</span>
+        </button>
+        <button class="tab" id="tabBtn-lab" onclick="setTab('lab')">
+            <i class="fa-solid fa-flask"></i> In Lab / X-Ray <span class="tabBadge" id="cntLab">0</span>
+        </button>
+        <button class="tab" id="tabBtn-completed" onclick="setTab('completed')">
+            <i class="fa-solid fa-indian-rupee-sign"></i> Collection & 7-Day History <span class="tabBadge" id="cntComp">0</span>
+        </button>
+        <button class="tab" id="tabBtn-recall" onclick="setTab('recall')">
+            <i class="fa-solid fa-calendar-check"></i> Follow-Ups (Due & Upcoming) <span class="tabBadge" id="cntRec">0</span>
+        </button>
+    </div>
+
+    <div id="tabBody"></div>
+</div>
+
+<div class="modal" id="statusDelayModal">
+    <div class="modalContent" style="max-width:460px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-col);">
+            <h3 style="font-size:17px;font-weight:800;"><i class="fa-solid fa-clock" style="color:var(--primary);margin-right:6px;"></i> Individual Doctor OPD Status</h3>
+            <button class="btn btnDark" onclick="document.getElementById('statusDelayModal').classList.remove('show')">✕</button>
+        </div>
+        <p id="statusModalDocName" style="font-size:13.5px;font-weight:700;color:var(--text-secondary);margin-bottom:14px;"></p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+            <button type="button" class="btn btnGreen" style="justify-content:center;padding:12px;" onclick="applyDoctorOpdStatus('running', 0)">🟢 Mark OPD Open</button>
+            <button type="button" class="btn btnRed" style="justify-content:center;padding:12px;" onclick="applyDoctorOpdStatus('closed', 0)">🔴 Mark Absent / Closed</button>
+        </div>
+
+        <div style="background:var(--bg-muted);border:1px solid var(--border-col);border-radius:14px;padding:14px;">
+            <label>Set Custom Delay Duration</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+                <button type="button" class="btn btnAmber" onclick="setDelayPreset(15)">15 mins</button>
+                <button type="button" class="btn btnAmber" onclick="setDelayPreset(30)">30 mins</button>
+                <button type="button" class="btn btnAmber" onclick="setDelayPreset(60)">1 hour</button>
+                <button type="button" class="btn btnAmber" onclick="setDelayPreset(120)">2 hours</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="number" id="customDelayMinutesInput" min="5" max="720" value="30" placeholder="Minutes (e.g. 90)" style="font-family:'JetBrains Mono',monospace;font-weight:700;">
+                <span style="font-size:12.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;">mins</span>
+                <button type="button" class="btn btnGreen" onclick="applyCustomDelay()" style="white-space:nowrap;">Set Delay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="settingsModal">
+    <div class="modalContent">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-col);">
+            <h3 style="color:var(--text-main);font-size:18px;font-weight:800;"><i class="fa-solid fa-sliders" style="color:var(--primary);margin-right:6px;"></i> Clinic Settings, Specialty & Letterhead</h3>
+            <button class="btn btnDark" onclick="document.getElementById('settingsModal').classList.remove('show')">✕</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="grid-column:1/3;">
+                <label for="sClinicName">Clinic / Hospital Name (Bold Top Header on Prescription)</label>
+                <input id="sClinicName" maxlength="120">
+            </div>
+            <div style="grid-column:1/3;">
+                <label for="sAddress">Full Clinic Address (Printed Below Name on Prescription)</label>
+                <input id="sAddress" maxlength="240" placeholder="102, Main Road, Area, City">
+            </div>
+            <div>
+                <label for="sClinicPhone">Clinic Phone (Printed on Prescription)</label>
+                <input id="sClinicPhone" maxlength="40" placeholder="0731-400XXXX / 98XXXXXXXX">
+            </div>
+            <div>
+                <label for="sOpdTimings">OPD Timings (Printed on Prescription)</label>
+                <input id="sOpdTimings" maxlength="160" placeholder="Mon–Sat: 10 AM – 2 PM, 5 PM – 8 PM">
+            </div>
+
+            <div>
+                <label for="sSpecialty">Clinic Specialty Preset (Reception Pre-Exam Fields)</label>
+                <select id="sSpecialty" onchange="onSpecialtyPresetChange(this.value)">
+                    <option value="general">General Medicine / Physician</option>
+                    <option value="eye">Eye / Ophthalmology Clinic</option>
+                    <option value="dental">Dental Clinic</option>
+                    <option value="ortho">Orthopedics / Spine</option>
+                    <option value="pediatrics">Pediatrics / Child Care</option>
+                    <option value="gynec">Gynecology / Maternity</option>
+                    <option value="custom">Custom Clinic Fields</option>
+                </select>
+            </div>
+            <div>
+                <label for="sIntakeFields">Pre-Exam Fields (Comma-separated, max 12)</label>
+                <input id="sIntakeFields" placeholder="Vision OD (Right), Vision OS (Left), IOP (mmHg)">
+            </div>
+
+            <div style="grid-column:1/3;">
+                <label>Doctors in Clinic (Name • Qualification • Reg. No. — IDs Stay Fixed)</label>
+                <div id="sDoctorsEditorRows"></div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">To add/remove doctors or reset a doctor's PIN, contact the Super Admin.</div>
+            </div>
+            <div>
+                <label for="sFeeFresh">New Visit Fee (₹)</label>
+                <input id="sFeeFresh" type="number" min="0" step="1">
+            </div>
+            <div>
+                <label for="sFeeReport">Report Check Fee (₹)</label>
+                <input id="sFeeReport" type="number" min="0" step="1">
+            </div>
+            <div>
+                <label for="sUpi">Clinic UPI ID (Leave blank for Cash only)</label>
+                <input id="sUpi" placeholder="clinic@ybl">
+            </div>
+            <div>
+                <label for="sWa">Clinic WhatsApp Number</label>
+                <input id="sWa" placeholder="9198XXXXXXXX">
+            </div>
+            <div style="grid-column:1/3;">
+                <label for="sNewPin">Change 6-Digit Reception PIN (Leave blank to keep current)</label>
+                <input type="password" id="sNewPin" maxlength="6" placeholder="Enter new 6-digit numeric PIN" oninput="this.value=this.value.replace(/\D/g,'')">
+            </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:14px;border-top:1px solid var(--border-col);">
+            <button class="btn btnDark" onclick="document.getElementById('settingsModal').classList.remove('show')">Cancel</button>
+            <button class="btn btnGreen" id="saveSettingsBtn" onclick="saveSettings()">Save Settings</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let STATE = null;
+let SELECTED_DOCTOR = "";
+let SELECTED_SHIFT = getDefaultShiftIST();
+let ACTIVE_TAB = "waiting";
+let RECALL_FILTER = "all";
+let HISTORY_DATE_FILTER = "";
+let HISTORY_SHIFT_FILTER = "All";
+let OPEN_DRAWERS = {};
+let receptionRefreshTimer = null;
+
+let DASHBOARD_FETCH_SEQ = 0;
+let ACTION_BUSY = false;
+let KNOWN_INQUIRY_IDS = null;
+let LAST_NEW_INQUIRY = null;
+let LAST_PEON_BELL_STATE = false;
+
+document.addEventListener("DOMContentLoaded", () => {
+    const slug = encodeURIComponent(CONFIG.TENANT.SLUG);
+    document.getElementById("linkDoctorPage").href = `doctor.html?c=${slug}`;
+    document.getElementById("linkTvPage").href = `index.html?c=${slug}&view=tv`;
+
+    initAudioAutoUnlock(unlocked => {
+        const btn = document.getElementById("audioUnlockBtn");
+        if (btn) btn.style.display = unlocked ? "none" : "inline-flex";
+    });
+
+    if (sessionStorage.getItem(CONFIG.STORAGE.RECEPTION_PIN)) {
+        startReception();
+    } else {
+        CaptchaWidget.load("recLoginCap");
+    }
+});
+
+function enableDeskAudio() {
+    playOnlineRequestRing();
+    showToast("Reception alert ring & cabin bell sound enabled!");
+}
+
+async function unlockReception() {
+    if (ACTION_BUSY) return;
+    const pin = document.getElementById("recPinInput").value.trim();
+    const cap = CaptchaWidget.get("recLoginCap");
+    if (!/^[0-9]{6}$/.test(pin)) { alert("Please enter a 6-digit numeric Reception PIN."); return; }
+    if (!CaptchaWidget.isValid(cap)) {
+        alert(cap.mode === "turnstile" ? "Please complete the Cloudflare security check." : "Please enter the security CAPTCHA code.");
+        return;
+    }
+    ACTION_BUSY = true;
+    const btn = document.getElementById("unlockRecBtn");
+    btn.disabled = true;
+    let res;
+    try {
+        res = await api("verifyReceptionPin", {
+            pin,
+            captcha_id: cap.captcha_id,
+            captcha_answer: cap.captcha_answer,
+            turnstileToken: cap.turnstileToken
+        });
+    } finally {
+        ACTION_BUSY = false;
+        btn.disabled = false;
+    }
+
+    if (!res || !res.success) {
+        sessionStorage.removeItem(CONFIG.STORAGE.RECEPTION_PIN);
+        CaptchaWidget.load("recLoginCap");
+        alert(res?.message || "Incorrect PIN or security check");
+        return;
+    }
+    sessionStorage.setItem(CONFIG.STORAGE.RECEPTION_PIN, res.token);
+    document.getElementById("recPinInput").value = "";
+    startReception();
+}
+
+let autoLockStarted = false;
+function startReception() {
+    document.getElementById("loginScreen").style.display = "none";
+    if (!autoLockStarted) {
+        initInactivityAutoLock(CONFIG.STORAGE.RECEPTION_PIN);
+        autoLockStarted = true;
+    }
+    loadDashboard();
+    if (!receptionRefreshTimer) receptionRefreshTimer = setInterval(loadDashboard, 5000);
+}
+
+async function relockReception() {
+    const oldTok = sessionStorage.getItem(CONFIG.STORAGE.RECEPTION_PIN);
+    sessionStorage.removeItem(CONFIG.STORAGE.RECEPTION_PIN);
+    if (oldTok) await api("revokeSession", { token: oldTok, kind: "staff" });
+    clearInterval(receptionRefreshTimer);
+    receptionRefreshTimer = null;
+    STATE = null;
+    KNOWN_INQUIRY_IDS = null;
+    LAST_PEON_BELL_STATE = false;
+    CaptchaWidget.load("recLoginCap");
+    document.getElementById("loginScreen").style.display = "flex";
+}
+
+function checkIncomingAlerts(clinic) {
+    const bellNow = Boolean(clinic.peon_bell);
+    if (bellNow && !LAST_PEON_BELL_STATE) playPeonBellAlert();
+    LAST_PEON_BELL_STATE = bellNow;
+
+    const today = clinic.today_ist || getTodayIST();
+    const inquiries = (clinic.tokens || []).filter(t => t.status === "inquiry" && t.token_day === today);
+    const currentSet = new Set(inquiries.map(i => i.id));
+
+    if (KNOWN_INQUIRY_IDS === null) { KNOWN_INQUIRY_IDS = currentSet; return; }
+    const newlyArrived = inquiries.filter(i => !KNOWN_INQUIRY_IDS.has(i.id));
+    KNOWN_INQUIRY_IDS = currentSet;
+
+    if (newlyArrived.length > 0) {
+        playOnlineRequestRing();
+        const latest = newlyArrived[0];
+        LAST_NEW_INQUIRY = latest;
+        const docName = getDoctorNameById(clinic, latest.doctor);
+        document.getElementById("newInqBannerText").innerHTML =
+            `<i class="fa-solid fa-bell fa-shake"></i> New Online Request: <b>${escapeHTML(latest.name)}</b> for <b>${escapeHTML(docName)}</b> (${escapeHTML(latest.shift)} OPD — ₹${latest.fee} ${escapeHTML(latest.pay_mode)})`;
+        document.getElementById("newInqBanner").style.display = "flex";
+    }
+}
+
+function jumpToNewInquiry() {
+    document.getElementById("newInqBanner").style.display = "none";
+    if (LAST_NEW_INQUIRY) {
+        SELECTED_DOCTOR = LAST_NEW_INQUIRY.doctor;
+        SELECTED_SHIFT = LAST_NEW_INQUIRY.shift;
+    }
+    setTab("inquiries");
+}
+
+async function loadDashboard() {
+    const seq = ++DASHBOARD_FETCH_SEQ;
+    const res = await api("getStaffDashboard", { role: "reception" });
+    if (seq !== DASHBOARD_FETCH_SEQ) return;
+
+    if (!res || !res.success) {
+        if (res && /PIN|paused|expired|Session|unauthorized/i.test(res.message || "")) relockReception();
+        return;
+    }
+    STATE = res.clinic;
+    checkIncomingAlerts(STATE);
+    renderReception(false);
+}
+
+async function staffMutate(op, payload) {
+    if (ACTION_BUSY) return null;
+    ACTION_BUSY = true;
+    const seq = ++DASHBOARD_FETCH_SEQ;
+    let res = null;
+    try {
+        res = await api("staffAction", { role: "reception", op, payload });
+        if (res && res.success) {
+            STATE = res.clinic;
+            checkIncomingAlerts(STATE);
+            renderReception(true);
+        } else {
+            alert(res?.message || "Action could not be completed.");
+        }
+    } finally {
+        ACTION_BUSY = false;
+    }
+    return res;
+}
+
+function renderReception(force = false) {
+    const c = STATE;
+    if (!c) return;
+
+    // Never wipe receptionist's unsaved typing inside any open Pre-Exam / Remarks drawer
+    if (!force) {
+        const ae = document.activeElement;
+        if (ae && ae.closest && ae.closest(".moreBox")) return;
+    }
+
+    const today = c.today_ist || getTodayIST();
+    if (!HISTORY_DATE_FILTER) HISTORY_DATE_FILTER = today;
+
+    const docs = normalizeDoctorsList(c);
+    if (!SELECTED_DOCTOR || !docs.some(d => d.id === SELECTED_DOCTOR)) {
+        SELECTED_DOCTOR = docs[0].id;
+    }
+    const docObj = getDoctorById(c, SELECTED_DOCTOR);
+    const intakeFields = getClinicIntakeFields(c);
+
+    document.title = `${c.clinic_name} — Reception Desk`;
+    document.getElementById("hdrClinicName").innerText = c.clinic_name;
+    document.getElementById("hdrTodayDate").innerText = `${formatDateLabel(today)} • Reception Desk`;
+    document.getElementById("peonBanner").style.display = c.peon_bell ? "flex" : "none";
+
+    const docSel = document.getElementById("docDropdown");
+    setOptionsIfChanged(docSel, docs.map(d =>
+        `<option value="${escapeHTML(d.id)}" ${d.id === SELECTED_DOCTOR ? "selected" : ""}>👨‍⚕️ ${escapeHTML(d.name)}</option>`
+    ).join(""));
+
+    const stBtn = document.getElementById("docStatusModalBtn");
+    if (docObj.opd_status === "closed") {
+        stBtn.innerText = "🔴 OPD Closed / Absent";
+        stBtn.style.borderColor = "#fca5a5"; stBtn.style.color = "#b91c1c";
+    } else if (docObj.opd_status === "delayed") {
+        stBtn.innerText = `🟡 Delayed (${formatDelayText(docObj.delay_minutes)})`;
+        stBtn.style.borderColor = "#fde68a"; stBtn.style.color = "#92400e";
+    } else {
+        stBtn.innerText = "🟢 OPD Open";
+        stBtn.style.borderColor = "#6ee7b7"; stBtn.style.color = "#065f46";
+    }
+
+    const mStatus = docObj.morning_status || "open";
+    const eStatus = docObj.evening_status || "open";
+    const currentShiftStatus = SELECTED_SHIFT === "Morning" ? mStatus : eStatus;
+
+    document.getElementById("segMorning").classList.toggle("active", SELECTED_SHIFT === "Morning");
+    document.getElementById("segEvening").classList.toggle("active", SELECTED_SHIFT === "Evening");
+    document.getElementById("segMorning").innerText = mStatus === "completed" ? "🌅 Morning OPD (Ended)" : "🌅 Morning OPD";
+    document.getElementById("segEvening").innerText = eStatus === "completed" ? "🌆 Evening OPD (Ended)" : "🌆 Evening OPD";
+
+    document.getElementById("shiftStatePill").innerText = currentShiftStatus === "completed"
+        ? `${SELECTED_SHIFT} OPD is marked completed for ${docObj.name} today.`
+        : `Active Queue: ${docObj.name} • ${SELECTED_SHIFT} OPD`;
+
+    const compBtn = document.getElementById("completeShiftBtn");
+    if (currentShiftStatus === "completed") {
+        compBtn.className = "btn btnDark";
+        compBtn.innerHTML = `<i class="fa-solid fa-rotate-left"></i> Reopen ${SELECTED_SHIFT} OPD`;
+    } else {
+        compBtn.className = "btn btnAmber";
+        compBtn.innerHTML = `<i class="fa-solid fa-flag-checkered"></i> Complete ${SELECTED_SHIFT} OPD`;
+    }
+
+    document.getElementById("walkinHeaderLabel").innerHTML =
+        `<i class="fa-solid fa-bolt"></i> Issue Walk-In Token — ${escapeHTML(docObj.name)} (${SELECTED_SHIFT} OPD • ${escapeHTML(formatDateLabel(today))})`;
+    const walkinEndedNote = document.getElementById("walkinShiftEndedNote");
+    const walkinBtn = document.getElementById("walkinSubmitBtn");
+    if (currentShiftStatus === "completed") {
+        walkinEndedNote.style.display = "block";
+        walkinEndedNote.innerText = `${SELECTED_SHIFT} OPD is already marked completed for ${docObj.name}. Switch to ${SELECTED_SHIFT === "Morning" ? "Evening" : "Morning"} OPD or click Reopen to issue tokens.`;
+        walkinBtn.disabled = true;
+    } else {
+        walkinEndedNote.style.display = "none";
+        walkinBtn.disabled = ACTION_BUSY;
+    }
+
+    const allTokens = c.tokens || [];
+    const docAllDays = allTokens.filter(t => t.doctor === SELECTED_DOCTOR);
+    const shiftTokens = docAllDays.filter(t => t.token_day === today && t.shift === SELECTED_SHIFT);
+
+    const inside = shiftTokens.find(t => t.status === "inside");
+    const wait = shiftTokens.filter(t => t.status === "waiting").sort((a, b) => (b.vip ? 1 : 0) - (a.vip ? 1 : 0) || (a.token || 999) - (b.token || 999));
+    const lab = shiftTokens.filter(t => t.status === "lab");
+    const shiftInq = shiftTokens.filter(t => t.status === "inquiry");
+    const totalPendingAllClinicToday = allTokens.filter(t => t.token_day === today && t.status === "inquiry");
+    const todayPaidDoc = docAllDays.filter(t => t.token_day === today && t.payment_verified === true);
+    const rec = (c.recalls_due || []).filter(r => r.doctor === SELECTED_DOCTOR);
+
+    document.getElementById("cntWait").innerText = wait.length;
+    const inqBadge = document.getElementById("cntInq");
+    inqBadge.innerText = totalPendingAllClinicToday.length;
+    inqBadge.classList.toggle("alertPulse", totalPendingAllClinicToday.length > 0);
+    document.getElementById("cntLab").innerText = lab.length;
+    document.getElementById("cntComp").innerText = todayPaidDoc.length;
+    document.getElementById("cntRec").innerText = rec.length;
+
+    const box = document.getElementById("tabBody");
+
+    const insideBanner = inside ? `
+        <div class="panel" style="background:var(--primary-light);border:1.5px solid #6ee7b7;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div>
+                <span style="font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px;">Inside Cabin — ${escapeHTML(SELECTED_SHIFT)} OPD</span>
+                <div style="font-size:17px;font-weight:800;color:var(--text-main);margin-top:2px;">Token #${inside.token} — ${escapeHTML(inside.name)} (${inside.age}${escapeHTML(inside.gender)})</div>
+            </div>
+            <button class="btn btnGreen" onclick="reAnnounceToTv(${inside.token})">
+                <i class="fa-solid fa-volume-high"></i> Announce Token on TV
+            </button>
+        </div>
+    ` : "";
+
+    if (ACTIVE_TAB === "waiting") {
+        box.innerHTML = insideBanner + (wait.length === 0
+            ? `<div class="patientCard" style="color:var(--text-muted);text-align:center;padding:28px;">No patients waiting in ${escapeHTML(SELECTED_SHIFT)} OPD for ${escapeHTML(docObj.name)}.</div>`
+            : wait.map(w => {
+                const turnAlertUrl = buildWhatsAppUrl(w.phone, `Namaste ${w.name} ji, your ${w.shift} OPD Token #${w.token} for ${docObj.name} at ${c.clinic_name} will be called shortly. Please be ready.`);
+                const filledEntries = getFilledPreExamEntries(w);
+                const hasIntake = filledEntries.length > 0 || Boolean(w.clinical_remarks);
+                return `
+                <div class="patientCard">
+                    <div class="patientRow">
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <span class="tokenChip">#${w.token}</span>
+                            <div>
+                                <b style="font-size:15px;">${escapeHTML(w.name)} (${w.age}${escapeHTML(w.gender)})</b>
+                                ${w.guardian_name ? `<span style="color:var(--text-secondary);font-size:12.5px;"> • ${escapeHTML(w.guardian_name)}</span>` : ""}
+                                <span style="color:var(--text-secondary);font-size:13px;"> • ${escapeHTML(w.visit_type)} ₹${w.fee} (${escapeHTML(w.pay_mode)})</span>
+                                <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">
+                                    Booked: ${escapeHTML(formatTimeIST(w.created_at))} • ${escapeHTML(w.shift)} OPD
+                                    ${w.patient_address ? ` • 📍 ${escapeHTML(w.patient_address)}` : ""}
+                                </div>
+                                ${hasIntake ? `<div style="font-size:11.5px;color:#065f46;margin-top:3px;font-weight:700;">✓ Pre-Exam / Remarks recorded</div>` : ""}
+                                ${w.vip ? `<span style="background:#ffedd5;color:#9a3412;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;margin-top:4px;display:inline-block;">⚡ Priority / Lab Return</span>` : ""}
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="btn btnGreen" onclick="sendInsideCabin('${escapeJS(w.id)}', ${w.token})">
+                                <i class="fa-solid fa-door-open"></i> Send to Cabin
+                            </button>
+                            <a class="btn btnDark" href="${escapeHTML(turnAlertUrl)}" target="_blank" rel="noopener">
+                                <i class="fa-brands fa-whatsapp" style="color:#16a34a;"></i> Alert
+                            </a>
+                            <button class="btn btnDark" onclick="toggleMore('${escapeJS(w.id)}')">
+                                Pre-Exam & Remarks <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="moreBox ${OPEN_DRAWERS[w.id] ? 'open' : ''}" data-visit-id="${escapeHTML(w.id)}">
+                        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-bottom:10px;">
+                            <div>
+                                <label>Father's / Guardian's Name</label>
+                                <input id="inGuard-${escapeHTML(w.id)}" maxlength="80" value="${escapeHTML(w.guardian_name || '')}" placeholder="S/o / W/o / C/o">
+                            </div>
+                            <div>
+                                <label>Patient Address</label>
+                                <input id="inAddr-${escapeHTML(w.id)}" maxlength="200" value="${escapeHTML(w.patient_address || '')}" placeholder="Area, City">
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:10px;">
+                            ${intakeFields.map((fld, idx) => `
+                                <div>
+                                    <label>${escapeHTML(fld)}</label>
+                                    <input class="intakeFieldInput" data-field-label="${escapeHTML(fld)}" id="inFld-${escapeHTML(w.id)}-${idx}" value="${escapeHTML(getPreExamValue(w, fld))}" placeholder="Enter ${escapeHTML(fld)}">
+                                </div>
+                            `).join("")}
+                        </div>
+                        <div style="margin-bottom:12px;">
+                            <label>Reception Clinical Remarks / Chief Complaint (Shown to Doctor & Printed on Prescription)</label>
+                            <textarea id="inRem-${escapeHTML(w.id)}" rows="2" maxlength="600" placeholder="e.g. Blurring in right eye since 2 weeks, brought old glasses, diabetic...">${escapeHTML(w.clinical_remarks || '')}</textarea>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn btnGreen" onclick="savePatientIntake('${escapeJS(w.id)}')"><i class="fa-solid fa-floppy-disk"></i> Save Pre-Exam & Remarks</button>
+                                <button class="btn btnDark" onclick="staffMutate('toggleVip',{id:'${escapeJS(w.id)}'})"><i class="fa-solid fa-bolt"></i> ${w.vip ? "Remove Priority" : "Move to Top"}</button>
+                                <button class="btn btnDark" onclick="printThermalTokenSlip(STATE.tokens.find(x=>x.id==='${escapeJS(w.id)}'), STATE)"><i class="fa-solid fa-receipt"></i> Print 58mm Slip</button>
+                            </div>
+                            <button class="btn btnRed" onclick="cancelWaitingPatient('${escapeJS(w.id)}', ${w.token}, '${escapeJS(w.name)}')">
+                                <i class="fa-solid fa-ban"></i> Cancel / No-Show
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join(""));
+
+    } else if (ACTIVE_TAB === "inquiries") {
+        const otherInq = totalPendingAllClinicToday.filter(i => !(i.doctor === SELECTED_DOCTOR && i.shift === SELECTED_SHIFT));
+
+        const renderInqCard = (i, showContextBadge) => `
+            <div class="patientCard" style="border-left:4px solid #f59e0b;">
+                <div class="patientRow">
+                    <div>
+                        <b style="font-size:15.5px;">${escapeHTML(i.name)} (${i.age}${escapeHTML(i.gender)})</b>
+                        ${i.guardian_name ? `<span style="font-size:12.5px;color:var(--text-secondary);"> • ${escapeHTML(i.guardian_name)}</span>` : ""}
+                        <span style="font-weight:700;color:var(--primary);"> • ${escapeHTML(i.visit_type)} ₹${i.fee}</span>
+                        ${showContextBadge ? `<span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;margin-left:6px;">${escapeHTML(getDoctorNameById(c, i.doctor))} • ${escapeHTML(i.shift)} OPD</span>` : ""}
+                        <div style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">
+                            <i class="fa-solid fa-mobile-screen"></i> ${escapeHTML(i.phone)} • <b>${escapeHTML(i.shift)} OPD</b> (${escapeHTML(formatDateLabel(i.token_day))}, ${escapeHTML(formatTimeIST(i.created_at))})
+                            • Payment: <b>${escapeHTML(i.pay_mode)}</b>
+                            ${i.utr ? ` • UPI UTR Last 4: <b style="color:var(--primary);font-family:'JetBrains Mono',monospace;">${escapeHTML(i.utr)}</b>` : ""}
+                            ${i.patient_address ? `<br>📍 ${escapeHTML(i.patient_address)}` : ""}
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btnGreen" onclick="approveRequest('${escapeJS(i.id)}')"><i class="fa-solid fa-check"></i> Confirm Payment & Issue Token</button>
+                        <button class="btn btnRed" onclick="staffMutate('rejectInquiry',{id:'${escapeJS(i.id)}'})"><i class="fa-solid fa-xmark"></i> Decline</button>
+                    </div>
+                </div>
+            </div>`;
+
+        let html = shiftInq.length === 0
+            ? `<div class="patientCard" style="color:var(--text-muted);text-align:center;padding:22px;">No pending online requests for ${escapeHTML(docObj.name)} (${escapeHTML(SELECTED_SHIFT)} OPD).</div>`
+            : shiftInq.map(i => renderInqCard(i, false)).join("");
+
+        if (otherInq.length > 0) {
+            html += `<div style="margin:18px 0 8px;font-size:12px;font-weight:800;color:#b45309;text-transform:uppercase;">Other Pending Requests Today (${otherInq.length})</div>`
+                  + otherInq.map(i => renderInqCard(i, true)).join("");
+        }
+        box.innerHTML = html;
+
+    } else if (ACTIVE_TAB === "lab") {
+        box.innerHTML = lab.length === 0
+            ? `<div class="patientCard" style="color:var(--text-muted);text-align:center;padding:28px;">No patients currently sent out for Lab / X-Ray by ${escapeHTML(docObj.name)} (${escapeHTML(SELECTED_SHIFT)} OPD).</div>`
+            : lab.map(l => `
+                <div class="patientCard" style="border-left:4px solid #0284c7;">
+                    <div class="patientRow">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="tokenChip">#${l.token}</span>
+                            <div>
+                                <b>${escapeHTML(l.name)} (${l.age}${escapeHTML(l.gender)})</b>
+                                <div style="font-size:12px;color:var(--text-muted);">Sent for Lab/X-Ray during ${escapeHTML(l.shift)} OPD</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btnGreen" onclick="staffMutate('returnFromLab',{id:'${escapeJS(l.id)}'})">
+                                <i class="fa-solid fa-rotate-left"></i> Report Ready — Put Next in Line
+                            </button>
+                            <button class="btn btnRed" onclick="cancelWaitingPatient('${escapeJS(l.id)}', ${l.token}, '${escapeJS(l.name)}')">
+                                <i class="fa-solid fa-ban"></i> Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>`).join("");
+
+    } else if (ACTIVE_TAB === "completed") {
+        const dateSet = new Set([today]);
+        docAllDays.forEach(t => { if (t.token_day) dateSet.add(t.token_day); });
+        const availableDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
+        if (!availableDates.includes(HISTORY_DATE_FILTER)) HISTORY_DATE_FILTER = today;
+
+        const filteredVisits = docAllDays.filter(t =>
+            t.token_day === HISTORY_DATE_FILTER &&
+            (HISTORY_SHIFT_FILTER === "All" || t.shift === HISTORY_SHIFT_FILTER) &&
+            t.payment_verified === true
+        );
+
+        const completedSorted = filteredVisits
+            .filter(t => t.status === "completed")
+            .sort((a, b) => new Date(b.completed_at || 0).getTime() - new Date(a.completed_at || 0).getTime());
+
+        const paidNotCompletedSorted = filteredVisits
+            .filter(t => t.status !== "completed")
+            .sort((a, b) => new Date(b.payment_confirmed_at || b.created_at || 0).getTime() - new Date(a.payment_confirmed_at || a.created_at || 0).getTime());
+
+        const cash = filteredVisits.filter(x => x.pay_mode === "Cash").reduce((s, x) => s + Number(x.fee || 0), 0);
+        const upi = filteredVisits.filter(x => x.pay_mode === "UPI").reduce((s, x) => s + Number(x.fee || 0), 0);
+        const free = filteredVisits.filter(x => x.pay_mode === "Free" || Number(x.fee) === 0).length;
+        const total = cash + upi;
+
+        const summaryWaUrl = buildWhatsAppUrl(
+            c.whatsapp_number,
+            `*OPD Collection Summary — ${c.clinic_name}*\nDate: ${formatDateLabel(HISTORY_DATE_FILTER)} (${HISTORY_SHIFT_FILTER} OPD)\nDoctor: ${docObj.name}\n• Paid / Verified Patients: ${filteredVisits.length} (Completed: ${completedSorted.length})\n• Cash: ₹${cash}\n• UPI: ₹${upi}\n• Free Follow-ups: ${free}\n• *Total Collection: ₹${total}*`
+        );
+
+        const renderVisitRow = x => {
+            const receiptUrl = buildWhatsAppUrl(x.phone, `Thank you ${x.name} ji for visiting ${c.clinic_name} (${docObj.name}, ${x.shift} OPD on ${formatDateLabel(x.token_day)}). Payment Receipt: ₹${x.fee} (${x.pay_mode}).`);
+            const stClass = x.status === "completed" ? "stCompleted" : (x.status === "inside" ? "stInside" : (x.status === "lab" ? "stLab" : (x.status === "cancelled" ? "stCancelled" : "stWaiting")));
+            const recallLabel = Number(x.recall_days) === 0 ? "No Follow-Up" : `${x.recall_days}d Recall`;
+            return `
+            <div class="patientCard">
+                <div class="patientRow">
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <span class="tokenChip">#${x.token ?? "-"}</span>
+                        <div>
+                            <b>${escapeHTML(x.name)} (${x.age}${escapeHTML(x.gender)})</b> • <b>₹${x.fee}</b> (${escapeHTML(x.pay_mode)})
+                            <span class="statusChip ${stClass}" style="margin-left:6px;">${escapeHTML(x.status)}</span>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+                                ${escapeHTML(x.shift)} OPD • Paid: ${escapeHTML(formatTimeIST(x.payment_confirmed_at || x.created_at))}
+                                ${x.completed_at ? ` • Completed: ${escapeHTML(formatTimeIST(x.completed_at))}` : ""}
+                                ${x.status === "completed" ? ` • ${escapeHTML(recallLabel)}` : ""}
+                            </div>
+                        </div>
+                    </div>
+                    <a class="btn btnDark" href="${escapeHTML(receiptUrl)}" target="_blank" rel="noopener">
+                        <i class="fa-brands fa-whatsapp" style="color:#16a34a;"></i> Receipt
+                    </a>
+                </div>
+            </div>`;
+        };
+
+        box.innerHTML = `
+            <div class="panel" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <div>
+                        <label>Select Date (Last 7 Days)</label>
+                        <select onchange="onHistoryDateChange(this.value)" style="width:auto;min-width:170px;">
+                            ${availableDates.map(dt => `<option value="${escapeHTML(dt)}" ${dt === HISTORY_DATE_FILTER ? "selected" : ""}>${escapeHTML(formatDateLabel(dt))}${dt === today ? " (Today)" : ""}</option>`).join("")}
+                        </select>
+                    </div>
+                    <div>
+                        <label>OPD Shift</label>
+                        <select onchange="onHistoryShiftChange(this.value)" style="width:auto;min-width:140px;">
+                            <option value="All" ${HISTORY_SHIFT_FILTER === "All" ? "selected" : ""}>All Shifts</option>
+                            <option value="Morning" ${HISTORY_SHIFT_FILTER === "Morning" ? "selected" : ""}>🌅 Morning OPD</option>
+                            <option value="Evening" ${HISTORY_SHIFT_FILTER === "Evening" ? "selected" : ""}>🌆 Evening OPD</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btnDark" onclick="exportSelectedDateCsv()"><i class="fa-solid fa-file-excel" style="color:#059669;"></i> Export Doctor (Date)</button>
+                    <button class="btn btnDark" onclick="exportSevenDayCsv()"><i class="fa-solid fa-calendar-week"></i> Export Doctor (7d)</button>
+                    <button class="btn btnDark" onclick="exportAllDoctorsCsv(true)"><i class="fa-solid fa-hospital"></i> All Doctors (Today)</button>
+                    <button class="btn btnDark" onclick="exportAllDoctorsCsv(false)"><i class="fa-solid fa-download"></i> All Doctors (7d)</button>
+                    <a class="btn btnGreen" href="${escapeHTML(summaryWaUrl)}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Send Hisab</a>
+                </div>
+            </div>
+
+            <div class="hisabGrid">
+                <div class="hisabBox"><small>Paid / Verified</small><strong>${filteredVisits.length}</strong></div>
+                <div class="hisabBox"><small>Cash Collected</small><strong>₹${cash}</strong></div>
+                <div class="hisabBox"><small>UPI Collected</small><strong>₹${upi}</strong></div>
+                <div class="hisabBox"><small>Free Follow-Ups</small><strong>${free}</strong></div>
+                <div class="hisabBox totalBox"><small>Grand Total</small><strong>₹${total}</strong></div>
+            </div>
+
+            <div style="margin:6px 0 8px;font-size:12px;font-weight:800;color:var(--primary);text-transform:uppercase;">
+                ✅ Completed Consultations — Latest First (${completedSorted.length})
+            </div>
+            ${completedSorted.length === 0
+                ? `<div class="patientCard" style="color:var(--text-muted);text-align:center;padding:18px;">No completed consultations for ${escapeHTML(docObj.name)} on ${escapeHTML(formatDateLabel(HISTORY_DATE_FILTER))}.</div>`
+                : completedSorted.map(renderVisitRow).join("")}
+
+            ${paidNotCompletedSorted.length > 0 ? `
+                <div style="margin:18px 0 8px;font-size:12px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;">
+                    💳 Paid — In Queue / Cabin / Lab / Cancelled (${paidNotCompletedSorted.length})
+                </div>
+                ${paidNotCompletedSorted.map(renderVisitRow).join("")}
+            ` : ""}
+        `;
+
+    } else if (ACTIVE_TAB === "recall") {
+        const dueNow = rec.filter(r => Number(r.days_until_due ?? 0) <= 0);
+        const upcoming7 = rec.filter(r => Number(r.days_until_due ?? 0) >= 1 && Number(r.days_until_due ?? 0) <= 7);
+        const upcomingLater = rec.filter(r => Number(r.days_until_due ?? 0) > 7);
+
+        const filteredRec = RECALL_FILTER === "due" ? dueNow
+            : RECALL_FILTER === "week" ? upcoming7
+            : RECALL_FILTER === "later" ? upcomingLater
+            : rec;
+
+        const filterBar = `
+            <div class="recallFilterBar">
+                <button type="button" class="rfPill ${RECALL_FILTER === 'all' ? 'active' : ''}" onclick="setRecallFilter('all')">All Active (${rec.length})</button>
+                <button type="button" class="rfPill ${RECALL_FILTER === 'due' ? 'active' : ''}" onclick="setRecallFilter('due')">🔴 Due Today / Overdue (${dueNow.length})</button>
+                <button type="button" class="rfPill ${RECALL_FILTER === 'week' ? 'active' : ''}" onclick="setRecallFilter('week')">📅 Upcoming Next 7 Days (${upcoming7.length})</button>
+                <button type="button" class="rfPill ${RECALL_FILTER === 'later' ? 'active' : ''}" onclick="setRecallFilter('later')">🗓️ Later Upcoming (${upcomingLater.length})</button>
+            </div>
+        `;
+
+        box.innerHTML = filterBar + (filteredRec.length === 0
+            ? `<div class="patientCard" style="color:var(--text-muted);text-align:center;padding:28px;">No follow-ups in this filter for ${escapeHTML(docObj.name)}.</div>`
+            : filteredRec.map(r => {
+                const d = Number(r.days_until_due ?? 0);
+                let badgeBg = "#e0f2fe", badgeColor = "#0369a1", badgeText = `In ${d} day(s)`;
+                if (d < 0) { badgeBg = "#fee2e2"; badgeColor = "#991b1b"; badgeText = `${-d}d overdue`; }
+                else if (d === 0) { badgeBg = "#fef3c7"; badgeColor = "#92400e"; badgeText = "Due Today"; }
+                else if (d === 1) { badgeBg = "#ecfdf5"; badgeColor = "#065f46"; badgeText = "Tomorrow"; }
+
+                const remUrl = buildWhatsAppUrl(
+                    r.phone,
+                    `Namaste ${r.name} ji, this is a friendly reminder for your follow-up visit with ${docObj.name} at ${c.clinic_name} scheduled for ${formatDateLabel(r.recall_due_date)}.`
+                );
+                return `
+                <div class="patientCard" style="border-left:4px solid ${d <= 0 ? '#ef4444' : '#059669'};">
+                    <div class="patientRow">
+                        <div>
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <b>${escapeHTML(r.name)} (${r.age}${escapeHTML(r.gender)})</b>
+                                ${r.guardian_name ? `<span style="font-size:12px;color:var(--text-secondary);">• ${escapeHTML(r.guardian_name)}</span>` : ""}
+                                <span style="background:${badgeBg};color:${badgeColor};padding:3px 9px;border-radius:99px;font-size:11px;font-weight:800;">${badgeText}</span>
+                            </div>
+                            <div style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">
+                                📞 ${escapeHTML(r.phone)} • Last Visit: ${escapeHTML(formatDateLabel(r.token_day))} • Follow-Up Date: <b>${escapeHTML(formatDateLabel(r.recall_due_date))}</b> (${r.recall_days}-day recall)
+                            </div>
+                        </div>
+                        <a class="btn btnGreen" href="${escapeHTML(remUrl)}" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-whatsapp"></i> Send Reminder
+                        </a>
+                    </div>
+                </div>`;
+            }).join(""));
+    }
+}
+
+function setTab(t) {
+    ACTIVE_TAB = t;
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    document.getElementById("tabBtn-" + t).classList.add("active");
+    renderReception(true);
+}
+
+function setRecallFilter(f) {
+    RECALL_FILTER = f;
+    renderReception(true);
+}
+
+function switchSelectedDoctorView(docId) {
+    SELECTED_DOCTOR = docId;
+    renderReception(true);
+    const wPhone = document.getElementById("wPhone");
+    if (wPhone && wPhone.value.length === 10) lookupReturningPatient(wPhone.value);
+}
+
+function switchShift(shift) { SELECTED_SHIFT = shift; renderReception(true); }
+function onHistoryDateChange(val) { HISTORY_DATE_FILTER = val; renderReception(true); }
+function onHistoryShiftChange(val) { HISTORY_SHIFT_FILTER = val; renderReception(true); }
+
+async function handleCompleteOrReopenShift() {
+    const docObj = getDoctorById(STATE, SELECTED_DOCTOR);
+    const today = STATE.today_ist || getTodayIST();
+    const currentShiftStatus = SELECTED_SHIFT === "Morning" ? docObj.morning_status : docObj.evening_status;
+
+    if (currentShiftStatus === "completed") {
+        if (!confirm(`Reopen ${SELECTED_SHIFT} OPD for ${docObj.name} today?`)) return;
+        await staffMutate("reopenShift", { doctor: SELECTED_DOCTOR, shift: SELECTED_SHIFT });
+        showToast(`${SELECTED_SHIFT} OPD reopened.`);
+        return;
+    }
+
+    const unfinished = (STATE.tokens || []).filter(t =>
+        t.doctor === SELECTED_DOCTOR && t.token_day === today && t.shift === SELECTED_SHIFT &&
+        ["inquiry", "waiting", "inside", "lab"].includes(t.status)
+    );
+    const warnMsg = unfinished.length > 0
+        ? `⚠️ WARNING: There are ${unfinished.length} unfinished patient(s) in ${SELECTED_SHIFT} OPD for ${docObj.name}.\n\nCompleting ${SELECTED_SHIFT} OPD will mark all ${unfinished.length} unfinished token(s) as CANCELLED and close new ${SELECTED_SHIFT} bookings.\n\nProceed?`
+        : `Mark ${SELECTED_SHIFT} OPD complete for ${docObj.name}?`;
+
+    if (!confirm(warnMsg)) return;
+    const res = await staffMutate("completeShift", { doctor: SELECTED_DOCTOR, shift: SELECTED_SHIFT });
+    if (res && res.success) {
+        showToast(`${SELECTED_SHIFT} OPD marked complete.`);
+        if (SELECTED_SHIFT === "Morning") { SELECTED_SHIFT = "Evening"; renderReception(true); }
+    }
+}
+
+function openStatusDelayModal() {
+    const docObj = getDoctorById(STATE, SELECTED_DOCTOR);
+    document.getElementById("statusModalDocName").innerText = `Updating status for: ${docObj.name}`;
+    document.getElementById("customDelayMinutesInput").value = docObj.delay_minutes > 0 ? docObj.delay_minutes : 30;
+    document.getElementById("statusDelayModal").classList.add("show");
+}
+
+function setDelayPreset(mins) { document.getElementById("customDelayMinutesInput").value = mins; applyCustomDelay(); }
+
+async function applyCustomDelay() {
+    const mins = Number(document.getElementById("customDelayMinutesInput").value);
+    if (!Number.isInteger(mins) || mins < 5 || mins > 720) { alert("Enter a valid delay between 5 and 720 minutes."); return; }
+    await applyDoctorOpdStatus("delayed", mins);
+}
+
+async function applyDoctorOpdStatus(status, delayMinutes) {
+    const res = await staffMutate("setOpdStatus", { doctor: SELECTED_DOCTOR, status, delay_minutes: delayMinutes });
+    if (res && res.success) {
+        document.getElementById("statusDelayModal").classList.remove("show");
+        showToast("Doctor OPD status updated.");
+    }
+}
+
+function exportSelectedDateCsv() {
+    const rows = (STATE.tokens || []).filter(t =>
+        t.doctor === SELECTED_DOCTOR && t.token_day === HISTORY_DATE_FILTER &&
+        (HISTORY_SHIFT_FILTER === "All" || t.shift === HISTORY_SHIFT_FILTER) && t.payment_verified
+    );
+    exportVisitsToCsv(rows, STATE, `${STATE.slug}_${SELECTED_DOCTOR}_${HISTORY_DATE_FILTER}_${HISTORY_SHIFT_FILTER}.csv`);
+}
+
+function exportSevenDayCsv() {
+    const rows = (STATE.tokens || []).filter(t => t.doctor === SELECTED_DOCTOR && t.payment_verified);
+    exportVisitsToCsv(rows, STATE, `${STATE.slug}_${SELECTED_DOCTOR}_7day_report.csv`);
+}
+
+function exportAllDoctorsCsv(todayOnly) {
+    const today = STATE.today_ist || getTodayIST();
+    const rows = (STATE.tokens || []).filter(t => t.payment_verified && (!todayOnly || t.token_day === today));
+    exportVisitsToCsv(rows, STATE, `${STATE.slug}_${todayOnly ? today + "_all_doctors" : "7day_all_doctors"}.csv`);
+}
+
+function toggleMore(id) {
+    OPEN_DRAWERS[id] = !OPEN_DRAWERS[id];
+    renderReception(true);
+}
+
+async function savePatientIntake(id) {
+    const drawer = document.querySelector(`.moreBox[data-visit-id="${CSS.escape(id)}"]`);
+    const fields = {};
+    if (drawer) {
+        drawer.querySelectorAll(".intakeFieldInput").forEach(inp => {
+            const label = inp.dataset.fieldLabel;
+            if (label) fields[label] = inp.value.trim();
+        });
+    }
+    const res = await staffMutate("saveIntake", {
+        id,
+        fields,
+        clinical_remarks: document.getElementById("inRem-" + id)?.value.trim() || "",
+        guardian_name: document.getElementById("inGuard-" + id)?.value.trim() || "",
+        patient_address: document.getElementById("inAddr-" + id)?.value.trim() || ""
+    });
+    if (res && res.success) showToast("✓ Pre-Exam Assessment & Remarks saved");
+}
+
+async function cancelWaitingPatient(id, tokenNo, name) {
+    if (!confirm(`Cancel Token #${tokenNo} (${name}) as No-Show / Cancelled?`)) return;
+    const res = await staffMutate("cancelVisit", { id, reason: "No-show / Cancelled at reception" });
+    if (res && res.success) showToast(`Token #${tokenNo} cancelled.`, "warn");
+}
+
+async function reAnnounceToTv(tokenNo) {
+    const res = await staffMutate("reAnnounce", { doctor: SELECTED_DOCTOR, shift: SELECTED_SHIFT });
+    if (res && res.success) {
+        announceTokenVoiceHindi(tokenNo, "");
+        showToast(`Token #${tokenNo} re-announced to Waiting Room TV.`);
+    }
+}
+
+let CURRENT_FAMILY_PROFILES = [];
+function lookupReturningPatient(val) {
+    const clean = val.replace(/\D/g, "");
+    document.getElementById("wPhone").value = clean;
+    const bar = document.getElementById("returningLookupBar");
+    CURRENT_FAMILY_PROFILES = [];
+
+    if (clean.length === 10 && Array.isArray(STATE?.history_lookup?.[clean]) && STATE.history_lookup[clean].length > 0) {
+        CURRENT_FAMILY_PROFILES = STATE.history_lookup[clean];
+        const sameDocIdx = CURRENT_FAMILY_PROFILES.findIndex(p => p.doctor_id === SELECTED_DOCTOR);
+        const defaultIdx = sameDocIdx >= 0 ? sameDocIdx : 0;
+
+        bar.style.display = "flex";
+        if (CURRENT_FAMILY_PROFILES.length === 1) {
+            applyFamilyProfile(0);
+        } else {
+            bar.innerHTML = `<span><i class="fa-solid fa-users"></i> Returning family phone — pick patient:</span> ` +
+                CURRENT_FAMILY_PROFILES.map((p, idx) =>
+                    `<button type="button" class="famPickBtn" onclick="applyFamilyProfile(${idx})">${escapeHTML(p.name)} (${p.age}${escapeHTML(p.gender)})${p.eligibleFreeFollowup && p.doctor_id === SELECTED_DOCTOR ? " ✓ Free Follow-Up" : ""}</button>`
+                ).join("");
+            applyFamilyProfile(defaultIdx, true);
+        }
+    } else {
+        bar.style.display = "none";
+        bar.innerHTML = "";
+    }
+}
+
+function applyFamilyProfile(idx, keepButtons = false) {
+    const h = CURRENT_FAMILY_PROFILES[idx];
+    if (!h) return;
+    document.getElementById("wName").value = h.name || "";
+    document.getElementById("wGuardian").value = h.guardian_name || "";
+    document.getElementById("wAddress").value = h.patient_address || "";
+    document.getElementById("wAge").value = h.age ?? "";
+    document.getElementById("wGender").value = h.gender || "M";
+
+    const eligibleNow = h.eligibleFreeFollowup && h.doctor_id === SELECTED_DOCTOR;
+    if (eligibleNow) {
+        document.getElementById("wVisit").value = "Follow-up";
+        document.getElementById("wPay").value = "Free";
+    } else {
+        document.getElementById("wVisit").value = "Fresh";
+        document.getElementById("wPay").value = "Cash";
+    }
+
+    if (!keepButtons) {
+        const bar = document.getElementById("returningLookupBar");
+        bar.innerHTML = eligibleNow
+            ? `<span>✓ ${escapeHTML(h.name)} visited ${h.daysAgo}d ago — Eligible for Free Follow-Up (${h.recallDays}d recall)</span>`
+            : `<span>Returning patient: ${escapeHTML(h.name)} (Last visit ${h.daysAgo}d ago with ${escapeHTML(getDoctorNameById(STATE, h.doctor_id))})</span>`;
+    }
+}
+
+function onWalkinVisitChange() {
+    if (document.getElementById("wVisit").value === "Follow-up") document.getElementById("wPay").value = "Free";
+    else if (document.getElementById("wPay").value === "Free") document.getElementById("wPay").value = "Cash";
+}
+
+async function issueWalkIn() {
+    const phone = document.getElementById("wPhone").value.trim();
+    const name = document.getElementById("wName").value.trim();
+    const guardianName = document.getElementById("wGuardian").value.trim();
+    const patientAddress = document.getElementById("wAddress").value.trim();
+    const ageStr = document.getElementById("wAge").value.trim();
+    if (!/^\d{10}$/.test(phone) || !name || !/^\d{1,3}$/.test(ageStr) || Number(ageStr) < 0 || Number(ageStr) > 120) {
+        alert("Enter a 10-digit mobile number, patient full name, and valid age (0 to 120).");
+        return;
+    }
+    const res = await staffMutate("walkIn", {
+        phone,
+        name,
+        guardian_name: guardianName,
+        patient_address: patientAddress,
+        age: Number(ageStr),
+        doctor: SELECTED_DOCTOR,
+        shift: SELECTED_SHIFT,
+        gender: document.getElementById("wGender").value,
+        visit_type: document.getElementById("wVisit").value,
+        pay_mode: document.getElementById("wPay").value
+    });
+    if (!res || !res.success) return;
+    document.getElementById("wPhone").value = "";
+    document.getElementById("wName").value = "";
+    document.getElementById("wGuardian").value = "";
+    document.getElementById("wAddress").value = "";
+    document.getElementById("wAge").value = "";
+    document.getElementById("returningLookupBar").style.display = "none";
+    showToast(`Walk-in token issued for ${name}!`);
+}
+
+async function approveRequest(id) {
+    const item = STATE.tokens.find(x => x.id === id);
+    if (!item) return;
+    const needsUpiCheck = item.pay_mode === "UPI" && Number(item.fee) > 0;
+    const paymentConfirmed = !needsUpiCheck || confirm(`Have you checked your clinic UPI app and confirmed ₹${item.fee} (UTR ...${item.utr}) was received?`);
+    if (needsUpiCheck && !paymentConfirmed) return;
+
+    const res = await staffMutate("approveInquiry", { id, payment_confirmed: paymentConfirmed });
+    if (!res || !res.success) return;
+
+    const updated = STATE.tokens.find(x => x.id === id);
+    if (updated) {
+        const waUrl = buildWhatsAppUrl(
+            updated.phone,
+            `Confirmed! Your ${updated.shift} OPD Token for ${getDoctorNameById(STATE, updated.doctor)} at ${STATE.clinic_name} (${formatDateLabel(updated.token_day)}) is Token #${updated.token}.`
+        );
+        document.getElementById("approvedWaText").innerHTML =
+            `<i class="fa-solid fa-circle-check"></i> Token <b>#${updated.token}</b> confirmed for <b>${escapeHTML(updated.name)}</b> (${escapeHTML(updated.shift)} OPD).`;
+        document.getElementById("approvedWaLink").href = waUrl;
+        document.getElementById("approvedWaBanner").style.display = "flex";
+        showToast(`Token #${updated.token} issued & payment added to collection!`);
+    }
+}
+
+async function sendInsideCabin(id, token) {
+    const res = await staffMutate("sendInside", { id, doctor: SELECTED_DOCTOR, shift: SELECTED_SHIFT });
+    if (!res || !res.success) return;
+    announceTokenVoiceHindi(token, "");
+    showToast(`Token #${token} sent inside cabin.`);
+}
+
+function onSpecialtyPresetChange(spec) {
+    if (SPECIALTY_PRESETS[spec] && spec !== "custom") {
+        document.getElementById("sIntakeFields").value = SPECIALTY_PRESETS[spec].fields.join(", ");
+    }
+}
+
+function openSettingsModal() {
+    const docs = normalizeDoctorsList(STATE);
+    document.getElementById("sClinicName").value = STATE.clinic_name || "";
+    document.getElementById("sAddress").value = STATE.address || STATE.tagline || "";
+    document.getElementById("sClinicPhone").value = STATE.clinic_phone || "";
+    document.getElementById("sOpdTimings").value = STATE.opd_timings || "";
+    document.getElementById("sSpecialty").value = STATE.clinic_specialty || "general";
+    document.getElementById("sIntakeFields").value = getClinicIntakeFields(STATE).join(", ");
+    document.getElementById("sDoctorsEditorRows").innerHTML = docs.map(d => `
+        <div class="docEditRow" data-doc-id="${escapeHTML(d.id)}">
+            <span class="docIdBadge">${escapeHTML(d.id)}</span>
+            <input class="docEditName" value="${escapeHTML(d.name)}" placeholder="Doctor Name">
+            <input class="docEditQual" value="${escapeHTML(d.qualification || '')}" placeholder="MBBS, MS (Eye)">
+            <input class="docEditReg" value="${escapeHTML(d.reg_no || '')}" placeholder="Reg. No.">
+        </div>
+    `).join("");
+    document.getElementById("sFeeFresh").value = STATE.fee_fresh ?? 500;
+    document.getElementById("sFeeReport").value = STATE.fee_report ?? 200;
+    document.getElementById("sUpi").value = STATE.upi_id || "";
+    document.getElementById("sWa").value = STATE.whatsapp_number || "";
+    document.getElementById("sNewPin").value = "";
+    document.getElementById("settingsModal").classList.add("show");
+}
+
+async function saveSettings() {
+    const newPin = document.getElementById("sNewPin").value.trim();
+    if (newPin && !/^[0-9]{6}$/.test(newPin)) { alert("New Reception PIN must be 6 digits."); return; }
+
+    const rawFresh = document.getElementById("sFeeFresh").value.trim();
+    const rawReport = document.getElementById("sFeeReport").value.trim();
+    const feeFresh = rawFresh === "" ? 500 : Number(rawFresh);
+    const feeReport = rawReport === "" ? 200 : Number(rawReport);
+
+    const intakeFields = document.getElementById("sIntakeFields").value
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean)
+        .slice(0, 12);
+
+    const doctors = Array.from(document.querySelectorAll("#sDoctorsEditorRows .docEditRow")).map(row => ({
+        id: row.dataset.docId,
+        name: row.querySelector(".docEditName").value.trim(),
+        qualification: row.querySelector(".docEditQual").value.trim(),
+        reg_no: row.querySelector(".docEditReg").value.trim()
+    })).filter(d => d.name !== "");
+
+    if (doctors.length === 0) { alert("At least one doctor name is required."); return; }
+
+    const addr = document.getElementById("sAddress").value.trim();
+    const res = await staffMutate("saveSettings", {
+        clinic_name: document.getElementById("sClinicName").value.trim(),
+        address: addr,
+        tagline: addr,
+        clinic_phone: document.getElementById("sClinicPhone").value.trim(),
+        opd_timings: document.getElementById("sOpdTimings").value.trim(),
+        clinic_specialty: document.getElementById("sSpecialty").value,
+        intake_fields: intakeFields.length ? intakeFields : SPECIALTY_PRESETS.general.fields,
+        doctors,
+        fee_fresh: Number.isFinite(feeFresh) && feeFresh >= 0 ? feeFresh : 500,
+        fee_report: Number.isFinite(feeReport) && feeReport >= 0 ? feeReport : 200,
+        upi_id: document.getElementById("sUpi").value.trim(),
+        whatsapp_number: document.getElementById("sWa").value.trim(),
+        new_pin: newPin
+    });
+    if (res && res.success) {
+        document.getElementById("settingsModal").classList.remove("show");
+        showToast(newPin ? "Settings & Reception PIN updated!" : "Clinic settings & specialty intake saved!");
+    }
+}
+</script>
+</body>
+</html>
