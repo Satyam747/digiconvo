@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' https: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex">
+<title>Review Order</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="customer.css">
+</head>
+<body class="page-checkout">
+<div class="wrapper">
+  <div class="header"><h2>Review Order</h2><p>Please verify your order before placing it.</p></div>
+  <div class="customerCard">
+    <div><b>Customer</b><div id="customerName">--</div></div>
+    <div><b>Table</b><div id="tableNumber">--</div></div>
+  </div>
+  <div id="notice" class="notice" hidden></div>
+  <div id="cartItems" class="cartItems"></div>
+  <div id="upsellBox" class="upsellBox" hidden></div>
+  <div id="checkoutBody">
+    <div class="summaryCard">
+      <div class="row"><span>Subtotal</span><span id="subtotal">--</span></div>
+      <div class="row"><span>Discount</span><span id="discount">--</span></div>
+      <div class="row"><span id="gstLabel">GST</span><span id="gst">--</span></div>
+      <hr>
+      <div class="row total"><span>Grand Total</span><span id="grandTotal">--</span></div>
+      <p class="hint">The restaurant confirms the final bill when your order is placed.</p>
+    </div>
+    <div class="paymentCard">
+      <h3>Cooking Instructions</h3>
+      <textarea id="orderNotes" maxlength="150" placeholder="E.g. less spicy, no onions, allergy to peanuts..."></textarea>
+    </div>
+    <div class="paymentCard">
+      <h3>Payment</h3>
+      <p>You are welcome to pay at the counter after your meal. We accept multiple payment options.</p>
+    </div>
+    <div id="formError" class="formError" role="alert"></div>
+    <button id="placeOrderButton" class="placeButton" type="button">Place Order</button>
+    <button class="backLink" type="button" data-action="back"><i class="fa-solid fa-arrow-left"></i> Add more items</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="checkout.js"></script>
+</body>
+</html>
