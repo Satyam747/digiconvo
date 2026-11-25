@@ -35,18 +35,10 @@ const CONFIG = {
     ---------------------------------------------------------
     CLOUDFLARE TURNSTILE (SERVER-SIDE BOT PROTECTION)
     ---------------------------------------------------------
-    Leave TURNSTILE_SITE_KEY blank to use the built-in 6-digit
-    visual code out of the box.
-    Once you create a Cloudflare Turnstile widget and deploy
-    the included `turnstile-auth-edge-function.ts` to Supabase:
-      1. Paste your Turnstile Site Key below.
-      2. Set AUTH_PROXY_URL to:
-         "https://xmsghzhlybiakfmyypek.supabase.co/functions/v1/auth-gate"
     */
     SECURITY: {
         TURNSTILE_SITE_KEY: "0x4AAAAAAGQLuZt8RmUdSnq6",
         AUTH_PROXY_URL: "https://xmsghzhlybiakfmyypek.supabase.co/functions/v1/auth-gate"
-    },
     },
 
     TENANT: {
