@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DigiConvo v8.0 — Restaurant POS, KDS, GST & Chain Console</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f59e0b' font-family='sans-serif' font-weight='900'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="dashboard.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="xlsx.js"></script>
+<style>
+  body{background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;margin:0;}
+  .hidden{display:none !important;}
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .login-card{width:100%;max-width:400px;background:#fff;border-radius:18px;padding:24px;box-shadow:0 12px 30px rgba(15,23,42,.1);}
+  .topbar{background:#0f172a;color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .tabs{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 16px;display:flex;gap:4px;overflow-x:auto;}
+  .tab{padding:11px 14px;border:none;background:none;font-size:13px;font-weight:700;color:#64748b;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  .tab.active{color:#d97706;border-bottom-color:#d97706;}
+  .wrap{max-width:1360px;margin:0 auto;padding:14px;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px;}
+  .kpi{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;}
+  .kpi .l{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;}
+  .kpi .v{font-size:22px;font-weight:900;margin-top:2px;}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin-bottom:12px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  @media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr;}}
+  input,select,textarea{width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;background:#fff;}
+  label{display:block;font-size:11.5px;font-weight:700;color:#334155;margin-bottom:3px;}
+  .btn{border:none;border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;background:#d97706;color:#fff;}
+  .btn-dark{background:#0f172a;color:#fff;} .btn-soft{background:#e2e8f0;color:#0f172a;} .btn-green{background:#059669;color:#fff;} .btn-red{background:#dc2626;color:#fff;} .btn-sm{padding:5px 8px;font-size:11.5px;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;}
+  .b-green{background:#dcfce7;color:#166534;} .b-amber{background:#fef3c7;color:#92400e;} .b-red{background:#fee2e2;color:#991b1b;} .b-blue{background:#e0f2fe;color:#075985;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:top;}
+  th{background:#f8fafc;font-size:11px;text-transform:uppercase;color:#64748b;}
+  .kds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+  .kds-card{background:#fff;border:2px solid #cbd5e1;border-radius:14px;padding:14px;}
+  .kds-card.warn{border-color:#d97706;background:#fffbeb;} .kds-card.late{border-color:#dc2626;background:#fef2f2;}
+  .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:999;}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow:auto;padding:18px;}
+</style>
+</head>
+<body>
+
+<div id="loginView" class="login-wrap">
+  <div class="login-card">
+    <h2 style="margin:0 0 4px;">Restaurant Staff Login</h2>
+    <p id="lgSub" style="font-size:12.5px;color:#64748b;margin:0 0 14px;">Sign in with your Supabase staff email & password</p>
+    <form id="staffLoginForm">
+      <div style="margin-bottom:10px;"><label>Email</label><input id="lgEmail" type="email" required></div>
+      <div style="margin-bottom:12px;"><label>Password</label><input id="lgPass" type="password" required></div>
+      <div id="dashTurnstileBox" class="hidden" style="margin-bottom:12px;"></div>
+      <button id="lgBtn" type="submit" class="btn btn-dark" style="width:100%;">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<div id="appView" class="hidden">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <strong id="topRestName" style="font-size:17px;">DigiConvo POS</strong>
+      <span id="topRoleBadge" class="badge b-amber"></span>
+      <select id="chainSwitcher" class="hidden" style="width:auto;padding:5px 8px;font-size:12px;" onchange="switchOutlet(this.value)"></select>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="btn btn-green btn-sm" onclick="openCaptainModal()">+ Captain / Walk-In Order</button>
+      <a id="kdsModeLink" href="#" class="btn btn-soft btn-sm" style="text-decoration:none;">Kitchen KDS</a>
+      <button class="btn btn-red btn-sm" onclick="logoutDash()">Logout</button>
+    </div>
+  </div>
+
+  <div id="mainTabs" class="tabs">
+    <button class="tab active" data-t="orders" onclick="switchTab('orders')">Live Orders & Floor</button>
+    <button class="tab" data-t="kds" onclick="switchTab('kds')">Kitchen KDS</button>
+    <button class="tab" data-t="menu" onclick="switchTab('menu')">Menu & 86 Stock</button>
+    <button class="tab" data-t="crm" onclick="switchTab('crm')">Customers & Coupons</button>
+    <button class="tab" data-t="gst" onclick="switchTab('gst')">GST & GSTR-1</button>
+    <button id="tabBtnSettings" class="tab hidden" data-t="settings" onclick="switchTab('settings')">Settings</button>
+    <button id="tabBtnChain" class="tab hidden" data-t="chain" onclick="switchTab('chain')">All Outlets (Chain)</button>
+  </div>
+
+  <div class="wrap" style="padding-bottom:0;"><div id="annBar"></div><div id="callsBar"></div></div>
+
+  <!-- TAB 1: LIVE ORDERS -->
+  <div id="t-orders" class="wrap">
+    <div id="kpiGrid" class="kpis"></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;">Active & Today's Orders</h3>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-soft btn-sm" onclick="openMergeModal()">Merge Tables</button>
+          <button class="btn btn-soft btn-sm" onclick="pollDelta(true)">Refresh</button>
+        </div>
+      </div>
+      <div id="ordersList"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: KITCHEN DISPLAY SYSTEM (KDS) -->
+  <div id="t-kds" class="wrap hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <select id="kdsStation" style="width:auto;" onchange="renderKds()">
+          <option value="">All Stations</option><option value="Kitchen">Kitchen</option><option value="Bar">Bar</option><option value="Tandoor">Tandoor</option><option value="Bakery">Bakery</option><option value="Beverages">Beverages</option>
+        </select>
+      </div>
+      <button class="btn btn-soft btn-sm" onclick="pollDelta(true)">Refresh KDS</button>
+    </div>
+    <div id="kdsGrid" class="kds-grid"></div>
+  </div>
+
+  <!-- TAB 3: MENU & 1-TAP SOLD OUT (86) -->
+  <div id="t-menu" class="wrap hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;">Menu & Instant Sold-Out (86) Toggle</h3>
+        <div style="display:flex;gap:6px;">
+          <button id="pushMenuBtn" class="btn btn-dark btn-sm hidden" onclick="pushMenuToChain()">Push Menu to All Outlets</button>
+          <button class="btn btn-sm" onclick="openMenuModal()">+ Add Dish</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;"><table><thead><tr><th>Dish & Station</th><th>Category</th><th>Price / Half</th><th>GST %</th><th>Stock (86)</th><th>Edit</th></tr></thead><tbody id="menuTbody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: CRM & COUPONS -->
+  <div id="t-crm" class="wrap hidden">
+    <div class="grid2" style="align-items:start;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="margin:0;">Permanent Customer CRM</h3>
+          <div style="display:flex;gap:6px;"><input id="crmSearch" placeholder="Phone or name..." style="width:160px;" onkeydown="if(event.key==='Enter')loadCustomers()"><button class="btn btn-sm" onclick="loadCustomers()">Search</button></div>
+        </div>
+        <div style="overflow-x:auto;"><table><thead><tr><th>Customer</th><th>Phone</th><th>Visits</th><th>Spent</th><th>Loyalty Pts</th></tr></thead><tbody id="crmTbody"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px;">Promo Coupons</h3>
+        <form onsubmit="createCoupon(event)" style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:10px;">
+          <div class="grid3">
+            <div><label>Code *</label><input id="cpCode" required placeholder="WELCOME10" style="text-transform:uppercase;"></div>
+            <div><label>Type</label><select id="cpType"><option value="percent">% Off</option><option value="flat">Flat ₹ Off</option></select></div>
+            <div><label>Value *</label><input id="cpVal" type="number" required value="10"></div>
+            <div><label>Min Order (₹)</label><input id="cpMin" type="number" value="200"></div>
+            <div><label>Valid Till</label><input id="cpTill" type="date"></div>
+            <div style="display:flex;align-items:flex-end;"><button type="submit" class="btn btn-sm" style="width:100%;">+ Add</button></div>
+          </div>
+        </form>
+        <div id="couponsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: GST & GSTR-1 CA REPORTS -->
+  <div id="t-gst" class="wrap hidden">
+    <div class="card">
+      <h3 style="margin:0 0 10px;">Indian GST & GSTR-1 CA Accountant Export</h3>
+      <div class="grid3" style="margin-bottom:12px;">
+        <div><label>From Date</label><input id="gFrom" type="date"></div>
+        <div><label>To Date</label><input id="gTo" type="date"></div>
+        <div style="display:flex;align-items:flex-end;gap:8px;">
+          <label id="gOrgWrap" class="hidden" style="display:flex;align-items:center;gap:5px;margin:0;"><input id="gIncludeOrg" type="checkbox" style="width:auto;"> All Chain Branches</label>
+          <button class="btn btn-green" onclick="runGstr1Export()">Download GSTR-1 Excel</button>
+        </div>
+      </div>
+      <div id="gSummaryBox" style="font-size:13px;color:#475569;">Select a month/date range and click Download GSTR-1 Excel for B2B, B2CS, SAC 996331, Daily Rollup, and NC registers.</div>
+    </div>
+  </div>
+
+  <!-- TAB 6: SETTINGS -->
+  <div id="t-settings" class="wrap hidden">
+    <div class="card">
+      <h3 style="margin:0 0 12px;">Restaurant GST, FSSAI, Billing & Loyalty Settings</h3>
+      <form onsubmit="saveSettingsForm(event)">
+        <div class="grid3">
+          <div><label>GST Regime</label><select id="stRegime"><option value="regular_5">Regular 5% (2.5% CGST + 2.5% SGST, No ITC)</option><option value="specified_18">Specified Premises 18% (9% + 9%)</option><option value="composition">Composition Scheme (Bill of Supply, 0%)</option><option value="unregistered">Unregistered (Cash Memo, 0%)</option></select></div>
+          <div><label>GSTIN (15-char)</label><input id="stGstin" placeholder="23AAAAA0000A1Z5"></div>
+          <div><label>FSSAI License No. (14-digit)</label><input id="stFssai" maxlength="14" placeholder="11424000000000"></div>
+          <div><label>Place of Supply / State Code</label><input id="stState" placeholder="23-Madhya Pradesh"></div>
+          <div><label>FY Invoice Prefix</label><input id="stInvPrefix" placeholder="INV"></div>
+          <div><label>UPI ID (Dynamic QR on Bill)</label><input id="stUpi" placeholder="restaurant@upi"></div>
+          <div><label>Packaging Charge Type</label><select id="stPkgType"><option value="none">None</option><option value="flat">Flat per Takeaway</option><option value="per_item">Per Item</option></select></div>
+          <div><label>Packaging Charge (₹)</label><input id="stPkgAmt" type="number" step="0.5" value="0"></div>
+          <div><label>Optional Service Charge (%)</label><input id="stSvcPct" type="number" step="0.5" value="0"></div>
+          <div><label>Google Maps Review Link</label><input id="stReview" placeholder="https://g.page/r/..."></div>
+          <div><label>Loyalty Earn (pts per ₹100)</label><input id="stLoyEarn" type="number" value="5"></div>
+          <div><label>1 Point Value (₹)</label><input id="stLoyVal" type="number" step="0.5" value="1"></div>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin:12px 0;font-size:12.5px;">
+          <label style="display:flex;align-items:center;gap:5px;"><input id="stTakeaway" type="checkbox" style="width:auto;"> Takeaway Enabled</label>
+          <label style="display:flex;align-items:center;gap:5px;"><input id="stDirect" type="checkbox" style="width:auto;"> Direct Link Ordering</label>
+          <label style="display:flex;align-items:center;gap:5px;"><input id="stLoyOn" type="checkbox" style="width:auto;"> Enable Loyalty Points</label>
+          <label style="display:flex;align-items:center;gap:5px;"><input id="stShareCrm" type="checkbox" style="width:auto;"> Share CRM & Loyalty Across Chain</label>
+        </div>
+        <button type="submit" class="btn">Save All Settings</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TAB 7: MULTI-OUTLET CHAIN OVERVIEW -->
+  <div id="t-chain" class="wrap hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h3 style="margin:0;">Multi-Outlet Brand Chain — Live Today</h3>
+        <button class="btn btn-soft btn-sm" onclick="loadChainOverview()">Refresh</button>
+      </div>
+      <div style="overflow-x:auto;"><table><thead><tr><th>Outlet & City</th><th>Status</th><th>Active Tables</th><th>Today Orders</th><th>Cash / UPI</th><th>GST</th><th>Net Revenue</th><th>Open</th></tr></thead><tbody id="chainTbody"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTLE PAYMENT / SPLIT / NC / B2B GST MODAL -->
+<div id="payModal" class="modal-bg hidden">
+  <div class="modal">
+    <h3 style="margin:0 0 10px;">Settle Bill & Issue GST Tax Invoice</h3>
+    <input type="hidden" id="pmOrderId">
+    <div id="pmAmountInfo" style="font-size:15px;font-weight:900;margin-bottom:10px;color:#0f172a;"></div>
+    <div class="grid2" style="margin-bottom:8px;">
+      <div><label>Payment Mode</label><select id="pmMode" onchange="toggleSplitBox()"><option value="UPI">UPI</option><option value="Cash">Cash</option><option value="Card">Card</option><option value="Split">Split (Cash + UPI)</option><option value="NC">Complimentary (NC ₹0)</option></select></div>
+      <div id="pmNcWrap" class="hidden"><label>NC Reason *</label><input id="pmNcReason" placeholder="Owner table / VIP"></div>
+    </div>
+    <div id="pmSplitWrap" class="grid2 hidden" style="margin-bottom:8px;">
+      <div><label>Cash Part (₹)</label><input id="pmSplitCash" type="number" value="0"></div>
+      <div><label>UPI Part (₹)</label><input id="pmSplitUpi" type="number" value="0"></div>
+    </div>
+    <div class="grid2" style="margin-bottom:8px;">
+      <div><label>Buyer GSTIN (Optional B2B)</label><input id="pmGstin" placeholder="15-char GSTIN" style="text-transform:uppercase;"></div>
+      <div><label>Buyer Company Name</label><input id="pmLegal" placeholder="Optional"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;margin-bottom:12px;"><input id="pmRmSvc" type="checkbox" style="width:auto;"> Remove optional Service Charge on guest request</label>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('payModal')">Cancel</button><button class="btn btn-green" onclick="confirmPayment()">Confirm & Generate Invoice</button></div>
+  </div>
+</div>
+
+<!-- CAPTAIN / WALK-IN POS ORDER MODAL -->
+<div id="captainModal" class="modal-bg hidden">
+  <div class="modal">
+    <h3 style="margin:0 0 10px;">Captain / Staff Quick Order</h3>
+    <div class="grid3" style="margin-bottom:8px;">
+      <div><label>Type</label><select id="cpOrderType"><option value="dine_in">Dine-In</option><option value="takeaway">Takeaway</option></select></div>
+      <div><label>Table No.</label><input id="cpTable" value="1"></div>
+      <div><label>Guest Phone</label><input id="cpPhone" placeholder="Optional"></div>
+    </div>
+    <div style="margin-bottom:8px;"><label>Select Dish & Qty</label><div style="display:flex;gap:6px;"><select id="cpDishSel"></select><input id="cpDishQty" type="number" value="1" min="1" style="width:70px;"><button type="button" class="btn btn-sm" onclick="addCaptainLine()">+ Add</button></div></div>
+    <div id="cpCartBox" style="background:#f8fafc;border-radius:8px;padding:8px;margin-bottom:10px;font-size:12.5px;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('captainModal')">Cancel</button><button class="btn btn-green" onclick="submitCaptainOrder()">Send KOT to Kitchen</button></div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MENU DISH MODAL -->
+<div id="menuModal" class="modal-bg hidden">
+  <div class="modal">
+    <h3 style="margin:0 0 10px;">Add / Edit Dish</h3>
+    <input type="hidden" id="mnId">
+    <div class="grid2" style="margin-bottom:8px;">
+      <div><label>Dish Name *</label><input id="mnName" required></div>
+      <div><label>Category *</label><input id="mnCat" value="Main Course"></div>
+      <div><label>Full Price (₹) *</label><input id="mnPrice" type="number" required></div>
+      <div><label>Half Price (Optional)</label><input id="mnHalf" type="number"></div>
+      <div><label>KOT Station</label><select id="mnStation"><option value="Kitchen">Kitchen</option><option value="Bar">Bar</option><option value="Tandoor">Tandoor</option><option value="Bakery">Bakery</option><option value="Beverages">Beverages</option></select></div>
+      <div><label>Custom GST % (Blank = Default)</label><input id="mnGst" type="number" placeholder="e.g. 18 for aerated drinks"></div>
+    </div>
+    <div style="margin-bottom:8px;"><label>Add-ons (Name:Price comma-sep, e.g. Extra Cheese:40, Butter:25)</label><input id="mnAddons" placeholder="Extra Cheese:40, Dip:30"></div>
+    <div style="margin-bottom:10px;"><label>Modifiers (comma-sep, e.g. Jain, Less Spicy, Extra Spicy)</label><input id="mnMods" placeholder="Jain, Less Spicy, Extra Spicy"></div>
+    <label style="display:flex;align-items:center;gap:6px;margin-bottom:12px;"><input id="mnVeg" type="checkbox" checked style="width:auto;"> Pure Veg</label>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('menuModal')">Cancel</button><button class="btn" onclick="saveMenuDish()">Save Dish</button></div>
+  </div>
+</div>
+
+<!-- MERGE TABLES MODAL -->
+<div id="mergeModal" class="modal-bg hidden">
+  <div class="modal" style="max-width:400px;">
+    <h3 style="margin:0 0 10px;">Merge Two Open Tables</h3>
+    <div style="margin-bottom:8px;"><label>Merge From (Will be cleared)</label><select id="mgSrc"></select></div>
+    <div style="margin-bottom:12px;"><label>Into Target Table</label><select id="mgTgt"></select></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('mergeModal')">Cancel</button><button class="btn" onclick="confirmMerge()">Merge Tables</button></div>
+  </div>
+</div>
+
+<script src="dashboard.js"></script>
+</body></html>
