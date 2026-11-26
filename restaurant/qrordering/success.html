@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; manifest-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' https: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex">
+<title>Order Status</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231b2440'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23c5a880' font-family='sans-serif' font-weight='900'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="customer.css">
+</head>
+<body class="page-success">
+<main class="container">
+  <div class="statusIcon" id="statusIcon"><i class="fa-solid fa-check"></i></div>
+  <h1 id="statusTitle">Order Placed</h1>
+  <p class="subtitle" id="statusNote">Loading your order...</p>
+  <div class="statusPill" id="orderStatus">--</div>
+  <div class="tracker" id="tracker"></div>
+  <div id="orderCard" class="card" hidden>
+    <div class="row"><span class="label">Order</span><span class="value" id="orderId">--</span></div>
+    <div class="row"><span class="label">Guest</span><span class="value" id="guestName">--</span></div>
+    <div class="row"><span class="label">Table</span><span class="value" id="tableNo">--</span></div>
+    <ul class="itemsList" id="itemsList"></ul>
+    <div class="row"><span class="label">Payment</span><span class="value" id="paymentMode">--</span></div>
+    <div class="row"><span class="label">Total</span><span class="value total" id="grandTotal">--</span></div>
+  </div>
+  <div class="otherOrders" id="otherOrders" hidden></div>
+  <a class="btn wa" id="whatsappBtn" hidden target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> Send via WhatsApp</a>
+  <a class="btn review" id="reviewBtn" hidden target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-star"></i> Rate us on Google</a>
+  <button class="btn" type="button" data-action="more">Order More</button>
+  <button class="btn secondary" type="button" data-action="newguest">New Guest / Change Table</button>
+  <p class="hint" id="keepOpen">Keep this page open to follow your order live.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="success.js"></script>
+<script src="v8_guest.js"></script>
+</body>
+</html>
