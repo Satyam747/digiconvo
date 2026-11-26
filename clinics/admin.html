@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClinicOS v11.0 — 1,000-Clinic Enterprise HQ Command Center</title>
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<style>
+  :root { --primary:#0f172a; --accent:#0284c7; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:#f1f5f9; color:#0f172a; }
+  .hidden { display:none !important; }
+  .login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px; }
+  .login-card { width:100%; max-width:430px; background:#fff; border-radius:18px; padding:26px; box-shadow:0 12px 30px rgba(15,23,42,0.1); }
+  .topbar { background:#0f172a; color:#fff; padding:13px 22px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .nav-tabs { background:#fff; border-bottom:1px solid #e2e8f0; padding:0 20px; display:flex; gap:6px; overflow-x:auto; }
+  .nav-tab { padding:12px 16px; border:none; background:none; font-size:13.5px; font-weight:700; color:#64748b; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; }
+  .nav-tab.active { color:#0284c7; border-bottom-color:#0284c7; }
+  .wrap { max-width:1320px; margin:0 auto; padding:16px; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px; }
+  .kpi { background:#fff; border-radius:12px; padding:14px; border:1px solid #e2e8f0; }
+  .kpi .lbl { font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b; }
+  .kpi .val { font-size:24px; font-weight:900; margin-top:3px; }
+  .triage-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:8px; margin-bottom:14px; }
+  .triage-btn { background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:10px 12px; text-align:left; cursor:pointer; }
+  .triage-btn.active { border-color:#0284c7; background:#f0f9ff; }
+  .card { background:#fff; border-radius:14px; padding:16px; border:1px solid #e2e8f0; margin-bottom:14px; }
+  .pills { display:flex; flex-wrap:wrap; gap:6px; }
+  .pill { padding:5px 11px; border-radius:999px; border:1px solid #cbd5e1; background:#f8fafc; font-size:12px; font-weight:700; cursor:pointer; }
+  .pill.active { background:#0284c7; color:#fff; border-color:#0284c7; }
+  .filters { display:grid; grid-template-columns:2fr 1fr 1fr auto auto; gap:8px; margin-bottom:12px; }
+  @media(max-width:860px){ .filters { grid-template-columns:1fr 1fr; } }
+  input, select, textarea { width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; background:#fff; }
+  label { display:block; font-size:11.5px; font-weight:700; color:#334155; margin-bottom:3px; }
+  .btn { border:none; border-radius:8px; padding:8px 13px; font-size:12.5px; font-weight:700; cursor:pointer; background:#0284c7; color:#fff; }
+  .btn-dark { background:#0f172a; color:#fff; }
+  .btn-soft { background:#e2e8f0; color:#0f172a; }
+  .btn-green { background:#059669; color:#fff; }
+  .btn-red { background:#dc2626; color:#fff; }
+  .btn-sm { padding:5px 8px; font-size:11.5px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th, td { padding:9px 8px; border-bottom:1px solid #e2e8f0; text-align:left; vertical-align:top; }
+  th { font-size:11px; text-transform:uppercase; color:#64748b; background:#f8fafc; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; }
+  .b-green { background:#dcfce7; color:#166534; }
+  .b-red { background:#fee2e2; color:#991b1b; }
+  .b-blue { background:#e0f2fe; color:#075985; }
+  .b-amber { background:#fef3c7; color:#92400e; }
+  .modal-bg { position:fixed; inset:0; background:rgba(15,23,42,0.55); display:flex; align-items:center; justify-content:center; padding:16px; z-index:999; overflow:auto; }
+  .modal { background:#fff; border-radius:16px; width:100%; max-width:760px; max-height:92vh; overflow:auto; padding:22px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  @media(max-width:640px){ .grid2, .grid3 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<div id="loginView" class="login-wrap">
+  <div class="login-card">
+    <h1 style="font-size:21px;font-weight:900;">ClinicOS HQ Command Center</h1>
+    <p style="font-size:12.5px;color:#64748b;margin:4px 0 16px;">Founder • Customer Support • City Sales Team</p>
+    <form onsubmit="handleAdminLogin(event)">
+      <div style="margin-bottom:10px;">
+        <label>HQ User ID (Leave blank for Founder Master Key)</label>
+        <input id="hqUserInput" placeholder="e.g. support1 or leave blank for Founder">
+      </div>
+      <div style="margin-bottom:10px;">
+        <label>Password / Master Key *</label>
+        <input id="masterInput" type="password" required placeholder="Enter password or master key">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label>Security Verification</label>
+        <div id="admTurnstileBox" class="hidden"></div>
+        <div id="admSvgBox" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div id="admCaptchaSvg"></div>
+          <input id="admCaptchaAns" placeholder="Code" style="max-width:115px;text-transform:uppercase;">
+          <button type="button" class="btn btn-soft btn-sm" onclick="refreshAdminCaptcha()">Refresh</button>
+        </div>
+      </div>
+      <button id="admLoginBtn" type="submit" class="btn btn-dark" style="width:100%;">Unlock HQ</button>
+    </form>
+  </div>
+</div>
+
+<div id="hqView" class="hidden">
+  <div class="topbar">
+    <div>
+      <strong style="font-size:18px;">ClinicOS v11.0 — 1,000-Clinic HQ</strong>
+      <span id="hqUserBadge" style="font-size:12px;opacity:0.8;margin-left:10px;"></span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="onboardBtn" class="btn" onclick="openClinicModal()">+ Onboard Facility</button>
+      <button id="hqSettingsBtn" class="btn btn-soft hidden" onclick="openMasterSettings()">HQ Settings</button>
+      <button class="btn btn-red" onclick="logoutAdmin()">Logout</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="facilities" onclick="switchHqTab('facilities')">Facilities & Triage</button>
+    <button class="nav-tab" data-tab="tickets" onclick="switchHqTab('tickets')">Support Tickets <span id="tktTabBadge" class="badge b-red">0</span></button>
+    <button id="broadcastTabBtn" class="nav-tab" data-tab="broadcasts" onclick="switchHqTab('broadcasts')">Broadcasts</button>
+    <button id="payTabBtn" class="nav-tab hidden" data-tab="payments" onclick="switchHqTab('payments')">SaaS Payments</button>
+    <button id="teamTabBtn" class="nav-tab hidden" data-tab="team" onclick="switchHqTab('team')">HQ Team & Audit</button>
+  </div>
+
+  <!-- TAB 1: FACILITIES & 5 SMART TRIAGE QUEUES -->
+  <div id="hq-facilities" class="wrap">
+    <div id="kpiGrid" class="kpi-grid"></div>
+    <div id="triageBar" class="triage-bar"></div>
+
+    <div class="card">
+      <div style="font-size:11.5px;font-weight:800;color:#475569;margin-bottom:8px;text-transform:uppercase;">City Rollup</div>
+      <div id="cityPills" class="pills"></div>
+    </div>
+
+    <div class="card">
+      <div class="filters">
+        <input id="fSearch" placeholder="Instant search: name, slug, city, owner phone, GSTIN..." onkeydown="if(event.key==='Enter'){state.offset=0;loadClinics();}">
+        <select id="fType" onchange="state.offset=0;loadClinics();"><option value="">All Types</option><option value="clinic">Clinics</option><option value="hospital">Hospitals</option></select>
+        <select id="fStatus" onchange="state.offset=0;loadClinics();"><option value="">All Status</option><option value="active">Active</option><option value="expired">Expired</option><option value="paused">Paused</option></select>
+        <button class="btn" onclick="state.offset=0;loadClinics();">Search</button>
+        <button class="btn btn-soft" onclick="resetFilters()">Clear</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Facility & City</th><th>Plan / Chain</th><th>Health & Admin</th><th>Subscription</th><th>Links</th><th>Actions</th></tr></thead>
+          <tbody id="clinicsTbody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+        <div id="pageInfo" style="font-size:12px;color:#64748b;"></div>
+        <div style="display:flex;gap:8px;"><button id="prevBtn" class="btn btn-soft btn-sm" onclick="changePage(-1)">Prev</button><button id="nextBtn" class="btn btn-soft btn-sm" onclick="changePage(1)">Next</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: SUPPORT TICKETS (ZERO-PHI) -->
+  <div id="hq-tickets" class="wrap hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">Clinic Support Tickets (Zero-PHI)</h3>
+        <div style="display:flex;gap:8px;">
+          <select id="tkFilter" style="width:auto;" onchange="loadTickets()"><option value="">All</option><option value="open">Open</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option></select>
+          <button class="btn btn-soft btn-sm" onclick="loadTickets()">Refresh</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;"><table><thead><tr><th>Ticket</th><th>Facility & City</th><th>Raised By</th><th>Issue</th><th>Status</th><th>Action</th></tr></thead><tbody id="ticketsTbody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: BROADCAST ANNOUNCEMENTS -->
+  <div id="hq-broadcasts" class="wrap hidden">
+    <div class="grid2" style="align-items:start;">
+      <div class="card">
+        <h3 style="margin-bottom:10px;">Publish Broadcast Banner to Clinics</h3>
+        <form onsubmit="createAnnouncement(event)">
+          <div style="margin-bottom:8px;"><label>Title *</label><input id="anTitle" required placeholder="e.g. Scheduled Maintenance / New Feature"></div>
+          <div style="margin-bottom:8px;"><label>Message *</label><textarea id="anMsg" required rows="3" placeholder="Short announcement shown at top of Reception & Doctor portals"></textarea></div>
+          <div class="grid3" style="margin-bottom:10px;">
+            <div><label>Severity</label><select id="anSev"><option value="info">Info (Blue)</option><option value="warn">Warning (Amber)</option><option value="urgent">Urgent (Red)</option></select></div>
+            <div><label>Target City (Optional)</label><input id="anCity" placeholder="Blank = All Cities"></div>
+            <div><label>Target Plan (Optional)</label><input id="anPlan" placeholder="Blank = All Plans"></div>
+          </div>
+          <button type="submit" class="btn">Publish Now</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:10px;">Active & Past Broadcasts</h3>
+        <div id="annList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: HQ TEAM RBAC & AUDIT LOG (FOUNDER ONLY) -->
+  <div id="hq-team" class="wrap hidden">
+    <div class="grid2" style="align-items:start;">
+      <div class="card">
+        <h3 style="margin-bottom:10px;">HQ Support & Sales Team</h3>
+        <form onsubmit="createHqStaff(event)" style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:12px;">
+          <div class="grid2">
+            <div><label>User ID *</label><input id="hsUser" required placeholder="e.g. support_priya"></div>
+            <div><label>Full Name *</label><input id="hsName" required placeholder="Priya Verma"></div>
+            <div><label>HQ Role</label><select id="hsRole"><option value="support_agent">Customer Support</option><option value="sales_onboarding">Sales / City Manager</option><option value="super_admin">Co-Founder (Super Admin)</option></select></div>
+            <div><label>Assigned Cities (comma-sep)</label><input id="hsCities" placeholder="Blank = All Cities (e.g. Indore,Ujjain)"></div>
+            <div><label>Password (min 8) *</label><input id="hsPwd" type="password" required minlength="8"></div>
+            <div style="display:flex;align-items:flex-end;"><button type="submit" class="btn" style="width:100%;">+ Add HQ Member</button></div>
+          </div>
+        </form>
+        <div id="hqStaffList"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="margin:0;">HQ Team Audit Log</h3>
+          <button class="btn btn-soft btn-sm" onclick="loadHqTeamAndAudit()">Refresh</button>
+        </div>
+        <div style="overflow-x:auto;max-height:420px;"><table><thead><tr><th>Time</th><th>HQ Staff</th><th>Clinic</th><th>Action & Reason</th></tr></thead><tbody id="hqAuditTbody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- TAB 5: SAAS PAYMENT LEDGER (FOUNDER ONLY) -->
+  <div id="hq-payments" class="wrap hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">SaaS Subscription Payments & Invoices Ledger</h3>
+        <button class="btn btn-soft btn-sm" onclick="loadSaasPayments()">Refresh</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Invoice No</th><th>Date</th><th>Facility</th><th>Plan</th><th>Days</th><th>Mode / Ref</th><th>Amount</th><th>Receipt</th></tr></thead>
+          <tbody id="hqPayTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<!-- RENEW & RECORD PAYMENT MODAL -->
+<div id="renewModal" class="modal-bg hidden">
+  <div class="modal" style="max-width:440px;">
+    <h3 style="margin-bottom:10px;">Record Renewal & Generate SaaS Invoice</h3>
+    <input type="hidden" id="rnSlug">
+    <div class="grid2" style="margin-bottom:8px;">
+      <div><label>Validity Days</label><input id="rnDays" type="number" value="30" min="1"></div>
+      <div><label>Amount Collected (₹)</label><input id="rnAmt" type="number" value="999" min="0"></div>
+    </div>
+    <div class="grid2" style="margin-bottom:8px;">
+      <div><label>Payment Mode</label><select id="rnGateway"><option value="upi">UPI</option><option value="bank">Bank Transfer</option><option value="razorpay">Razorpay</option><option value="cashfree">Cashfree</option><option value="trial">Free Trial</option></select></div>
+      <div><label>Txn / UTR Ref</label><input id="rnRef" placeholder="UPI Ref / Razorpay ID"></div>
+    </div>
+    <div style="margin-bottom:12px;"><label>Notes</label><input id="rnNotes" placeholder="e.g. Monthly renewal"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('renewModal')">Cancel</button><button class="btn btn-green" onclick="submitRenewalPayment()">Confirm Renewal</button></div>
+  </div>
+</div>
+
+<!-- ONBOARD / EDIT FACILITY MODAL -->
+<div id="clinicModal" class="modal-bg hidden">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h2 id="cmTitle" style="font-size:18px;font-weight:800;">Onboard Facility</h2>
+      <button class="btn btn-soft btn-sm" onclick="closeModal('clinicModal')">Close</button>
+    </div>
+    <form onsubmit="saveClinic(event)">
+      <div class="grid3">
+        <div><label>Slug *</label><input id="cSlug" required placeholder="sharma-eye-indore"></div>
+        <div><label>Type</label><select id="cType"><option value="clinic">Clinic</option><option value="hospital">Hospital</option></select></div>
+        <div><label>Chain / Org ID (Optional)</label><input id="cOrgId" placeholder="e.g. sharma-group"></div>
+      </div>
+      <div class="grid2" style="margin-top:8px;">
+        <div><label>Facility Name *</label><input id="cName" required></div>
+        <div><label>Specialty Preset</label><select id="cPreset"><option value="general">General</option><option value="eye">Eye</option><option value="dental">Dental</option><option value="pediatrics">Pediatrics</option><option value="gynecology">Gynecology</option><option value="orthopedics">Orthopedics</option><option value="dermatology">Dermatology</option><option value="cardiology">Cardiology</option><option value="ent">ENT</option><option value="custom">Custom</option></select></div>
+      </div>
+      <div class="grid3" style="margin-top:8px;">
+        <div><label>City *</label><input id="cCity" required placeholder="Indore"></div>
+        <div><label>State</label><input id="cState" placeholder="Madhya Pradesh"></div>
+        <div><label>Owner Phone</label><input id="cPhone" placeholder="98XXXXXXXX"></div>
+      </div>
+      <div class="grid2" style="margin-top:8px;">
+        <div><label>Address</label><input id="cAddress"></div>
+        <div><label>GSTIN</label><input id="cGst"></div>
+      </div>
+      <div class="grid3" style="margin-top:8px;">
+        <div><label>Chief Doctor</label><input id="cDocName"></div>
+        <div><label>Plan Tier</label><select id="cPlan"><option value="starter">Starter</option><option value="growth">Growth</option><option value="hospital">Hospital Pro</option></select></div>
+        <div><label>Monthly Price (₹)</label><input id="cPrice" type="number" value="999"></div>
+      </div>
+      <div class="grid3" style="margin-top:8px;">
+        <div><label>Sub End Date</label><input id="cSubEnd" type="date"></div>
+        <div><label>Default Fee (₹)</label><input id="cFee" type="number" value="300"></div>
+        <div><label>Free Follow-Up Days</label><input id="cFuDays" type="number" value="0"></div>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;">
+        <div style="font-size:12px;font-weight:800;color:#0369a1;margin-bottom:6px;">Initial Clinic Admin Account</div>
+        <div class="grid3">
+          <div><label>Admin User ID</label><input id="cAdminUser" placeholder="admin"></div>
+          <div><label>Admin Name</label><input id="cAdminName" placeholder="Clinic Admin"></div>
+          <div><label>Password (min 8)</label><input id="cAdminPwd" type="password" placeholder="Blank when editing"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;"><button type="button" class="btn btn-soft" onclick="closeModal('clinicModal')">Cancel</button><button type="submit" class="btn">Save Facility</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- RESET CLINIC ADMIN PASSWORD (WITH MANDATORY REASON/TICKET) -->
+<div id="resetPwdModal" class="modal-bg hidden">
+  <div class="modal" style="max-width:440px;">
+    <h3 style="margin-bottom:10px;">Reset Clinic Admin Password</h3>
+    <input type="hidden" id="rpSlug">
+    <div style="margin-bottom:8px;"><label>Clinic Admin User ID</label><input id="rpUser"></div>
+    <div style="margin-bottom:8px;"><label>New Password (min 8 chars)</label><input id="rpPwd" type="password"></div>
+    <div style="margin-bottom:12px;"><label>Mandatory Ticket No. / Verification Reason *</label><input id="rpReason" placeholder="e.g. TKT-261126-A1B2 verified via owner phone"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('resetPwdModal')">Cancel</button><button class="btn" onclick="submitResetAdminPwd()">Reset & Log</button></div>
+  </div>
+</div>
+
+<div id="hqSettingsModal" class="modal-bg hidden">
+  <div class="modal" style="max-width:440px;">
+    <h3 style="margin-bottom:10px;">Founder HQ Settings</h3>
+    <div style="margin-bottom:8px;"><label>Support Phone</label><input id="hqSupportPhone"></div>
+    <div style="margin-bottom:8px;"><label>Current Master Key (if rotating)</label><input id="hqCurKey" type="password"></div>
+    <div style="margin-bottom:12px;"><label>New Master Key (min 10 chars)</label><input id="hqNewKey" type="password"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('hqSettingsModal')">Cancel</button><button class="btn btn-dark" onclick="saveMasterSettings()">Save</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+let state = { token: sessionStorage.getItem(CONFIG.STORAGE.MASTER_KEY) || "", hqRole: "", hqUser: "", captchaId: "", turnstileWidgetId: null, turnstileToken: "", city: "", triage: "", limit: 25, offset: 0, total: 0, clinics: [], supportPhone: "" };
+function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+
+async function refreshAdminCaptcha() {
+    if (isTurnstileEnabled()) {
+        document.getElementById("admSvgBox").classList.add("hidden"); document.getElementById("admTurnstileBox").classList.remove("hidden");
+        await loadTurnstileScript();
+        if (state.turnstileWidgetId !== null && window.turnstile) window.turnstile.reset(state.turnstileWidgetId);
+        else if (window.turnstile) state.turnstileWidgetId = window.turnstile.render("#admTurnstileBox", { sitekey: CONFIG.SECURITY.TURNSTILE_SITE_KEY, callback: (tok) => { state.turnstileToken = tok; } });
+        return;
+    }
+    const res = await api("getCaptcha");
+    if (res.success) { state.captchaId = res.captcha_id; document.getElementById("admCaptchaSvg").innerHTML = res.svg; document.getElementById("admCaptchaAns").value = ""; }
+}
+
+async function handleAdminLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById("admLoginBtn"); btn.disabled = true; btn.textContent = "Verifying...";
+    try {
+        const res = await api("saasLogin", { username: document.getElementById("hqUserInput").value.trim(), secret: document.getElementById("masterInput").value.trim(), captcha_id: state.captchaId, captcha_answer: document.getElementById("admCaptchaAns").value.trim(), turnstileToken: state.turnstileToken });
+        if (!res.success) { showToast(res.message || "Login failed.", "error"); refreshAdminCaptcha(); return; }
+        state.token = res.token;
+        sessionStorage.setItem(CONFIG.STORAGE.MASTER_KEY, res.token);
+        showHq();
+    } finally { btn.disabled = false; btn.textContent = "Unlock HQ"; }
+}
+
+function showHq() { document.getElementById("loginView").classList.add("hidden"); document.getElementById("hqView").classList.remove("hidden"); loadClinics(); }
+async function logoutAdmin() {
+    if (state.token) await api("revokeSession", { token: state.token, kind: "admin" });
+    sessionStorage.removeItem(CONFIG.STORAGE.MASTER_KEY); state.token = "";
+    document.getElementById("hqView").classList.add("hidden"); document.getElementById("loginView").classList.remove("hidden");
+    refreshAdminCaptcha();
+}
+
+function switchHqTab(tab) {
+    document.querySelectorAll(".nav-tab").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+    ["facilities", "tickets", "broadcasts", "payments", "team"].forEach((t) => document.getElementById("hq-" + t).classList.toggle("hidden", t !== tab));
+    if (tab === "tickets") loadTickets();
+    if (tab === "broadcasts") loadAnnouncements();
+    if (tab === "payments") loadSaasPayments();
+    if (tab === "team") loadHqTeamAndAudit();
+}
+
+async function loadClinics() {
+    const res = await api("saasListClinics", { token: state.token, search: document.getElementById("fSearch").value.trim(), city: state.city, status: document.getElementById("fStatus").value, facility_type: document.getElementById("fType").value, triage: state.triage, limit: state.limit, offset: state.offset });
+    if (!res.success) { if (res.auth_error) { logoutAdmin(); return; } showToast(res.message || "Error", "error"); return; }
+    state.hqRole = res.hq_role || "super_admin"; state.hqUser = res.hq_username || "founder";
+    state.total = res.total || 0; state.clinics = res.clinics || []; state.supportPhone = res.support_phone || "";
+
+    document.getElementById("hqUserBadge").textContent = `${state.hqUser} (${state.hqRole})`;
+    document.getElementById("hqSettingsBtn").classList.toggle("hidden", state.hqRole !== "super_admin");
+    document.getElementById("teamTabBtn").classList.toggle("hidden", state.hqRole !== "super_admin");
+    document.getElementById("payTabBtn").classList.toggle("hidden", state.hqRole !== "super_admin");
+    document.getElementById("onboardBtn").classList.toggle("hidden", state.hqRole === "support_agent");
+    document.getElementById("broadcastTabBtn").classList.toggle("hidden", state.hqRole === "sales_onboarding");
+
+    const g = res.global_stats || {}, tc = res.triage_counts || {};
+    document.getElementById("tktTabBadge").textContent = tc.open_tickets || 0;
+    document.getElementById("kpiGrid").innerHTML = `
+        <div class="kpi"><div class="lbl">Facilities</div><div class="val">${g.total_facilities||0}</div></div>
+        <div class="kpi"><div class="lbl">Active Live</div><div class="val" style="color:#059669;">${g.active_facilities||0}</div></div>
+        <div class="kpi"><div class="lbl">Clinics / Hosp</div><div class="val">${g.clinics||0} / ${g.hospitals||0}</div></div>
+        <div class="kpi"><div class="lbl">Cities</div><div class="val">${g.cities_count||0}</div></div>
+        ${g.total_mrr !== null && g.total_mrr !== undefined ? `<div class="kpi"><div class="lbl">Active MRR</div><div class="val" style="color:#0284c7;">₹${Number(g.total_mrr||0).toLocaleString("en-IN")}</div></div>` : ""}
+        ${g.collected_30d !== null && g.collected_30d !== undefined ? `<div class="kpi"><div class="lbl">Collected (30d)</div><div class="val" style="color:#059669;">₹${Number(g.collected_30d||0).toLocaleString("en-IN")}</div></div>` : ""}`;
+
+    const triages = [
+        { k: "", label: "All Facilities", cnt: g.total_facilities || 0, col: "#0f172a" },
+        { k: "expiring_7d", label: "Expiring in 7d", cnt: tc.expiring_7d || 0, col: "#d97706" },
+        { k: "locked_auth", label: "Locked Logins", cnt: tc.locked_auth || 0, col: "#dc2626" },
+        { k: "churn_risk", label: "Silent / Churn Risk", cnt: tc.churn_risk || 0, col: "#b91c1c" },
+        { k: "onboarding_incomplete", label: "Onboarding Pending", cnt: tc.onboarding_incomplete || 0, col: "#4f46e5" },
+        { k: "open_tickets", label: "With Open Tickets", cnt: tc.open_tickets || 0, col: "#0284c7" }
+    ];
+    document.getElementById("triageBar").innerHTML = triages.map((t) => `<button class="triage-btn ${state.triage === t.k ? "active" : ""}" onclick="selectTriage('${t.k}')"><div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">${t.label}</div><div style="font-size:20px;font-weight:900;color:${t.col};margin-top:2px;">${t.cnt}</div></button>`).join("");
+
+    document.getElementById("cityPills").innerHTML = `<button class="pill ${state.city === "" ? "active" : ""}" onclick="selectCity('')">All Cities</button>` +
+        (res.city_rollup || []).map((ct) => {
+            const val = ct.city === "Unspecified" ? "" : ct.city;
+            return `<button class="pill ${state.city.toLowerCase() === val.toLowerCase() && val !== "" ? "active" : ""}" onclick="selectCity('${escapeHTML(val)}')">${escapeHTML(ct.city)} (${ct.active}/${ct.total})</button>`;
+        }).join("");
+
+    const base = window.location.href.split("?")[0].replace(/[^/]+$/, ""), today = getTodayIST();
+    document.getElementById("clinicsTbody").innerHTML = state.clinics.map((c) => {
+        const expired = c.sub_end_date < today;
+        const stBadge = !c.is_active ? `<span class="badge b-amber">Paused</span>` : expired ? `<span class="badge b-red">Expired</span>` : `<span class="badge b-green">Active</span>`;
+        const q = `?c=${encodeURIComponent(c.slug)}`;
+        return `<tr>
+            <td><strong>${escapeHTML(c.name)}</strong><br><span style="font-size:11.5px;color:#64748b;">/${escapeHTML(c.slug)} • ${escapeHTML(c.city||"No City")} ${c.phone ? "• " + escapeHTML(c.phone) : ""}</span></td>
+            <td><span class="badge b-blue">${escapeHTML((c.facility_type||"clinic").toUpperCase())}</span> ${escapeHTML(c.plan_tier)}<br><span style="font-size:11.5px;color:#475569;">₹${Number(c.monthly_price||0)}/mo ${c.org_id ? "• Org: " + escapeHTML(c.org_id) : ""}</span></td>
+            <td style="font-size:11.5px;">Today: <strong>${c.today_visits||0}</strong> | Pts: <strong>${c.total_patients||0}</strong><br>Admin: <code>${escapeHTML(c.admin_username||"none")}</code> ${c.locked_users ? `<span class="badge b-red">${c.locked_users} Locked</span>` : ""} ${c.open_tickets ? `<span class="badge b-amber">${c.open_tickets} Tkt</span>` : ""}</td>
+            <td>${stBadge}<br><span style="font-size:11.5px;">Till ${escapeHTML(formatDateLabel(c.sub_end_date))}</span></td>
+            <td style="font-size:11.5px;line-height:1.8;"><a href="${base}index.html${q}" target="_blank">Patient</a> • <a href="${base}index.html${q}&tv=1" target="_blank">TV</a><br><a href="${base}reception.html${q}" target="_blank">Reception</a> • <a href="${base}doctor.html${q}" target="_blank">Doctor</a></td>
+            <td><div style="display:flex;flex-wrap:wrap;gap:4px;">
+                ${state.hqRole !== "support_agent" ? `<button class="btn btn-soft btn-sm" onclick="editClinic('${escapeHTML(c.slug)}')">Edit</button>` : ""}
+                ${state.hqRole !== "sales_onboarding" ? `<button class="btn btn-soft btn-sm" onclick="openResetAdminPwd('${escapeHTML(c.slug)}','${escapeHTML(c.admin_username||"admin")}')">Reset Admin</button><button class="btn btn-soft btn-sm" onclick="unlockClinic('${escapeHTML(c.slug)}')">Unlock</button>` : ""}
+                ${state.hqRole !== "support_agent" ? `<button class="btn btn-soft btn-sm" onclick="openRenewModal('${escapeHTML(c.slug)}', ${Number(c.monthly_price||999)})">Renew</button>` : ""}
+                ${c.phone ? `<button class="btn btn-green btn-sm" onclick="waRenewal('${escapeHTML(c.phone)}','${escapeHTML(c.name)}','${escapeHTML(c.sub_end_date)}')">WA Renew</button>` : ""}
+                ${state.hqRole === "super_admin" ? `<button class="btn btn-soft btn-sm" onclick="toggleClinic('${escapeHTML(c.slug)}')">${c.is_active ? "Pause" : "Resume"}</button><button class="btn btn-red btn-sm" onclick="deleteClinic('${escapeHTML(c.slug)}')">Del</button>` : ""}
+            </div></td>
+        </tr>`;
+    }).join("") || `<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No facilities match.</td></tr>`;
+
+    document.getElementById("pageInfo").textContent = `Showing ${state.total ? state.offset + 1 : 0}-${Math.min(state.offset + state.limit, state.total)} of ${state.total}`;
+    document.getElementById("prevBtn").disabled = state.offset <= 0;
+    document.getElementById("nextBtn").disabled = state.offset + state.limit >= state.total;
+}
+
+function selectTriage(k) { state.triage = k; state.offset = 0; loadClinics(); }
+function selectCity(c) { state.city = c; state.offset = 0; loadClinics(); }
+function resetFilters() { state.city = ""; state.triage = ""; state.offset = 0; document.getElementById("fSearch").value = ""; document.getElementById("fType").value = ""; document.getElementById("fStatus").value = ""; loadClinics(); }
+function changePage(dir) { state.offset = Math.max(0, state.offset + dir * state.limit); loadClinics(); }
+function waRenewal(phone, name, subEnd) { openWhatsApp(phone, `Namaste from ClinicOS Support!\nYour subscription for *${name}* is valid till *${formatDateLabel(subEnd)}*. Reply here to renew seamlessly without interrupting your OPD queue.`); }
+
+function openClinicModal(c = null) {
+    document.getElementById("cmTitle").textContent = c ? `Edit ${c.name}` : "Onboard Clinic / Hospital";
+    document.getElementById("cSlug").value = c ? c.slug : ""; document.getElementById("cSlug").readOnly = Boolean(c);
+    document.getElementById("cType").value = c ? c.facility_type : "clinic"; document.getElementById("cOrgId").value = c ? (c.org_id || "") : "";
+    document.getElementById("cName").value = c ? c.name : ""; document.getElementById("cPreset").value = c ? (c.specialty_preset || "general") : "general";
+    document.getElementById("cCity").value = c ? (c.city || "") : ""; document.getElementById("cState").value = c ? (c.state || "") : "";
+    document.getElementById("cPhone").value = c ? (c.phone || "") : ""; document.getElementById("cAddress").value = c ? (c.address || "") : "";
+    document.getElementById("cGst").value = c ? (c.gst_number || "") : ""; document.getElementById("cDocName").value = c ? (c.doctor_name || "") : "";
+    document.getElementById("cPlan").value = c ? (c.plan_tier || "starter") : "starter"; document.getElementById("cPrice").value = c ? (c.monthly_price || 999) : 999;
+    document.getElementById("cSubEnd").value = c ? c.sub_end_date : addDaysYMD(getTodayIST(), 30);
+    document.getElementById("cFee").value = c ? (c.consultation_fee || 300) : 300; document.getElementById("cFuDays").value = c ? (c.free_followup_days || 0) : 0;
+    document.getElementById("cAdminUser").value = c ? (c.admin_username || "admin") : "admin"; document.getElementById("cAdminName").value = "Clinic Admin"; document.getElementById("cAdminPwd").value = "";
+    document.getElementById("clinicModal").classList.remove("hidden");
+}
+function editClinic(slug) { const c = state.clinics.find((x) => x.slug === slug); if (c) openClinicModal(c); }
+async function saveClinic(e) {
+    e.preventDefault();
+    const res = await api("saasUpsertClinic", { token: state.token, data: { slug: document.getElementById("cSlug").value.trim().toLowerCase(), facility_type: document.getElementById("cType").value, org_id: document.getElementById("cOrgId").value.trim(), name: document.getElementById("cName").value.trim(), specialty_preset: document.getElementById("cPreset").value, city: document.getElementById("cCity").value.trim(), state: document.getElementById("cState").value.trim(), phone: document.getElementById("cPhone").value.trim(), address: document.getElementById("cAddress").value.trim(), gst_number: document.getElementById("cGst").value.trim(), doctor_name: document.getElementById("cDocName").value.trim(), plan_tier: document.getElementById("cPlan").value, monthly_price: Number(document.getElementById("cPrice").value || 999), sub_end_date: document.getElementById("cSubEnd").value, consultation_fee: Number(document.getElementById("cFee").value || 300), free_followup_days: Number(document.getElementById("cFuDays").value || 0), admin_username: document.getElementById("cAdminUser").value.trim(), admin_full_name: document.getElementById("cAdminName").value.trim(), admin_password: document.getElementById("cAdminPwd").value.trim() } });
+    showToast(res.message || "Saved", res.success ? "success" : "error");
+    if (res.success) { closeModal("clinicModal"); loadClinics(); }
+}
+
+function openResetAdminPwd(slug, uname) { document.getElementById("rpSlug").value = slug; document.getElementById("rpUser").value = uname || "admin"; document.getElementById("rpPwd").value = ""; document.getElementById("rpReason").value = ""; document.getElementById("resetPwdModal").classList.remove("hidden"); }
+async function submitResetAdminPwd() {
+    const res = await api("saasResetAdminPassword", { token: state.token, slug: document.getElementById("rpSlug").value, username: document.getElementById("rpUser").value.trim(), new_password: document.getElementById("rpPwd").value.trim(), reason: document.getElementById("rpReason").value.trim() });
+    showToast(res.message || "Done", res.success ? "success" : "error");
+    if (res.success) { closeModal("resetPwdModal"); loadClinics(); }
+}
+function openRenewModal(slug, price) {
+    document.getElementById("rnSlug").value = slug;
+    document.getElementById("rnDays").value = state.hqRole === "sales_onboarding" ? 15 : 30;
+    document.getElementById("rnAmt").value = state.hqRole === "sales_onboarding" ? 0 : price;
+    document.getElementById("rnGateway").value = state.hqRole === "sales_onboarding" ? "trial" : "upi";
+    document.getElementById("rnRef").value = ""; document.getElementById("rnNotes").value = "";
+    document.getElementById("renewModal").classList.remove("hidden");
+}
+async function submitRenewalPayment() {
+    const res = await api("saasExtendSub", { token: state.token, slug: document.getElementById("rnSlug").value, days: Number(document.getElementById("rnDays").value || 30), amount: Number(document.getElementById("rnAmt").value || 0), gateway: document.getElementById("rnGateway").value, payment_ref: document.getElementById("rnRef").value.trim(), notes: document.getElementById("rnNotes").value.trim() });
+    showToast(res.message || "Done", res.success ? "success" : "error");
+    if (res.success) { closeModal("renewModal"); loadClinics(); }
+}
+let _hqPayments = [];
+async function loadSaasPayments() {
+    const res = await api("saasListPayments", { token: state.token, limit: 60 });
+    if (!res.success) return;
+    _hqPayments = res.payments || [];
+    document.getElementById("hqPayTbody").innerHTML = _hqPayments.map((p, idx) => `<tr>
+        <td><code>${escapeHTML(p.invoice_no)}</code></td><td>${escapeHTML(formatDateTimeIST(p.paid_at))}</td>
+        <td><strong>${escapeHTML(p.clinic_name || p.slug)}</strong></td><td>${escapeHTML((p.plan_tier||"").toUpperCase())}</td>
+        <td>+${p.days_added}d</td><td>${escapeHTML((p.gateway||"").toUpperCase())} ${p.gateway_payment_id ? "• " + escapeHTML(p.gateway_payment_id) : ""}</td>
+        <td><strong>₹${Number(p.amount||0)}</strong></td>
+        <td><button class="btn btn-soft btn-sm" onclick="printSaasInvoice(_hqPayments[${idx}], {name:_hqPayments[${idx}].clinic_name})">Invoice</button></td>
+    </tr>`).join("") || `<tr><td colspan="8" style="text-align:center;color:#64748b;padding:20px;">No payments recorded yet.</td></tr>`;
+}
+async function toggleClinic(slug) { const res = await api("saasToggleClinic", { token: state.token, slug }); showToast(res.message || "Done", res.success ? "success" : "error"); if (res.success) loadClinics(); }
+async function unlockClinic(slug) { const res = await api("saasUnlockClinic", { token: state.token, slug }); showToast(res.message || "Done", res.success ? "success" : "error"); if (res.success) loadClinics(); }
+async function deleteClinic(slug) { if (!confirm(`Permanently delete '${slug}' and ALL its records?`)) return; const res = await api("saasDeleteClinic", { token: state.token, slug }); showToast(res.message || "Done", res.success ? "success" : "error"); if (res.success) loadClinics(); }
+
+// TICKETS
+async function loadTickets() {
+    const res = await api("saasManageTickets", { token: state.token, action: "list", payload: { status: document.getElementById("tkFilter").value } });
+    if (!res.success) return;
+    document.getElementById("ticketsTbody").innerHTML = (res.tickets || []).map((t) => `<tr>
+        <td><strong>${escapeHTML(t.ticket_no)}</strong><br><span class="badge ${t.priority === "urgent" ? "b-red" : "b-blue"}">${escapeHTML(t.priority)}</span></td>
+        <td><strong>${escapeHTML(t.clinic_name)}</strong><br><span style="font-size:11px;color:#64748b;">/${escapeHTML(t.slug)} • ${escapeHTML(t.city||"")}</span></td>
+        <td><code>${escapeHTML(t.raised_by_username)}</code> (${escapeHTML(t.raised_by_role)})</td>
+        <td><strong>${escapeHTML(t.subject)}</strong><br><span style="font-size:11.5px;color:#475569;">${escapeHTML(t.description||"")}</span>${t.resolution_note ? `<div style="font-size:11.5px;color:#059669;margin-top:3px;">Note: ${escapeHTML(t.resolution_note)}</div>` : ""}</td>
+        <td><span class="badge ${t.status === "resolved" ? "b-green" : "b-amber"}">${escapeHTML(t.status)}</span></td>
+        <td><button class="btn btn-green btn-sm" onclick="resolveTicket('${t.id}')">Resolve</button></td>
+    </tr>`).join("") || `<tr><td colspan="6" style="text-align:center;color:#64748b;padding:20px;">No support tickets.</td></tr>`;
+}
+async function resolveTicket(id) {
+    const note = prompt("Enter resolution note:"); if (note === null) return;
+    const res = await api("saasManageTickets", { token: state.token, action: "update", payload: { ticket_id: id, status: "resolved", resolution_note: note } });
+    showToast(res.message || "Resolved", res.success ? "success" : "error");
+    if (res.success) { loadTickets(); loadClinics(); }
+}
+
+// BROADCASTS
+async function loadAnnouncements() {
+    const res = await api("saasManageAnnouncements", { token: state.token, action: "list" });
+    if (!res.success) return;
+    document.getElementById("annList").innerHTML = (res.announcements || []).map((a) => `<div style="padding:8px 0;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;">
+        <div><strong>${escapeHTML(a.title)}</strong> <span class="badge ${a.is_active ? "b-green" : "b-red"}">${a.is_active ? "LIVE" : "OFF"}</span><div style="color:#475569;">${escapeHTML(a.message)}</div></div>
+        <button class="btn btn-soft btn-sm" onclick="toggleAnn('${a.id}')">${a.is_active ? "Stop" : "Show"}</button>
+    </div>`).join("") || `<div style="color:#64748b;font-size:12.5px;">No broadcasts yet.</div>`;
+}
+async function createAnnouncement(e) {
+    e.preventDefault();
+    const res = await api("saasManageAnnouncements", { token: state.token, action: "create", payload: { title: document.getElementById("anTitle").value.trim(), message: document.getElementById("anMsg").value.trim(), severity: document.getElementById("anSev").value, target_city: document.getElementById("anCity").value.trim(), target_plan: document.getElementById("anPlan").value.trim() } });
+    showToast(res.message || "Published", res.success ? "success" : "error");
+    if (res.success) { e.target.reset(); loadAnnouncements(); }
+}
+async function toggleAnn(id) { const res = await api("saasManageAnnouncements", { token: state.token, action: "toggle", payload: { id } }); if (res.success) loadAnnouncements(); }
+
+// HQ TEAM & AUDIT
+async function loadHqTeamAndAudit() {
+    const sRes = await api("saasManageStaff", { token: state.token, action: "list" });
+    if (sRes.success) {
+        document.getElementById("hqStaffList").innerHTML = (sRes.staff || []).map((s) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #e2e8f0;font-size:12px;">
+            <div><strong>${escapeHTML(s.full_name)}</strong> (<code>${escapeHTML(s.username)}</code>) <span class="badge b-blue">${escapeHTML(s.role)}</span> ${!s.is_active ? `<span class="badge b-red">Off</span>` : ""}</div>
+            <div style="display:flex;gap:4px;"><button class="btn btn-soft btn-sm" onclick="resetHqStaffPwd('${s.id}','${escapeHTML(s.username)}')">Reset</button><button class="btn btn-soft btn-sm" onclick="toggleHqStaff('${s.id}')">${s.is_active ? "Disable" : "Enable"}</button></div>
+        </div>`).join("") || `<div style="font-size:12px;color:#64748b;">No HQ staff members yet.</div>`;
+    }
+    const aRes = await api("saasGetHqAuditLog", { token: state.token, limit: 60 });
+    if (aRes.success) {
+        document.getElementById("hqAuditTbody").innerHTML = (aRes.logs || []).map((l) => `<tr><td>${escapeHTML(formatDateTimeIST(l.created_at))}</td><td><code>${escapeHTML(l.actor_username)}</code></td><td>${escapeHTML(l.slug || "HQ")}</td><td><strong>${escapeHTML(l.action)}</strong> ${escapeHTML(JSON.stringify(l.details || {}))}</td></tr>`).join("");
+    }
+}
+async function createHqStaff(e) {
+    e.preventDefault();
+    const res = await api("saasManageStaff", { token: state.token, action: "create", payload: { username: document.getElementById("hsUser").value.trim(), full_name: document.getElementById("hsName").value.trim(), role: document.getElementById("hsRole").value, assigned_cities: document.getElementById("hsCities").value.trim(), password: document.getElementById("hsPwd").value } });
+    showToast(res.message || "Created", res.success ? "success" : "error");
+    if (res.success) { e.target.reset(); loadHqTeamAndAudit(); }
+}
+async function toggleHqStaff(id) { const res = await api("saasManageStaff", { token: state.token, action: "toggle_active", payload: { staff_id: id } }); if (res.success) loadHqTeamAndAudit(); }
+async function resetHqStaffPwd(id, uname) {
+    const np = prompt(`New password (min 8 chars) for HQ user '${uname}':`); if (!np || np.trim().length < 8) return;
+    const res = await api("saasManageStaff", { token: state.token, action: "reset_password", payload: { staff_id: id, new_password: np.trim() } });
+    showToast(res.message || "Done", res.success ? "success" : "error");
+}
+
+function openMasterSettings() { document.getElementById("hqSupportPhone").value = state.supportPhone || ""; document.getElementById("hqCurKey").value = ""; document.getElementById("hqNewKey").value = ""; document.getElementById("hqSettingsModal").classList.remove("hidden"); }
+async function saveMasterSettings() {
+    const res = await api("saasUpdateMasterConfig", { token: state.token, current_secret: document.getElementById("hqCurKey").value.trim(), new_secret: document.getElementById("hqNewKey").value.trim() || null, support_phone: document.getElementById("hqSupportPhone").value.trim() });
+    showToast(res.message || "Saved", res.success ? "success" : "error");
+    if (res.success) closeModal("hqSettingsModal");
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    initOfflineBanner();
+    initInactivityAutoLock(() => { if (state.token) logoutAdmin(); });
+    if (state.token) showHq();
+    else refreshAdminCaptcha();
+});
+</script>
+</body>
+</html>
