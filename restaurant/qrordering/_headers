@@ -1,0 +1,15 @@
+# Security headers for Netlify and Cloudflare Pages (GitHub Pages ignores this file; the pages
+# still carry a Content-Security-Policy <meta> tag, but frame-ancestors can only be set by a header).
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: default-src 'none'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' https: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com about:; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'
+
+/*.html
+  Cache-Control: no-cache
+/*.js
+  Cache-Control: no-cache
