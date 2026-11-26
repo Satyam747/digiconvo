@@ -13,14 +13,14 @@ const CONFIG = Object.freeze({
   APP: Object.freeze({ NAME: "DigiConvo QR Ordering", VERSION: "8.0.0" }),
 
   SUPABASE: Object.freeze({
-    URL: "https://YOUR-PROJECT-REF.supabase.co",
-    ANON_KEY: "YOUR-SUPABASE-ANON-OR-PUBLISHABLE-KEY"
+    URL: "https://ninecqyodlnzswuootjt.supabase.co",
+    ANON_KEY: "sb_publishable_ip47j42iXPXAFadVov-K7A_3igHZfsh"
   }),
 
   /* Cloudflare Turnstile SITE key (public). The value below is Cloudflare's official TEST key
      (always passes) - fine for development, replace it with your real site key before going live.
      The matching SECRET key is entered in Supabase -> Authentication -> Attack Protection. */
-  TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
+  TURNSTILE_SITE_KEY: "0x4AAAAAAGQLuZt8RmUdSnq6",
 
   DASHBOARD: Object.freeze({
     /* auto sign-out after this many idle minutes (0 = never, e.g. for a wall-mounted kitchen screen) */
