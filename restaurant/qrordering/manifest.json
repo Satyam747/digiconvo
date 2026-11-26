@@ -1,0 +1,17 @@
+{
+  "name": "DigiConvo Smart QR Ordering",
+  "short_name": "DigiConvo QR",
+  "description": "GST-compliant QR Dine-In, Takeaway, KDS & Multi-Outlet Restaurant Ordering",
+  "start_url": "./dashboard.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#d97706",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23d97706'/%3E%3Ctext x='96' y='124' font-size='90' text-anchor='middle' fill='%23fff' font-family='sans-serif' font-weight='900'%3ED%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
