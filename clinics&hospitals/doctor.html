@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ClinicOS Doctor Consultation & Digital Prescription Desk — Manage OPD queue, prescriptions, lab orders, and medical certificates.">
+<title>ClinicOS v11.0 — Doctor Consultation & Rx Desk</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230284c7'/%3E%3Cpath d='M28 14h8v14h14v8H36v14h-8V36H14v-8h14z' fill='%23fff'/%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<style>
+  :root { --primary:#0284c7; --primary-dark:#0369a1; --accent:#0ea5e9; --bg-soft:#f0f9ff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:#f1f5f9; color:#0f172a; }
+  .hidden { display:none !important; }
+  .login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px; }
+  .login-card { width:100%; max-width:420px; background:#fff; border-radius:18px; padding:26px; box-shadow:0 12px 30px rgba(15,23,42,0.1); }
+  .topbar { background:var(--primary-dark); color:#fff; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .layout { max-width:1380px; margin:0 auto; padding:14px; display:grid; grid-template-columns:330px 1fr; gap:14px; align-items:start; }
+  @media(max-width:960px){ .layout { grid-template-columns:1fr; } }
+  .card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:15px; margin-bottom:12px; }
+  .q-card { border:1px solid #e2e8f0; border-radius:10px; padding:10px; margin-bottom:8px; cursor:pointer; background:#fff; }
+  .q-card.selected { border-color:var(--primary); background:var(--bg-soft); }
+  .q-card.calling { border-left:4px solid #059669; }
+  label { display:block; font-size:11.5px; font-weight:700; color:#334155; margin-bottom:3px; }
+  input, select, textarea { width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; background:#fff; font-family:inherit; }
+  textarea { min-height:66px; resize:vertical; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  @media(max-width:640px){ .grid2, .grid3 { grid-template-columns:1fr; } }
+  .btn { border:none; border-radius:8px; padding:8px 13px; font-size:12.5px; font-weight:700; cursor:pointer; background:var(--primary); color:#fff; }
+  .btn-soft { background:#e2e8f0; color:#0f172a; }
+  .btn-green { background:#059669; color:#fff; }
+  .btn-amber { background:#d97706; color:#fff; }
+  .btn-red { background:#dc2626; color:#fff; }
+  .btn-sm { padding:5px 8px; font-size:11.5px; }
+  .mic-btn { background:#f1f5f9; border:1px solid #cbd5e1; color:#0f172a; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; }
+  .mic-listening { background:#dc2626 !important; color:#fff !important; border-color:#dc2626 !important; }
+  .allergy-banner { background:#fef2f2; border:2px solid #dc2626; color:#991b1b; padding:10px 12px; border-radius:10px; font-weight:800; margin-bottom:10px; font-size:13px; }
+  .chip { display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid #cbd5e1; background:#f8fafc; font-size:11px; font-weight:700; cursor:pointer; margin:2px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; }
+  .b-green { background:#dcfce7; color:#166534; }
+  .med-row { display:grid; grid-template-columns:2fr 2fr 1fr auto; gap:6px; margin-bottom:6px; align-items:center; }
+  .prev-box { background:#fffbeb; border:1px solid #fcd34d; border-radius:10px; padding:10px; margin-bottom:10px; font-size:12.5px; }
+  .modal-bg { position:fixed; inset:0; background:rgba(15,23,42,0.55); display:flex; align-items:center; justify-content:center; padding:16px; z-index:999; }
+  .modal { background:#fff; border-radius:14px; width:100%; max-width:480px; padding:20px; }
+</style>
+</head>
+<body>
+
+<div id="missingSlugBox" class="login-wrap hidden"><div class="login-card" style="text-align:center;"><h2>Missing Clinic Link</h2><p style="font-size:13px;color:#64748b;margin-top:6px;">Open with <code>doctor.html?c=your-clinic-slug</code>.</p></div></div>
+
+<div id="loginView" class="login-wrap hidden">
+  <div class="login-card">
+    <h1 style="font-size:21px;font-weight:900;">Doctor Consultation Portal</h1>
+    <p style="font-size:12.5px;color:#64748b;margin:4px 0 16px;">Sign in with Doctor or Clinic Admin User ID & Password</p>
+    <form onsubmit="handleDocLogin(event)">
+      <div style="margin-bottom:10px;"><label for="dlUser">User ID</label><input id="dlUser" required autocomplete="username" placeholder="e.g. dr.sharma"></div>
+      <div style="margin-bottom:10px;"><label for="dlPass">Password</label><input id="dlPass" type="password" required autocomplete="current-password"></div>
+      <div style="margin-bottom:12px;">
+        <label for="docCaptchaAns">Security Verification</label>
+        <div id="docTurnstileBox" class="hidden"></div>
+        <div id="docSvgBox" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div id="docCaptchaSvg"></div>
+          <input id="docCaptchaAns" placeholder="Code" style="max-width:115px;text-transform:uppercase;">
+          <button type="button" class="btn btn-soft btn-sm" onclick="refreshDocCaptcha()" aria-label="Refresh security code">Refresh</button>
+        </div>
+      </div>
+      <button id="dlBtn" type="submit" class="btn" style="width:100%;">Sign In to Cabin</button>
+    </form>
+  </div>
+</div>
+
+<div id="appView" class="hidden">
+  <div class="topbar">
+    <div><strong id="topClinicName" style="font-size:17px;">Doctor Desk</strong><span id="topDocMeta" style="font-size:12px;opacity:0.88;margin-left:10px;"></span></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <select id="adminDocSwitcher" class="hidden" aria-label="Switch active doctor" style="width:auto;padding:5px 8px;font-size:12px;" onchange="onAdminDocSwitch()"></select>
+      <select id="voiceLang" aria-label="Voice dictation language" style="width:auto;padding:5px 8px;font-size:12px;"><option value="en-IN">Voice: English (IN)</option><option value="hi-IN">Voice: Hindi (हिन्दी)</option></select>
+      <button id="leaveToggleBtn" class="btn btn-soft btn-sm" onclick="toggleMyLeave()" aria-label="Toggle doctor leave status">On Leave: OFF</button>
+      <button class="btn btn-amber btn-sm" onclick="openTicketModal()" aria-label="Raise support ticket">Need Help?</button>
+      <button class="btn btn-soft btn-sm" onclick="openOwnPwdModal()" aria-label="Change my password">My Password</button>
+      <button class="btn btn-red btn-sm" onclick="logoutDoctor()" aria-label="Sign out">Logout</button>
+    </div>
+  </div>
+
+  <div style="max-width:1380px;margin:10px auto 0;padding:0 14px;"><div id="annBanner" class="hidden"></div></div>
+
+  <div class="layout">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <strong style="font-size:14px;">Today's Queue</strong>
+        <button class="btn btn-soft btn-sm" onclick="docPoller && docPoller.pollNow(true)" aria-label="Refresh doctor queue">Refresh</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;" role="tablist" aria-label="Queue status tabs">
+        <button class="btn btn-sm" id="qTabWait" role="tab" aria-selected="true" onclick="setQFilter('active')" style="flex:1;">Waiting</button>
+        <button class="btn btn-soft btn-sm" id="qTabDone" role="tab" aria-selected="false" onclick="setQFilter('completed')" style="flex:1;">Done</button>
+      </div>
+      <div id="docQueueList" aria-live="polite"><div style="text-align:center;color:#64748b;padding:24px;font-size:13px;">Loading queue...</div></div>
+    </div>
+
+    <div id="emptyBench" class="card" style="text-align:center;padding:60px 20px;color:#64748b;">
+      <h2 style="color:#0f172a;margin-bottom:6px;">Select a Patient from the Queue</h2>
+      <p style="font-size:13px;">Click any waiting token on the left to review intake, allergies, previous Rx, and prescribe.</p>
+    </div>
+
+    <div id="rxBench" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <div>
+            <span id="ptTokenBadge" style="font-size:20px;font-weight:900;color:var(--primary);margin-right:8px;"></span>
+            <strong id="ptName" style="font-size:18px;"></strong>
+            <div id="ptMeta" style="font-size:12.5px;color:#475569;margin-top:2px;"></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="callCabinBtn" class="btn btn-green btn-sm" onclick="callCurrentPatient()">Call to Cabin</button>
+            <button id="crossRefBtn" class="btn btn-soft btn-sm hidden" onclick="openCrossReferModal()">Cross-Refer</button>
+            <button class="btn btn-soft btn-sm" onclick="printCurrentRx()">Print Rx</button>
+            <button class="btn btn-soft btn-sm" onclick="printCurrentLab()">Lab Req</button>
+            <button class="btn btn-soft btn-sm" onclick="openCertModal()">Med Cert</button>
+            <button class="btn btn-green btn-sm" onclick="waCurrentRx()">WhatsApp Rx</button>
+          </div>
+        </div>
+
+        <div id="allergyBanner" class="allergy-banner hidden" role="alert"></div>
+        <div id="intakeBox" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:12.5px;margin-bottom:10px;"></div>
+        <div id="prevVisitBox" class="prev-box hidden"></div>
+        <div id="vitalsTrendBox" class="hidden" style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:8px 10px;margin-bottom:10px;font-size:12px;"></div>
+        <datalist id="medFormularyList"></datalist>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:8px 10px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <strong style="font-size:12px;color:#0369a1;">Quick-Rx:</strong>
+            <select id="tplSelect" aria-label="Select prescription template" style="width:auto;padding:5px 8px;font-size:12px;"><option value="">-- Select Template --</option></select>
+            <button type="button" class="btn btn-sm" onclick="applySelectedTemplate()">Apply</button>
+            <button type="button" class="btn btn-soft btn-sm" onclick="deleteSelectedTemplate()">Delete</button>
+          </div>
+          <button type="button" class="btn btn-soft btn-sm" onclick="saveCurrentAsTemplate()">+ Save Template</button>
+        </div>
+
+        <div class="grid2">
+          <div><label for="rxComplaint" style="display:flex;justify-content:space-between;"><span>Chief Complaints</span><button type="button" class="mic-btn" onclick="dictateTo('rxComplaint', this)" aria-label="Dictate chief complaints">🎤 Dictate</button></label><textarea id="rxComplaint" placeholder="Symptoms..."></textarea></div>
+          <div><label for="rxDiagnosis" style="display:flex;justify-content:space-between;"><span>Diagnosis</span><button type="button" class="mic-btn" onclick="dictateTo('rxDiagnosis', this)" aria-label="Dictate diagnosis">🎤 Dictate</button></label><textarea id="rxDiagnosis" placeholder="Diagnosis..."></textarea></div>
+        </div>
+
+        <div style="margin-top:10px;"><label for="rxAllergies" style="color:#b91c1c;">Permanent Drug Allergies (Patient Master UHID)</label><input id="rxAllergies" placeholder="e.g. Penicillin, Aspirin"></div>
+
+        <div style="margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><label style="margin:0;font-size:13px;">℞ Medicines</label><button type="button" class="btn btn-soft btn-sm" onclick="addMedRow()">+ Add Medicine</button></div>
+          <div id="dosageChipsBar" style="margin-bottom:8px;"></div>
+          <div id="medRows"></div>
+        </div>
+
+        <div class="grid2" style="margin-top:10px;">
+          <div><label for="rxLabs" style="display:flex;justify-content:space-between;"><span>Investigations / Lab Tests</span><button type="button" class="mic-btn" onclick="dictateTo('rxLabs', this)" aria-label="Dictate lab tests">🎤 Dictate</button></label><textarea id="rxLabs" placeholder="CBC, HbA1c, X-Ray..."></textarea></div>
+          <div><label for="rxAdvice" style="display:flex;justify-content:space-between;"><span>Advice & Instructions</span><button type="button" class="mic-btn" onclick="dictateTo('rxAdvice', this)" aria-label="Dictate advice">🎤 Dictate</button></label><textarea id="rxAdvice" placeholder="Diet, rest..."></textarea></div>
+        </div>
+
+        <div class="grid3" style="margin-top:10px;">
+          <div><label for="rxRecallDays">Follow-Up (Days)</label><input id="rxRecallDays" type="number" min="0" oninput="syncRecallDateFromDays()"></div>
+          <div><label for="rxRecallDate">Follow-Up Due Date</label><input id="rxRecallDate" type="date"></div>
+          <div style="display:flex;align-items:flex-end;gap:6px;">
+            <button id="saveDraftBtn" type="button" class="btn btn-soft" style="flex:1;" onclick="saveRx(false)">Save Draft</button>
+            <button id="saveCompleteBtn" type="button" class="btn btn-green" style="flex:1.4;" onclick="saveRx(true)">Save & Complete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MCI REG 1.3.3 MEDICAL CERTIFICATE MODAL -->
+<div id="certModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="certModalTitle">
+  <div class="modal">
+    <h3 id="certModalTitle" style="margin-bottom:8px;">Issue & Register Medical Certificate (MCI Reg. 1.3.3)</h3>
+    <div style="margin-bottom:8px;"><label for="certType">Certificate Type</label><select id="certType"><option value="leave">Medical Leave / Rest Certificate</option><option value="fitness">Medical Fitness Certificate</option></select></div>
+    <div style="margin-bottom:8px;"><label for="certIdMark">Patient Identification Mark *</label><input id="certIdMark" required placeholder="e.g. Mole on right forearm / scar on forehead"></div>
+    <div style="margin-bottom:8px;"><label for="certCond">Medical Condition / Diagnosis</label><input id="certCond"></div>
+    <div class="grid3" style="margin-bottom:8px;">
+      <div><label for="certDays">Rest Days</label><input id="certDays" type="number" min="1" value="3" oninput="syncCertDates('days')"></div>
+      <div><label for="certFrom">From Date</label><input id="certFrom" type="date" onchange="syncCertDates('from')"></div>
+      <div><label for="certTo">To Date</label><input id="certTo" type="date" onchange="syncCertDates('to')"></div>
+    </div>
+    <div style="margin-bottom:12px;"><label for="certRem">Remarks</label><input id="certRem"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('certModal')">Cancel</button><button id="issueCertBtn" class="btn" onclick="issueAndPrintCert()">Save to Register & Print</button></div>
+  </div>
+</div>
+
+<!-- CROSS-REFER MODAL -->
+<div id="crossRefModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="crossRefTitle">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="crossRefTitle" style="margin-bottom:10px;">Cross-Refer Patient to Another Doctor/Dept</h3>
+    <div style="margin-bottom:8px;"><label for="crDoctor">Target Doctor</label><select id="crDoctor"></select></div>
+    <div style="margin-bottom:12px;"><label for="crReason">Clinical Referral Note</label><input id="crReason" placeholder="e.g. Fundus exam needed"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('crossRefModal')">Cancel</button><button id="crossRefSubmitBtn" class="btn" onclick="submitCrossRefer()">Transfer</button></div>
+  </div>
+</div>
+
+<!-- SUPPORT TICKET MODAL -->
+<div id="ticketModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="ticketModalTitle">
+  <div class="modal" style="max-width:460px;">
+    <h3 id="ticketModalTitle" style="margin-bottom:6px;">Raise Support Ticket (Zero-PHI)</h3>
+    <p style="font-size:12px;color:#64748b;margin-bottom:10px;">Do not include patient names or medical details.</p>
+    <div style="margin-bottom:8px;"><label for="tkSubj">Subject *</label><input id="tkSubj" placeholder="Brief summary of the issue"></div>
+    <div style="margin-bottom:12px;"><label for="tkDesc">Details</label><textarea id="tkDesc" rows="3"></textarea></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('ticketModal')">Cancel</button><button class="btn btn-amber" onclick="submitSupportTicket()">Send Ticket</button></div>
+  </div>
+</div>
+
+<div id="ownPwdModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="ownPwdTitle">
+  <div class="modal" style="max-width:400px;">
+    <h3 id="ownPwdTitle" style="margin-bottom:10px;">Change My Password</h3>
+    <div style="margin-bottom:8px;"><label for="opOld">Current Password</label><input id="opOld" type="password" required></div>
+    <div style="margin-bottom:12px;"><label for="opNew">New Password (min 8 chars)</label><input id="opNew" type="password" required minlength="8"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="btn btn-soft" onclick="closeModal('ownPwdModal')">Cancel</button><button class="btn" onclick="submitOwnPassword()">Update</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+let state = {
+    token: getSessionToken(CONFIG.STORAGE.STAFF_TOKEN),
+    user: null, clinic: null, departments: [], doctors: [], medicines: [], tokens: [],
+    knownVersion: null, knownMetaVersion: null, today: "",
+    qFilter: "active", selectedVisitId: null, lastPrevVisit: null, activeDosageInput: null,
+    patientLookupCache: {}, captchaId: "", turnstileWidgetId: null, turnstileToken: "",
+    inFlightAction: false
+};
+let docPoller = null;
+
+function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+
+async function refreshDocCaptcha() {
+    state.turnstileToken = "";
+    if (isTurnstileEnabled()) {
+        document.getElementById("docSvgBox").classList.add("hidden"); document.getElementById("docTurnstileBox").classList.remove("hidden");
+        try {
+            await loadTurnstileScript();
+            if (state.turnstileWidgetId !== null && window.turnstile) window.turnstile.reset(state.turnstileWidgetId);
+            else if (window.turnstile) state.turnstileWidgetId = window.turnstile.render("#docTurnstileBox", { sitekey: CONFIG.SECURITY.TURNSTILE_SITE_KEY, callback: (tok) => { state.turnstileToken = tok; }, "expired-callback": () => { state.turnstileToken = ""; }, "error-callback": () => { state.turnstileToken = ""; } });
+        } catch (err) {
+            showToast(err && err.message ? err.message : "Failed to load security check.", "error");
+        }
+        return;
+    }
+    const res = await api("getCaptcha");
+    if (res.success) {
+        state.captchaId = res.captcha_id;
+        renderSafeCaptchaSvg("docCaptchaSvg", res.svg);
+        document.getElementById("docCaptchaAns").value = "";
+    } else {
+        showToast(res.message || "Failed to load security code.", "error");
+    }
+}
+
+async function handleDocLogin(e) {
+    e.preventDefault();
+    const turnstileTok = state.turnstileToken;
+    if (isTurnstileEnabled() && !turnstileTok) { showToast("Please complete the Cloudflare security check first.", "warn"); return; }
+    state.turnstileToken = "";
+    const btn = document.getElementById("dlBtn"); btn.disabled = true; btn.textContent = "Signing in...";
+    try {
+        const res = await api("staffLogin", { slug: CONFIG.TENANT.SLUG, username: document.getElementById("dlUser").value.trim(), password: document.getElementById("dlPass").value, portal: "doctor", captcha_id: state.captchaId, captcha_answer: document.getElementById("docCaptchaAns").value.trim(), turnstileToken: turnstileTok });
+        if (!res.success) { showToast(res.message || "Login failed.", "error"); refreshDocCaptcha(); return; }
+        state.token = res.token; state.user = res.user;
+        setSessionToken(CONFIG.STORAGE.STAFF_TOKEN, res.token);
+        enterDocApp();
+    } finally { btn.disabled = false; btn.textContent = "Sign In to Cabin"; }
+}
+
+function logoutDoctor() {
+    const tokToRevoke = state.token;
+    clearSessionToken(CONFIG.STORAGE.STAFF_TOKEN);
+    state.token = ""; state.user = null; state.clinic = null;
+    state.knownVersion = null; state.knownMetaVersion = null;
+    state.tokens = []; state.selectedVisitId = null; state.patientLookupCache = {};
+    if (docPoller) docPoller.stop();
+    document.getElementById("docQueueList").innerHTML = "";
+    document.getElementById("medRows").innerHTML = "";
+    document.getElementById("rxBench").classList.add("hidden");
+    document.getElementById("emptyBench").classList.remove("hidden");
+    document.getElementById("appView").classList.add("hidden");
+    document.getElementById("loginView").classList.remove("hidden");
+    refreshDocCaptcha();
+    if (tokToRevoke) api("revokeSession", { token: tokToRevoke, kind: "staff" });
+}
+
+function enterDocApp() {
+    document.getElementById("loginView").classList.add("hidden"); document.getElementById("appView").classList.remove("hidden");
+    document.getElementById("dosageChipsBar").innerHTML = DOSAGE_CHIPS.map((c) => `<span class="chip" role="button" tabindex="0" onclick="insertDosageChip('${escapeJsAttr(c.val)}')">${escapeHTML(c.label)}</span>`).join("");
+    if (docPoller) docPoller.start(true);
+    else pollDocDashboard(true);
+}
+
+function activeDoctorId() {
+    if (state.user && state.user.role === "doctor") return state.user.doctor_id;
+    const sw = document.getElementById("adminDocSwitcher");
+    return (sw && sw.value) || (state.doctors[0] && state.doctors[0].doctor_id) || "doc_1";
+}
+function activeDoctorObj() { return state.doctors.find((d) => d.doctor_id === activeDoctorId()) || state.doctors[0] || null; }
+
+function renderCrossReferDoctors() {
+    const curId = activeDoctorId();
+    const others = state.doctors.filter((d) => d.is_active !== false && d.doctor_id !== curId);
+    document.getElementById("crossRefBtn").classList.toggle("hidden", others.length === 0);
+    document.getElementById("crDoctor").innerHTML = others.map((d) => `<option value="${escapeHTML(d.doctor_id)}">${escapeHTML(d.name)}</option>`).join("");
+}
+
+function onAdminDocSwitch() {
+    renderTemplatesDropdown();
+    renderCrossReferDoctors();
+    renderDoctorQueue();
+}
+
+async function pollDocDashboard(force = false) {
+    if (!state.token) return false;
+    const res = await api("getStaffDashboard", {
+        slug: CONFIG.TENANT.SLUG, portal: "doctor", token: state.token,
+        known_version: force ? null : state.knownVersion,
+        known_meta_version: force ? null : state.knownMetaVersion,
+        known_day: state.today || null
+    });
+    if (!res.success) {
+        if (res.auth_error) { logoutDoctor(); return false; }
+        if (force) showToast(res.message || "Failed to load dashboard.", "error");
+        return false;
+    }
+    if (res.today) state.today = res.today;
+    if (res.unchanged) return false;
+
+    const first = state.clinic === null;
+    state.knownVersion = res.queue_version;
+    if (res.meta_version !== undefined) state.knownMetaVersion = res.meta_version;
+    state.user = res.user;
+    if (!res.meta_unchanged) {
+        state.clinic = res.clinic;
+        state.departments = res.departments || [];
+        state.doctors = res.doctors || [];
+        state.medicines = res.medicines || [];
+        renderFormularyDatalist();
+        renderAnnouncementBanner("annBanner", res.announcements || []);
+    }
+    state.tokens = res.tokens || [];
+
+    if (state.user && state.user.must_change_password) { openOwnPwdModal(true); }
+    const curDoc = activeDoctorObj();
+    if (curDoc) {
+        const lb = document.getElementById("leaveToggleBtn");
+        lb.textContent = curDoc.is_on_leave ? "On Leave: ON" : "On Leave: OFF";
+        lb.className = curDoc.is_on_leave ? "btn btn-red btn-sm" : "btn btn-soft btn-sm";
+    }
+    applyThemePreset(state.clinic.theme);
+    document.getElementById("topClinicName").textContent = state.clinic.name;
+    document.getElementById("topDocMeta").textContent = `${state.user.full_name} (${state.user.role})`;
+    if (state.user.role === "clinic_admin") {
+        const sw = document.getElementById("adminDocSwitcher"); sw.classList.remove("hidden");
+        if (first || !res.meta_unchanged) sw.innerHTML = state.doctors.map((d) => `<option value="${escapeHTML(d.doctor_id)}">${escapeHTML(d.name)}</option>`).join("");
+    }
+    renderCrossReferDoctors();
+    renderTemplatesDropdown();
+    renderDoctorQueue();
+    return true;
+}
+
+function renderTemplatesDropdown() {
+    const doc = activeDoctorObj();
+    const list = (doc && Array.isArray(doc.rx_templates)) ? doc.rx_templates : [];
+    document.getElementById("tplSelect").innerHTML = `<option value="">-- Select Template (${list.length}) --</option>` + list.map((t) => `<option value="${escapeHTML(t.id)}">${escapeHTML(t.title)}</option>`).join("");
+}
+
+function setQFilter(f) {
+    state.qFilter = f;
+    const w = document.getElementById("qTabWait"), d = document.getElementById("qTabDone");
+    w.className = f === "active" ? "btn btn-sm" : "btn btn-soft btn-sm"; w.setAttribute("aria-selected", String(f === "active"));
+    d.className = f === "completed" ? "btn btn-sm" : "btn btn-soft btn-sm"; d.setAttribute("aria-selected", String(f === "completed"));
+    renderDoctorQueue();
+}
+
+function renderDoctorQueue() {
+    const docId = activeDoctorId();
+    const list = state.tokens.filter((v) => v.doctor_id === docId && (state.qFilter === "active" ? ["in_consultation", "waiting", "skipped"].includes(v.status) : v.status === "completed"));
+    document.getElementById("docQueueList").innerHTML = list.map((v) => `<div class="q-card ${v.id === state.selectedVisitId ? "selected" : ""} ${v.status === "in_consultation" ? "calling" : ""}" role="button" tabindex="0" onclick="selectVisit('${escapeJsAttr(v.id)}')">
+        <div style="display:flex;justify-content:space-between;"><strong style="color:var(--primary);font-size:15px;">${escapeHTML(v.token_label || ("#" + v.token_no))} — ${escapeHTML(v.name)}</strong>${v.status === "in_consultation" ? `<span class="badge b-green">IN CABIN</span>` : ""}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px;">${escapeHTML(v.age||"-")}/${escapeHTML(v.gender||"-")} • ${escapeHTML(v.uhid||"")} ${v.drug_allergies ? `• <span style="color:#dc2626;font-weight:700;">⚠ Allergy</span>` : ""}</div>
+    </div>`).join("") || `<div style="text-align:center;color:#64748b;padding:24px;font-size:13px;">No patients in this tab.</div>`;
+}
+
+async function selectVisit(id) {
+    const v = state.tokens.find((x) => x.id === id); if (!v) return;
+    state.selectedVisitId = id; state.lastPrevVisit = null; renderDoctorQueue();
+    document.getElementById("emptyBench").classList.add("hidden"); document.getElementById("rxBench").classList.remove("hidden");
+    document.getElementById("ptTokenBadge").textContent = v.token_label || ("#" + v.token_no);
+    document.getElementById("ptName").textContent = v.name;
+    document.getElementById("ptMeta").textContent = `UHID: ${v.uhid || "-"} • ${v.age || "-"}/${v.gender || "-"} • S/o ${v.father_name || "-"} • Tel: ${v.phone || "-"}` + (v.rx_revision_count ? ` • Rev #${v.rx_revision_count}` : "");
+
+    const ab = document.getElementById("allergyBanner");
+    if (v.drug_allergies) { ab.textContent = `⚠ DRUG ALLERGY ALERT: ${v.drug_allergies}`; ab.classList.remove("hidden"); } else ab.classList.add("hidden");
+
+    const vit = (v.vitals_json && typeof v.vitals_json === "object") ? Object.entries(v.vitals_json).filter(([, val]) => String(val || "").trim() !== "") : [];
+    document.getElementById("intakeBox").innerHTML = `<strong>Pre-Exam Intake:</strong> ` + (vit.length ? vit.map(([k, val]) => `<span style="margin-right:12px;"><strong>${escapeHTML(k)}:</strong> ${escapeHTML(val)}</span>`).join("") : "None") + (v.reception_remarks ? `<div style="margin-top:4px;color:#0369a1;"><strong>Remarks:</strong> ${escapeHTML(v.reception_remarks)}</div>` : "");
+
+    document.getElementById("rxComplaint").value = v.chief_complaint || ""; document.getElementById("rxDiagnosis").value = v.diagnosis || "";
+    document.getElementById("rxAllergies").value = v.drug_allergies || ""; document.getElementById("rxLabs").value = v.lab_tests || "";
+    document.getElementById("rxAdvice").value = v.advice || ""; document.getElementById("rxRecallDays").value = v.recall_days || "";
+    document.getElementById("rxRecallDate").value = v.recall_due_date || "";
+    renderMedRows(Array.isArray(v.rx_medicines) && v.rx_medicines.length ? v.rx_medicines : [{ name: "", dosage: "", duration: "" }]);
+
+    const pBox = document.getElementById("prevVisitBox"); pBox.classList.add("hidden");
+    const tBox = document.getElementById("vitalsTrendBox"); tBox.classList.add("hidden");
+    const cacheKey = v.patient_id || v.uhid || v.phone;
+    if (cacheKey) {
+        let lk = state.patientLookupCache[cacheKey];
+        if (!lk) {
+            lk = await api("lookupPatient", { slug: CONFIG.TENANT.SLUG, token: state.token, query: v.uhid || v.phone });
+            if (lk.success) state.patientLookupCache[cacheKey] = lk;
+        }
+        if (lk && lk.success && Array.isArray(lk.recent_visits)) {
+            const trendVisits = lk.recent_visits.filter((rv) => rv.id !== v.id).slice(0, 5);
+            if (trendVisits.length) {
+                tBox.innerHTML = `<strong style="color:#0369a1;">Previous Visits Trend (Last ${trendVisits.length}):</strong><div style="margin-top:4px;display:flex;flex-direction:column;gap:4px;">` + trendVisits.map((tv) => {
+                    const vs = tv.vitals_json && typeof tv.vitals_json === "object" ? Object.entries(tv.vitals_json).filter(([,x])=>String(x||"").trim()!=="").map(([k,x])=>`${k}: ${x}`).join(", ") : "";
+                    return `<div><strong>${escapeHTML(formatDateLabel(tv.token_day))}</strong> — ${escapeHTML(tv.diagnosis || "General Visit")}${vs ? " | " + escapeHTML(vs) : ""}</div>`;
+                }).join("") + `</div>`;
+                tBox.classList.remove("hidden");
+            }
+            const prev = lk.recent_visits.find((rv) => rv.id !== v.id && (rv.diagnosis || (Array.isArray(rv.rx_medicines) && rv.rx_medicines.length)));
+            if (prev) {
+                state.lastPrevVisit = prev;
+                const pMeds = (prev.rx_medicines || []).map((m) => `${m.name} (${m.dosage})`).join(", ");
+                pBox.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><div><strong>Previous Visit (${escapeHTML(formatDateLabel(prev.token_day))}):</strong> ${escapeHTML(prev.diagnosis || "No diagnosis")}${pMeds ? `<div style="font-size:12px;color:#78350f;margin-top:2px;">Last Rx: ${escapeHTML(pMeds)}</div>` : ""}</div><button type="button" class="btn btn-sm" onclick="repeatLastRx()">Repeat Last Rx</button></div>`;
+                pBox.classList.remove("hidden");
+            }
+        }
+    }
+}
+
+function repeatLastRx() {
+    const prev = state.lastPrevVisit; if (!prev) return;
+    if (prev.diagnosis) document.getElementById("rxDiagnosis").value = prev.diagnosis;
+    if (Array.isArray(prev.rx_medicines) && prev.rx_medicines.length) renderMedRows(prev.rx_medicines);
+    if (prev.lab_tests) document.getElementById("rxLabs").value = prev.lab_tests;
+    if (prev.advice) document.getElementById("rxAdvice").value = prev.advice;
+    showToast("Copied previous Rx!");
+}
+
+function renderMedRows(meds) {
+    state.activeDosageInput = null;
+    document.getElementById("medRows").innerHTML = "";
+    meds.forEach((m) => addMedRow(m));
+}
+function removeMedRow(btn) {
+    const row = btn.closest(".med-row");
+    if (row && state.activeDosageInput && row.contains(state.activeDosageInput)) state.activeDosageInput = null;
+    if (row) row.remove();
+}
+function addMedRow(m = {}) {
+    const row = document.createElement("div"); row.className = "med-row";
+    row.innerHTML = `<input class="m-name" list="medFormularyList" placeholder="Type medicine (autocomplete)..." value="${escapeHTML(m.name||"")}" oninput="onMedNameSelect(this)" onchange="onMedNameSelect(this)"><input class="m-dosage" placeholder="Dosage" value="${escapeHTML(m.dosage||"")}" onfocus="state.activeDosageInput=this"><input class="m-dur" placeholder="Duration" value="${escapeHTML(m.duration||"")}"><button type="button" class="btn btn-soft btn-sm" aria-label="Remove medicine row" onclick="removeMedRow(this)">✕</button>`;
+    document.getElementById("medRows").appendChild(row);
+    return row;
+}
+function insertDosageChip(val) {
+    let t = state.activeDosageInput;
+    if (!t || !document.body.contains(t)) {
+        const all = document.querySelectorAll("#medRows .m-dosage");
+        t = all.length ? all[all.length - 1] : addMedRow().querySelector(".m-dosage");
+    }
+    if (t) { t.value = t.value ? (t.value + " " + val) : val; state.activeDosageInput = t; t.focus(); }
+}
+function collectMedicines() {
+    const out = [];
+    document.querySelectorAll("#medRows .med-row").forEach((r) => { const n = r.querySelector(".m-name").value.trim(); if (n) out.push({ name: n, dosage: r.querySelector(".m-dosage").value.trim(), duration: r.querySelector(".m-dur").value.trim() }); });
+    return out;
+}
+function dictateTo(elId, btn) { startVoiceDictation(document.getElementById(elId), btn, document.getElementById("voiceLang").value); }
+function syncRecallDateFromDays() { const d = Number(document.getElementById("rxRecallDays").value || 0); if (d > 0) document.getElementById("rxRecallDate").value = addDaysYMD(getTodayIST(), d); }
+
+function applyVisitToState(visit, newVer) {
+    if (!visit) return;
+    if (newVer !== undefined && newVer !== null) state.knownVersion = newVer;
+    const idx = state.tokens.findIndex((x) => x.id === visit.id);
+    if (idx >= 0) state.tokens[idx] = { ...state.tokens[idx], ...visit };
+    else state.tokens.push(visit);
+    if (visit.status === "in_consultation") {
+        state.tokens.forEach((t) => { if (t.id !== visit.id && t.doctor_id === visit.doctor_id && t.status === "in_consultation") t.status = "waiting"; });
+    }
+    renderDoctorQueue();
+}
+
+async function callCurrentPatient() {
+    if (!state.selectedVisitId || state.inFlightAction) return;
+    state.inFlightAction = true;
+    const btn = document.getElementById("callCabinBtn"); btn.disabled = true;
+    try {
+        const res = await api("staffMutate", { slug: CONFIG.TENANT.SLUG, token: state.token, action: "set_status", payload: { visit_id: state.selectedVisitId, status: "in_consultation" } });
+        showToast(res.success ? "Patient called to cabin" : res.message, res.success ? "success" : "error");
+        if (res.success && res.visit) {
+            applyVisitToState(res.visit, res.queue_version);
+            if (docPoller) docPoller.poke();
+        }
+    } finally { state.inFlightAction = false; btn.disabled = false; }
+}
+
+async function saveRx(markCompleted) {
+    if (!state.selectedVisitId || state.inFlightAction) return;
+    const cur = state.tokens.find((x) => x.id === state.selectedVisitId);
+    let editReason = "";
+    if (cur && cur.status === "completed") {
+        editReason = prompt("This prescription is already completed. Enter a brief revision reason (min 3 chars) for the audit log:") || "";
+        if (editReason.trim().length < 3) { showToast("Revision reason (min 3 chars) is required to edit a completed Rx.", "warn"); return; }
+    }
+    state.inFlightAction = true;
+    const dBtn = document.getElementById("saveDraftBtn"), cBtn = document.getElementById("saveCompleteBtn");
+    dBtn.disabled = true; cBtn.disabled = true;
+    try {
+        const res = await api("staffMutate", {
+            slug: CONFIG.TENANT.SLUG, token: state.token, action: "save_rx",
+            payload: { visit_id: state.selectedVisitId, chief_complaint: document.getElementById("rxComplaint").value.trim(), diagnosis: document.getElementById("rxDiagnosis").value.trim(), drug_allergies: document.getElementById("rxAllergies").value.trim(), rx_medicines: collectMedicines(), lab_tests: document.getElementById("rxLabs").value.trim(), advice: document.getElementById("rxAdvice").value.trim(), recall_days: document.getElementById("rxRecallDays").value, recall_due_date: document.getElementById("rxRecallDate").value, mark_completed: markCompleted, edit_reason: editReason.trim() }
+        });
+        if (!res.success) { showToast(res.message || "Save failed.", "error"); return; }
+        showToast(markCompleted ? "Prescription completed!" : "Draft saved.");
+        if (res.visit) {
+            const cacheKey = res.visit.patient_id || res.visit.uhid || res.visit.phone;
+            if (cacheKey) delete state.patientLookupCache[cacheKey];
+            applyVisitToState(res.visit, res.queue_version);
+            if (docPoller) docPoller.poke();
+        }
+    } finally { state.inFlightAction = false; dBtn.disabled = false; cBtn.disabled = false; }
+}
+
+function currentVisitMerged() {
+    const v = state.tokens.find((x) => x.id === state.selectedVisitId); if (!v) return null;
+    return { ...v, chief_complaint: document.getElementById("rxComplaint").value.trim(), diagnosis: document.getElementById("rxDiagnosis").value.trim(), drug_allergies: document.getElementById("rxAllergies").value.trim(), rx_medicines: collectMedicines(), lab_tests: document.getElementById("rxLabs").value.trim(), advice: document.getElementById("rxAdvice").value.trim(), recall_due_date: document.getElementById("rxRecallDate").value };
+}
+function printCurrentRx() { const v = currentVisitMerged(); if (v) printPrescriptionLetterhead(v, state.clinic, activeDoctorObj(), state.departments.find((dp) => dp.dept_id === v.dept_id)); }
+function printCurrentLab() { const v = currentVisitMerged(); if (v) printLabRequisition(v, state.clinic, activeDoctorObj()); }
+function waCurrentRx() {
+    const v = currentVisitMerged(); if (!v) return;
+    if (!confirm("DPDP Consent Check: Has the patient consented to receiving their clinical Rx summary on WhatsApp?")) return;
+    sendWhatsAppRxSummary(v, state.clinic);
+}
+
+function syncCertDates(changed) {
+    const fromEl = document.getElementById("certFrom");
+    const toEl = document.getElementById("certTo");
+    const daysEl = document.getElementById("certDays");
+    const fromVal = normalizeYMD(fromEl.value) || getTodayIST();
+    if (changed === "from" || changed === "days") {
+        const d = Math.max(Number(daysEl.value || 1), 1);
+        daysEl.value = d;
+        toEl.value = addDaysYMD(fromVal, d - 1);
+    } else if (changed === "to") {
+        const toVal = normalizeYMD(toEl.value);
+        if (toVal) {
+            const d1 = Date.UTC(...fromVal.split("-").map((x, i) => i === 1 ? Number(x) - 1 : Number(x)));
+            const d2 = Date.UTC(...toVal.split("-").map((x, i) => i === 1 ? Number(x) - 1 : Number(x)));
+            const diff = Math.round((d2 - d1) / 86400000) + 1;
+            if (diff >= 1) daysEl.value = diff;
+        }
+    }
+}
+
+function openCertModal() {
+    const v = currentVisitMerged(); if (!v) return;
+    const today = getTodayIST();
+    document.getElementById("certIdMark").value = "";
+    document.getElementById("certCond").value = v.diagnosis || "";
+    document.getElementById("certDays").value = 3;
+    document.getElementById("certFrom").value = today;
+    document.getElementById("certTo").value = addDaysYMD(today, 2);
+    document.getElementById("certRem").value = "";
+    document.getElementById("certModal").classList.remove("hidden");
+}
+async function issueAndPrintCert() {
+    const v = currentVisitMerged(); if (!v || state.inFlightAction) return;
+    const idMark = document.getElementById("certIdMark").value.trim();
+    if (!idMark) { showToast("Patient Identification Mark is required under MCI Reg. 1.3.3.", "warn"); return; }
+    const fromD = document.getElementById("certFrom").value;
+    const toD = document.getElementById("certTo").value;
+    const days = Number(document.getElementById("certDays").value || 0);
+    if (days < 1) { showToast("Rest days must be at least 1.", "warn"); return; }
+    if ((compareYMD(toD, fromD) ?? 0) < 0) { showToast("'To Date' cannot be earlier than 'From Date'.", "warn"); return; }
+
+    state.inFlightAction = true;
+    const btn = document.getElementById("issueCertBtn"); btn.disabled = true;
+    try {
+        const certData = { visit_id: v.id, cert_type: document.getElementById("certType").value, identification_mark: idMark, condition: document.getElementById("certCond").value.trim(), days, from_date: fromD, to_date: toD, remarks: document.getElementById("certRem").value.trim() };
+        const res = await api("staffMutate", { slug: CONFIG.TENANT.SLUG, token: state.token, action: "issue_certificate", payload: certData });
+        if (!res.success) { showToast(res.message || "Could not register certificate.", "error"); return; }
+        certData.cert_no = res.cert_no;
+        showToast(`Certificate ${res.cert_no} logged to permanent register.`);
+        printMedicalCertificate(v, state.clinic, activeDoctorObj(), certData);
+        closeModal("certModal");
+    } finally { state.inFlightAction = false; btn.disabled = false; }
+}
+
+function openCrossReferModal() {
+    renderCrossReferDoctors();
+    document.getElementById("crReason").value = "";
+    document.getElementById("crossRefModal").classList.remove("hidden");
+}
+async function submitCrossRefer() {
+    if (!state.selectedVisitId || state.inFlightAction) return;
+    const targetId = document.getElementById("crDoctor").value;
+    if (!targetId || targetId === activeDoctorId()) { showToast("Please select a different target doctor.", "warn"); return; }
+    state.inFlightAction = true;
+    const btn = document.getElementById("crossRefSubmitBtn"); btn.disabled = true;
+    try {
+        const res = await api("staffMutate", { slug: CONFIG.TENANT.SLUG, token: state.token, action: "transfer_visit", payload: { visit_id: state.selectedVisitId, target_doctor_id: targetId, reason: document.getElementById("crReason").value.trim() } });
+        showToast(res.success ? `Cross-referred to ${res.visit.doctor_name}` : res.message, res.success ? "success" : "error");
+        if (res.success) {
+            closeModal("crossRefModal");
+            state.tokens = state.tokens.filter((t) => t.id !== state.selectedVisitId);
+            if (res.queue_version) state.knownVersion = res.queue_version;
+            state.selectedVisitId = null;
+            document.getElementById("rxBench").classList.add("hidden");
+            document.getElementById("emptyBench").classList.remove("hidden");
+            renderDoctorQueue();
+            if (docPoller) docPoller.poke();
+        }
+    } finally { state.inFlightAction = false; btn.disabled = false; }
+}
+
+async function saveCurrentAsTemplate() {
+    const title = prompt("Template Name:"); if (!title || !title.trim()) return;
+    const res = await api("saveRxTemplate", { slug: CONFIG.TENANT.SLUG, token: state.token, doctor_id: activeDoctorId(), action: "save", payload: { title: title.trim(), diagnosis: document.getElementById("rxDiagnosis").value.trim(), rx_medicines: collectMedicines(), lab_tests: document.getElementById("rxLabs").value.trim(), advice: document.getElementById("rxAdvice").value.trim(), recall_days: document.getElementById("rxRecallDays").value } });
+    if (res.success) { const doc = activeDoctorObj(); if (doc) doc.rx_templates = res.rx_templates; renderTemplatesDropdown(); showToast("Template saved!"); }
+    else showToast(res.message || "Failed to save template.", "error");
+}
+function applySelectedTemplate() {
+    const id = document.getElementById("tplSelect").value; const doc = activeDoctorObj();
+    const tpl = (doc && doc.rx_templates || []).find((t) => t.id === id); if (!tpl) return;
+    if (tpl.diagnosis) document.getElementById("rxDiagnosis").value = tpl.diagnosis;
+    if (Array.isArray(tpl.rx_medicines) && tpl.rx_medicines.length) renderMedRows(tpl.rx_medicines);
+    if (tpl.lab_tests) document.getElementById("rxLabs").value = tpl.lab_tests;
+    if (tpl.advice) document.getElementById("rxAdvice").value = tpl.advice;
+    if (tpl.recall_days) { document.getElementById("rxRecallDays").value = tpl.recall_days; syncRecallDateFromDays(); }
+}
+async function deleteSelectedTemplate() {
+    const id = document.getElementById("tplSelect").value; if (!id || !confirm("Delete template?")) return;
+    const res = await api("saveRxTemplate", { slug: CONFIG.TENANT.SLUG, token: state.token, doctor_id: activeDoctorId(), action: "delete", payload: { id } });
+    if (res.success) { const doc = activeDoctorObj(); if (doc) doc.rx_templates = res.rx_templates; renderTemplatesDropdown(); showToast("Deleted."); }
+    else showToast(res.message || "Failed to delete template.", "error");
+}
+
+function openTicketModal() { document.getElementById("tkSubj").value = ""; document.getElementById("tkDesc").value = ""; document.getElementById("ticketModal").classList.remove("hidden"); }
+async function submitSupportTicket() {
+    const subj = document.getElementById("tkSubj").value.trim();
+    if (subj.length < 4) { showToast("Please enter a subject (min 4 characters).", "warn"); return; }
+    const res = await api("submitTicket", { slug: CONFIG.TENANT.SLUG, token: state.token, category: "clinical", priority: "normal", subject: subj, description: document.getElementById("tkDesc").value.trim() });
+    showToast(res.message || "Sent", res.success ? "success" : "error");
+    if (res.success) closeModal("ticketModal");
+}
+function openOwnPwdModal(forced = false) {
+    document.getElementById("opOld").value = ""; document.getElementById("opNew").value = "";
+    const cb = document.querySelector("#ownPwdModal .btn-soft"); if (cb) cb.classList.toggle("hidden", Boolean(forced));
+    document.getElementById("ownPwdModal").classList.remove("hidden");
+}
+function renderFormularyDatalist() {
+    document.getElementById("medFormularyList").innerHTML = (state.medicines || []).map((m) => `<option value="${escapeHTML(m.name)}"></option>`).join("");
+}
+function onMedNameSelect(inp) {
+    const val = inp.value.trim().toLowerCase();
+    if (!val) return;
+    const m = (state.medicines || []).find((x) => x.name.toLowerCase() === val);
+    if (!m) return;
+    if (inp.value !== m.name) inp.value = m.name;
+    const row = inp.closest(".med-row");
+    if (row) {
+        const dEl = row.querySelector(".m-dosage"), duEl = row.querySelector(".m-dur");
+        if (dEl && !dEl.value) dEl.value = m.default_dosage || "";
+        if (duEl && !duEl.value) duEl.value = m.default_duration || "";
+    }
+}
+async function toggleMyLeave() {
+    if (state.inFlightAction) return;
+    state.inFlightAction = true;
+    const btn = document.getElementById("leaveToggleBtn"); btn.disabled = true;
+    try {
+        const res = await api("staffMutate", { slug: CONFIG.TENANT.SLUG, token: state.token, action: "toggle_doctor_leave", payload: { doctor_id: activeDoctorId() } });
+        showToast(res.success ? "Doctor leave status updated!" : res.message, res.success ? "success" : "error");
+        if (res.success) pollDocDashboard(true);
+    } finally { state.inFlightAction = false; btn.disabled = false; }
+}
+async function submitOwnPassword() {
+    const oldP = document.getElementById("opOld").value;
+    const newP = document.getElementById("opNew").value.trim();
+    if (!oldP) { showToast("Please enter your current password.", "warn"); return; }
+    if (newP.length < 8) { showToast("New password must be at least 8 characters.", "warn"); return; }
+    if (newP === oldP) { showToast("New password must be different from your current password.", "warn"); return; }
+    const res = await api("changeOwnPassword", { slug: CONFIG.TENANT.SLUG, token: state.token, old_password: oldP, new_password: newP });
+    showToast(res.message || "Done", res.success ? "success" : "error");
+    if (res.success) { if (state.user) state.user.must_change_password = false; const cb = document.querySelector("#ownPwdModal .btn-soft"); if (cb) cb.classList.remove("hidden"); closeModal("ownPwdModal"); }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    initOfflineBanner();
+    if (!CONFIG.TENANT.SLUG) { document.getElementById("missingSlugBox").classList.remove("hidden"); return; }
+    initInactivityAutoLock(() => { if (state.token) logoutDoctor(); });
+    docPoller = createAdaptivePoller({
+        baseMs: 10000,
+        maxMs: 45000,
+        shouldRun: () => Boolean(state.token),
+        pollFn: pollDocDashboard
+    });
+    if (state.token) enterDocApp();
+    else { document.getElementById("loginView").classList.remove("hidden"); refreshDocCaptcha(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ClinicOS Live OPD Queue, Hospital TV Token Display, and Online Self-Check-In Portal.">
+<title>ClinicOS — Live OPD Queue & Self Check-In</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230284c7'/%3E%3Cpath d='M28 14h8v14h14v8H36v14h-8V36H14v-8h14z' fill='%23fff'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0284c7">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<style>
+  :root { --primary:#0284c7; --primary-dark:#0369a1; --accent:#0ea5e9; --bg-soft:#f0f9ff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:#f1f5f9; color:#0f172a; min-height:100vh; }
+  .wrap { max-width:980px; margin:0 auto; padding:16px; }
+  .hero { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border-radius:18px; padding:22px; box-shadow:0 10px 25px rgba(2,132,199,0.22); margin-bottom:16px; }
+  .hero h1 { font-size:24px; font-weight:800; }
+  .hero-meta { font-size:13px; opacity:0.92; margin-top:6px; line-height:1.5; }
+  .card { background:#fff; border-radius:16px; padding:18px; box-shadow:0 2px 12px rgba(15,23,42,0.06); margin-bottom:16px; border:1px solid #e2e8f0; }
+  .card h2 { font-size:16px; font-weight:800; margin-bottom:12px; color:#0f172a; display:flex; align-items:center; justify-content:space-between; }
+  .pills { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .pill { padding:7px 14px; border-radius:999px; border:1px solid #cbd5e1; background:#fff; font-size:13px; font-weight:600; cursor:pointer; }
+  .pill.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .doc-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+  .doc-card { border:1px solid #e2e8f0; border-radius:14px; padding:14px; background:#f8fafc; }
+  .tok-big { font-size:34px; font-weight:900; color:var(--primary); line-height:1.1; margin:6px 0; }
+  .badge { display:inline-block; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700; }
+  .b-green { background:#dcfce7; color:#166534; }
+  .b-amber { background:#fef3c7; color:#92400e; }
+  .b-red { background:#fee2e2; color:#991b1b; }
+  .b-blue { background:#e0f2fe; color:#075985; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:640px){ .grid2 { grid-template-columns:1fr; } }
+  label { display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; }
+  input, select, textarea { width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:10px; font-size:14px; background:#fff; }
+  .btn { border:none; border-radius:10px; padding:11px 16px; font-size:14px; font-weight:700; cursor:pointer; background:var(--primary); color:#fff; }
+  .btn-soft { background:#e2e8f0; color:#0f172a; }
+  .captcha-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px; }
+  .my-box { background:var(--bg-soft); border:2px solid var(--primary); border-radius:14px; padding:14px; margin-bottom:16px; }
+  .consent-box { background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px 12px; margin-top:12px; font-size:12px; color:#334155; }
+  .hidden { display:none !important; }
+  body.tv-mode { background:#0b1220; color:#f8fafc; }
+  .tv-shell { padding:20px 28px; min-height:100vh; display:flex; flex-direction:column; gap:18px; }
+  .tv-top { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1e293b; padding-bottom:14px; }
+  .tv-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; flex:1; }
+  .tv-card { background:#111c33; border:2px solid #1e3a5f; border-radius:20px; padding:22px; display:flex; flex-direction:column; justify-content:space-between; }
+  .tv-card.calling { border-color:#38bdf8; box-shadow:0 0 30px rgba(56,189,248,0.28); }
+  .tv-token { font-size:74px; font-weight:900; color:#38bdf8; letter-spacing:2px; line-height:1; margin:14px 0; }
+  .tv-next { background:#0f172a; border-radius:12px; padding:12px 14px; font-size:16px; color:#cbd5e1; margin-top:12px; }
+</style>
+</head>
+<body>
+
+<div id="loadingBox" class="wrap">
+  <div class="card" style="text-align:center;padding:36px;" role="status" aria-live="polite">
+    <h2>Loading Live OPD Queue...</h2>
+    <p style="color:#64748b;margin-top:8px;font-size:13px;">Connecting to clinic schedule</p>
+  </div>
+</div>
+
+<div id="missingSlugBox" class="wrap hidden">
+  <div class="card" style="text-align:center;padding:36px;">
+    <h2>Clinic Link Incomplete</h2>
+    <p style="color:#475569;margin-top:8px;">Please open your clinic's official link with <code>?c=clinic-slug</code>.</p>
+  </div>
+</div>
+
+<div id="pausedBox" class="wrap hidden">
+  <div class="card" style="text-align:center;padding:36px;" role="status">
+    <h2 id="pausedTitle">Clinic Portal Paused</h2>
+    <p id="pausedMsg" style="color:#475569;margin-top:8px;">Please contact clinic reception.</p>
+  </div>
+</div>
+
+<div id="patientApp" class="wrap hidden">
+  <div class="hero">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+      <div>
+        <h1 id="clinicName">Loading Clinic...</h1>
+        <div id="clinicTagline" style="font-size:13px;opacity:0.9;margin-top:2px;"></div>
+        <div class="hero-meta" id="clinicMeta"></div>
+      </div>
+      <a id="tvModeLink" href="#" aria-label="Open TV Token Display" style="color:#fff;background:rgba(255,255,255,0.18);padding:7px 12px;border-radius:10px;text-decoration:none;font-size:12px;font-weight:700;">TV Display</a>
+    </div>
+  </div>
+
+  <div id="myVisitBox" class="my-box hidden" aria-live="polite"></div>
+
+  <div class="card">
+    <h2>
+      <span>Live OPD Queue</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="btn btn-soft" style="padding:5px 10px;font-size:12px;" onclick="queuePoller && queuePoller.pollNow(false)" aria-label="Refresh live queue">Refresh</button>
+        <span id="livePulse" class="badge b-green">Live</span>
+      </span>
+    </h2>
+    <div id="deptPills" class="pills hidden" role="tablist" aria-label="Filter queue by department"></div>
+    <div id="docQueueGrid" class="doc-grid" aria-live="polite"></div>
+  </div>
+
+  <div id="bookingCard" class="card">
+    <h2>Online Self-Check-In / Advance Booking</h2>
+    <form id="bookingForm" onsubmit="submitPatientBooking(event)">
+      <div class="grid2">
+        <div><label for="bkName">Patient Full Name *</label><input id="bkName" required minlength="2" placeholder="e.g. Rajesh Sharma"></div>
+        <div><label for="bkFather">Father's / Guardian's Name</label><input id="bkFather" placeholder="S/o / D/o / W/o"></div>
+        <div><label for="bkPhone">10-Digit Mobile Number *</label><input id="bkPhone" type="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required placeholder="98XXXXXXXX" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"></div>
+        <div class="grid2" style="gap:8px;">
+          <div><label for="bkAge">Age *</label><input id="bkAge" required placeholder="34"></div>
+          <div><label for="bkGender">Gender</label><select id="bkGender"><option value="M">Male</option><option value="F">Female</option><option value="O">Other</option></select></div>
+        </div>
+        <div id="bkDeptWrap" class="hidden"><label for="bkDept">Department</label><select id="bkDept" onchange="onBookingDeptChange()"></select></div>
+        <div><label for="bkDoctor">Doctor</label><select id="bkDoctor"></select></div>
+        <div><label for="bkDate">Visit Date</label><input id="bkDate" type="date"></div>
+        <div><label for="bkShift">Shift</label><select id="bkShift"><option value="morning">Morning Shift</option><option value="evening">Evening Shift</option></select></div>
+      </div>
+      <div class="grid2" style="margin-top:10px;">
+        <div><label for="bkAddress">Address</label><input id="bkAddress" placeholder="Locality / City"></div>
+        <div><label for="bkAllergies">Known Drug Allergies</label><input id="bkAllergies" placeholder="e.g. Penicillin, None"></div>
+      </div>
+      <div style="margin-top:10px;"><label for="bkSymptoms">Brief Symptoms / Reason for Visit</label><input id="bkSymptoms" placeholder="e.g. Fever since 2 days"></div>
+
+      <!-- DPDP Act 2023 Privacy Notice & Explicit Consent -->
+      <div class="consent-box">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:600;margin-bottom:6px;">
+          <input id="bkConsent" type="checkbox" required style="width:auto;margin-top:2px;">
+          <span>I consent to this clinic storing my contact and medical visit details digitally for OPD consultation, prescriptions, and statutory medical record retention (DPDP Act 2023). *</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:500;margin-bottom:0;">
+          <input id="bkWaConsent" type="checkbox" style="width:auto;margin-top:2px;">
+          <span>Optional: I consent to receiving token updates, follow-up reminders, and consultation summaries on WhatsApp.</span>
+        </label>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="bkCaptchaAns">Security Verification *</label>
+        <div id="bkTurnstileBox" class="hidden"></div>
+        <div id="bkSvgBox" class="captcha-row">
+          <div id="bkCaptchaSvg"></div>
+          <input id="bkCaptchaAns" placeholder="Enter code" style="max-width:150px;text-transform:uppercase;">
+          <button type="button" class="btn btn-soft" onclick="refreshBookingCaptcha()" aria-label="Refresh security code">Refresh</button>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;"><button id="bkSubmitBtn" type="submit" class="btn" style="width:100%;">Submit Token Request</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="tvApp" class="tv-shell hidden">
+  <div class="tv-top">
+    <div>
+      <div id="tvClinicName" style="font-size:32px;font-weight:900;color:#fff;">ClinicOS TV</div>
+      <div id="tvSubtitle" style="font-size:15px;color:#94a3b8;margin-top:2px;">Live OPD Token Display</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <button id="tvAudioBtn" class="btn" onclick="enableTvVoice()" aria-label="Enable TV voice token announcements">Enable Voice Announcements</button>
+      <div id="tvClock" style="font-size:26px;font-weight:800;color:#38bdf8;font-variant-numeric:tabular-nums;" aria-live="off"></div>
+    </div>
+  </div>
+  <div id="tvGrid" class="tv-grid" aria-live="polite"></div>
+</div>
+
+<script>
+"use strict";
+const urlParams = new URLSearchParams(window.location.search);
+const isTvMode = urlParams.get("tv") === "1";
+const fixedDeptParam = (urlParams.get("dept") || "").trim();
+
+let state = {
+    clinic: null, departments: [], doctors: [], shifts: [], tokens: [], myVisit: null,
+    selectedDept: fixedDeptParam || "", knownVersion: null, knownMetaVersion: null, today: "",
+    captchaId: "", turnstileWidgetId: null, turnstileToken: "",
+    tvVoiceEnabled: false, tvBaselineReady: false, lastCalledMap: {},
+    submittingBooking: false
+};
+let queuePoller = null;
+
+function initTvClock() {
+    const el = document.getElementById("tvClock");
+    const tick = () => {
+        if (el) el.textContent = new Date().toLocaleTimeString(getAppLocale(), { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true, timeZone: getAppTimezone() });
+    };
+    tick(); setInterval(tick, 1000);
+}
+
+function enableTvVoice() {
+    state.tvVoiceEnabled = true; getAudioContext(); playHospitalDingDong();
+    const btn = document.getElementById("tvAudioBtn");
+    if (btn) { btn.textContent = "Voice Active"; btn.style.background = "#059669"; }
+    showToast("TV Voice announcements enabled!");
+}
+
+async function refreshBookingCaptcha() {
+    state.turnstileToken = "";
+    if (isTurnstileEnabled()) {
+        document.getElementById("bkSvgBox").classList.add("hidden");
+        document.getElementById("bkTurnstileBox").classList.remove("hidden");
+        try {
+            await loadTurnstileScript();
+            if (state.turnstileWidgetId !== null && window.turnstile) window.turnstile.reset(state.turnstileWidgetId);
+            else if (window.turnstile) state.turnstileWidgetId = window.turnstile.render("#bkTurnstileBox", { sitekey: CONFIG.SECURITY.TURNSTILE_SITE_KEY, callback: (tok) => { state.turnstileToken = tok; }, "expired-callback": () => { state.turnstileToken = ""; }, "error-callback": () => { state.turnstileToken = ""; } });
+        } catch (err) {
+            showToast(err && err.message ? err.message : "Could not load security check.", "error");
+        }
+        return;
+    }
+    const res = await api("getCaptcha");
+    if (res.success) {
+        state.captchaId = res.captcha_id;
+        renderSafeCaptchaSvg("bkCaptchaSvg", res.svg);
+        document.getElementById("bkCaptchaAns").value = "";
+    } else {
+        showToast(res.message || "Failed to load security code.", "error");
+    }
+}
+
+function populateBookingSelectors() {
+    const w = document.getElementById("bkDeptWrap"), s = document.getElementById("bkDept");
+    if (state.departments.length > 1) { w.classList.remove("hidden"); s.innerHTML = state.departments.map((d) => `<option value="${escapeHTML(d.dept_id)}">${escapeHTML(d.name)}</option>`).join(""); }
+    else w.classList.add("hidden");
+    onBookingDeptChange();
+}
+
+function onBookingDeptChange() {
+    const s = document.getElementById("bkDept");
+    const chosen = state.departments.length > 1 && s ? s.value : "";
+    const docs = chosen ? state.doctors.filter((d) => d.dept_id === chosen) : state.doctors;
+    document.getElementById("bkDoctor").innerHTML = (docs.length ? docs : state.doctors).map((d) => `<option value="${escapeHTML(d.doctor_id)}">${escapeHTML(d.name)}${d.is_on_leave ? " [ON LEAVE TODAY]" : ""}${d.consultation_fee ? " (₹" + d.consultation_fee + ")" : ""}</option>`).join("");
+}
+
+function syncBookingDateMin(todayStr) {
+    const minDay = todayStr || getTodayIST();
+    const el = document.getElementById("bkDate");
+    if (!el) return;
+    el.min = minDay;
+    if (!el.value || (compareYMD(el.value, minDay) ?? 0) < 0) el.value = minDay;
+}
+
+function renderPatientView() {
+    const c = state.clinic;
+    if (!c) return;
+    applyThemePreset(c.theme);
+    document.title = `${c.name} — Live OPD Queue`;
+    document.getElementById("clinicName").textContent = c.name;
+    document.getElementById("clinicTagline").textContent = c.tagline || "";
+    document.getElementById("clinicMeta").textContent = [c.address, c.city, c.timings, c.phone ? "Tel: " + c.phone : ""].filter(Boolean).join(" • ");
+    document.getElementById("tvModeLink").href = `index.html?c=${encodeURIComponent(c.slug)}&tv=1`;
+    document.getElementById("bookingCard").classList.toggle("hidden", !c.allow_online_booking);
+
+    const pillsEl = document.getElementById("deptPills");
+    if (state.departments.length > 1) {
+        pillsEl.classList.remove("hidden");
+        pillsEl.innerHTML = [{ dept_id: "", name: "All Departments" }, ...state.departments].map((d) => `<button type="button" role="tab" aria-selected="${state.selectedDept === d.dept_id}" class="pill ${state.selectedDept === d.dept_id ? "active" : ""}" onclick="selectPublicDept('${escapeJsAttr(d.dept_id)}')">${escapeHTML(d.name)}</button>`).join("");
+    } else pillsEl.classList.add("hidden");
+
+    const myBox = document.getElementById("myVisitBox");
+    if (state.myVisit) {
+        const mv = state.myVisit;
+        const ahead = state.tokens.filter((t) => t.doctor_id === mv.doctor_id && t.status === "waiting" && t.token_no < mv.token_no).length;
+        const st = mv.status === "in_consultation" ? `<span class="badge b-green">NOW CALLING — PLEASE ENTER CABIN</span>` : mv.status === "pending_online" ? `<span class="badge b-amber">Awaiting Reception Approval</span>` : mv.status === "completed" ? `<span class="badge b-blue">Consultation Completed</span>` : mv.status === "cancelled" ? `<span class="badge b-red">Cancelled</span>` : `<span class="badge b-blue">Waiting • ${ahead} ahead</span>`;
+        myBox.classList.remove("hidden");
+        myBox.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"><div><div style="font-size:12px;font-weight:700;color:#475569;">YOUR TOKEN (${escapeHTML(mv.booking_ref || mv.uhid || "")})</div><div style="font-size:26px;font-weight:900;color:var(--primary);">${escapeHTML(mv.token_label || "PENDING")} — ${escapeHTML(mv.name)}</div><div style="font-size:13px;color:#334155;">${escapeHTML(mv.doctor_name)} • ${escapeHTML(formatDateLabel(mv.token_day))} (${escapeHTML(mv.shift_key)})</div></div><div>${st}</div></div>`;
+    } else myBox.classList.add("hidden");
+
+    const filteredDocs = state.selectedDept ? state.doctors.filter((d) => d.dept_id === state.selectedDept) : state.doctors;
+    document.getElementById("docQueueGrid").innerHTML = filteredDocs.map((doc) => {
+        const dept = state.departments.find((dp) => dp.dept_id === doc.dept_id);
+        const docToks = state.tokens.filter((t) => t.doctor_id === doc.doctor_id);
+        const current = docToks.find((t) => t.status === "in_consultation");
+        const waiting = docToks.filter((t) => t.status === "waiting");
+        const shift = state.shifts.find((s) => s.doctor_id === doc.doctor_id && s.shift_key === getDefaultShiftIST(c)) || {};
+        const estMins = waiting.length * Number(c.avg_consult_mins || 8) + Number(shift.delay_mins || 0);
+        return `<div class="doc-card"><div style="display:flex;justify-content:space-between;"><div><div style="font-weight:800;font-size:15px;">${escapeHTML(doc.name)}</div><div style="font-size:12px;color:#475569;">${escapeHTML(dept ? dept.name : doc.specialty || "")}${doc.room_no ? " • Room " + escapeHTML(doc.room_no) : ""}</div></div>${doc.is_on_leave ? `<span class="badge b-red">On Leave</span>` : shift.is_paused ? `<span class="badge b-amber">Paused</span>` : `<span class="badge b-green">Active</span>`}</div><div style="margin-top:10px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Now Serving</div><div class="tok-big">${current ? escapeHTML(current.token_label) : "—"}</div><div style="font-size:13px;color:#334155;">${current ? (c.tv_hide_names ? "In Consultation" : escapeHTML(current.display_name)) : "No patient in cabin yet"}</div><div style="margin-top:10px;display:flex;justify-content:space-between;font-size:12px;color:#475569;border-top:1px solid #e2e8f0;padding-top:8px;"><span>Waiting: <strong>${waiting.length}</strong></span><span>Est. Wait: <strong>~${estMins} min</strong></span></div></div>`;
+    }).join("") || `<div style="color:#64748b;">No active doctors found.</div>`;
+}
+
+function renderTvView() {
+    const c = state.clinic;
+    if (!c) return;
+    document.title = `${c.name} — TV Display`;
+    document.getElementById("tvClinicName").textContent = c.name;
+    const deptObj = fixedDeptParam ? state.departments.find((d) => d.dept_id === fixedDeptParam) : null;
+    document.getElementById("tvSubtitle").textContent = (deptObj ? deptObj.name + " — " : "") + (c.tv_hide_names ? "Token-Only Privacy Display" : "Live OPD Token Display");
+
+    const filteredDocs = fixedDeptParam ? state.doctors.filter((d) => d.dept_id === fixedDeptParam) : state.doctors;
+    document.getElementById("tvGrid").innerHTML = filteredDocs.map((doc) => {
+        const dept = state.departments.find((dp) => dp.dept_id === doc.dept_id);
+        const docToks = state.tokens.filter((t) => t.doctor_id === doc.doctor_id);
+        const current = docToks.find((t) => t.status === "in_consultation");
+        const waiting = docToks.filter((t) => t.status === "waiting").slice(0, 4);
+        const callKey = current ? `${current.id}_${current.called_at || ""}` : "";
+        if (state.tvBaselineReady && current && state.lastCalledMap[doc.doctor_id] !== undefined && state.lastCalledMap[doc.doctor_id] !== callKey) {
+            if (state.tvVoiceEnabled) {
+                const roomText = doc.room_no ? `Room ${doc.room_no}` : (dept && dept.room_label ? dept.room_label : doc.name);
+                announceTokenVoice(current.token_label, c.tv_hide_names ? "" : current.display_name, roomText);
+            }
+        }
+        state.lastCalledMap[doc.doctor_id] = callKey;
+        return `<div class="tv-card ${current ? "calling" : ""}"><div><div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:22px;font-weight:800;color:#f8fafc;">${escapeHTML(doc.name)}</div><span class="badge b-blue" style="font-size:14px;padding:5px 12px;">${escapeHTML(doc.room_no ? "Room " + doc.room_no : (dept ? dept.name : "OPD"))}</span></div><div style="font-size:13px;color:#94a3b8;margin-top:4px;">${escapeHTML(dept ? dept.name : doc.specialty || "")}</div><div class="tv-token">${current ? escapeHTML(current.token_label) : "—"}</div><div style="font-size:24px;font-weight:700;color:#e2e8f0;">${current ? (c.tv_hide_names ? "Please Proceed to Cabin" : escapeHTML(current.display_name)) : "Waiting for next token"}</div></div><div class="tv-next"><strong style="color:#38bdf8;">NEXT UP:</strong> ${waiting.length ? waiting.map((w) => c.tv_hide_names ? escapeHTML(w.token_label) : `${escapeHTML(w.token_label)} (${escapeHTML(w.display_name)})`).join("  •  ") : "Queue clear"}</div></div>`;
+    }).join("");
+    state.tvBaselineReady = true;
+}
+
+function selectPublicDept(deptId) { state.selectedDept = deptId; renderPatientView(); }
+
+async function pollPublicQueue(force = false) {
+    const res = await api("getPublicQueue", {
+        slug: CONFIG.TENANT.SLUG,
+        booking_ref: localStorage.getItem(CONFIG.STORAGE.MY_BOOKING_REF) || null,
+        known_version: force ? null : state.knownVersion,
+        known_meta_version: force ? null : state.knownMetaVersion,
+        known_day: state.today || null,
+        dept_id: fixedDeptParam || null
+    });
+    if (!res.success) {
+        document.getElementById("loadingBox").classList.add("hidden");
+        if (res.expired) {
+            document.getElementById("patientApp").classList.add("hidden"); document.getElementById("tvApp").classList.add("hidden");
+            document.getElementById("pausedBox").classList.remove("hidden");
+            document.getElementById("pausedTitle").textContent = res.clinic_name || "Clinic Paused";
+            document.getElementById("pausedMsg").textContent = res.message + (res.support_phone ? ` (Support: ${res.support_phone})` : "");
+        } else {
+            document.getElementById("pausedBox").classList.remove("hidden");
+            document.getElementById("pausedTitle").textContent = "Unable to Load Clinic";
+            document.getElementById("pausedMsg").textContent = res.message || "Please check your clinic link or try again.";
+        }
+        return false;
+    }
+    if (res.today) state.today = res.today;
+    if (!isTvMode && state.today) syncBookingDateMin(state.today);
+    if (res.unchanged) return false;
+
+    const firstLoad = state.clinic === null;
+    state.knownVersion = res.queue_version;
+    if (res.meta_version !== undefined) state.knownMetaVersion = res.meta_version;
+    if (!res.meta_unchanged) {
+        state.clinic = res.clinic;
+        state.departments = res.departments || [];
+        state.doctors = res.doctors || [];
+    }
+    state.shifts = res.shifts || [];
+    state.tokens = res.tokens || [];
+    state.myVisit = res.my_visit || null;
+
+    document.getElementById("loadingBox").classList.add("hidden");
+    document.getElementById("pausedBox").classList.add("hidden");
+
+    if (isTvMode) {
+        document.body.classList.add("tv-mode");
+        document.getElementById("tvApp").classList.remove("hidden");
+        renderTvView();
+    } else {
+        document.getElementById("patientApp").classList.remove("hidden");
+        if (firstLoad || !res.meta_unchanged) populateBookingSelectors();
+        if (firstLoad) {
+            syncBookingDateMin(state.today || getTodayIST());
+            document.getElementById("bkShift").value = getDefaultShiftIST(state.clinic);
+            refreshBookingCaptcha();
+        }
+        renderPatientView();
+    }
+    return true;
+}
+
+async function submitPatientBooking(e) {
+    e.preventDefault();
+    if (state.submittingBooking) return;
+    const name = document.getElementById("bkName").value.trim();
+    const phone = document.getElementById("bkPhone").value.replace(/[^0-9]/g, "");
+    const age = document.getElementById("bkAge").value.trim();
+    if (name.length < 2) { showToast("Please enter patient's full name.", "warn"); return; }
+    if (!/^\d{10}$/.test(phone)) { showToast("Please enter a valid 10-digit mobile number.", "warn"); return; }
+    if (!age) { showToast("Please enter patient age.", "warn"); return; }
+    if (!document.getElementById("bkConsent").checked) { showToast("Please accept the privacy consent checkbox.", "warn"); return; }
+
+    const turnstileTok = state.turnstileToken;
+    if (isTurnstileEnabled() && !turnstileTok) {
+        showToast("Please complete the Cloudflare security check first.", "warn");
+        return;
+    }
+    if (!isTurnstileEnabled() && !document.getElementById("bkCaptchaAns").value.trim()) {
+        showToast("Please enter the security code.", "warn");
+        return;
+    }
+
+    const docId = document.getElementById("bkDoctor").value;
+    const selectedDoc = state.doctors.find((d) => d.doctor_id === docId);
+    const deptId = (state.departments.length > 1 ? document.getElementById("bkDept").value : "") || (selectedDoc && selectedDoc.dept_id) || (state.departments[0] && state.departments[0].dept_id) || "";
+
+    state.turnstileToken = "";
+    state.submittingBooking = true;
+    const btn = document.getElementById("bkSubmitBtn"); btn.disabled = true; btn.textContent = "Submitting...";
+    try {
+        const res = await api("submitBooking", {
+            slug: CONFIG.TENANT.SLUG, turnstileToken: turnstileTok,
+            payload: {
+                name, father_name: document.getElementById("bkFather").value.trim(),
+                phone, age,
+                gender: document.getElementById("bkGender").value,
+                dept_id: deptId, doctor_id: docId,
+                token_day: document.getElementById("bkDate").value || getTodayIST(),
+                shift_key: document.getElementById("bkShift").value,
+                address: document.getElementById("bkAddress").value.trim(),
+                drug_allergies: document.getElementById("bkAllergies").value.trim(),
+                symptoms: document.getElementById("bkSymptoms").value.trim(),
+                consent_given: document.getElementById("bkConsent").checked,
+                whatsapp_rx_consent: document.getElementById("bkWaConsent").checked,
+                captcha_id: state.captchaId,
+                captcha_answer: document.getElementById("bkCaptchaAns").value.trim()
+            }
+        });
+        if (!res.success) { showToast(res.message || "Booking failed.", "error"); refreshBookingCaptcha(); return; }
+        localStorage.setItem(CONFIG.STORAGE.MY_BOOKING_REF, res.booking_ref);
+        showToast(res.message || "Booking submitted!");
+        document.getElementById("bookingForm").reset();
+        syncBookingDateMin(state.today || getTodayIST());
+        document.getElementById("bkShift").value = getDefaultShiftIST(state.clinic);
+        refreshBookingCaptcha();
+        if (queuePoller) queuePoller.pollNow(false);
+    } finally {
+        state.submittingBooking = false;
+        btn.disabled = false; btn.textContent = "Submit Token Request";
+    }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    initOfflineBanner();
+    if (!CONFIG.TENANT.SLUG) {
+        document.getElementById("loadingBox").classList.add("hidden");
+        document.getElementById("missingSlugBox").classList.remove("hidden");
+        return;
+    }
+    if (isTvMode) initTvClock();
+    queuePoller = createAdaptivePoller({
+        baseMs: isTvMode ? 6000 : 15000,
+        maxMs: isTvMode ? 18000 : 45000,
+        pollFn: pollPublicQueue
+    });
+    queuePoller.start(true);
+});
+</script>
+</body>
+</html>
