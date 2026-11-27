@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; manifest-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' https: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com about:; form-action 'self'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231b2440'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23c5a880' font-family='sans-serif' font-weight='900'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div id="loginScreen">
+  <form id="loginForm" class="loginBox" autocomplete="on" novalidate>
+    <i class="fa-solid fa-lock loginIcon"></i>
+    <h2 id="loginTitle">Sign in</h2>
+    <p class="loginSub">Staff sign-in</p>
+    <label class="fieldLabel" for="loginEmail">Username or Email</label>
+    <input class="field" id="loginEmail" type="text" autocomplete="username" placeholder="e.g. velvet_owner" required>
+    <label class="fieldLabel" for="loginPassword">Password</label>
+    <input class="field" id="loginPassword" type="password" autocomplete="current-password" required>
+    <div id="captchaBox" class="captchaBox"></div>
+    <div id="loginError" class="formMsg" role="alert"></div>
+    <button id="loginBtn" class="primaryButton block" type="submit" disabled>Sign in</button>
+  </form>
+  <form id="otpForm" class="loginBox" hidden novalidate>
+    <i class="fa-solid fa-shield-halved loginIcon"></i>
+    <h2>Two-step verification</h2>
+    <p class="loginSub">Enter the 6-digit code from your authenticator app.</p>
+    <input class="field code" id="otpCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+    <div id="otpError" class="formMsg" role="alert"></div>
+    <button class="primaryButton block" type="submit">Verify</button>
+    <button class="secondaryButton block" id="otpCancel" type="button">Back</button>
+  </form>
+  <form id="enrollForm" class="loginBox" hidden novalidate>
+    <i class="fa-solid fa-shield-halved loginIcon"></i>
+    <h2>Set up two-step verification</h2>
+    <p class="loginSub">1. Scan with an authenticator app.</p>
+    <div id="enrollQr" class="qrBox"></div>
+    <p class="loginSub small">Or type this key: <b id="enrollSecret"></b></p>
+    <p class="loginSub">2. Enter the 6-digit code it shows.</p>
+    <input class="field code" id="enrollCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+    <div id="enrollError" class="formMsg" role="alert"></div>
+    <button class="primaryButton block" type="submit">Verify &amp; continue</button>
+    <button class="secondaryButton block" id="enrollCancel" type="button">Sign out</button>
+  </form>
+</div>
+<div id="app" hidden>
+<div class="sidebar">
+  <div class="logo"><h2 id="restaurantName">Restaurant</h2><p>DigiConvo Dashboard</p></div>
+  <div class="menu">
+    <div class="navItem adminOnly" data-page="dashboard" hidden><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></div>
+    <div class="navItem counterOnly" data-page="v8pos"><i class="fa-solid fa-cash-register"></i><span>Quick POS</span></div>
+    <div class="navItem" data-page="orders"><i class="fa-solid fa-receipt"></i><span>Orders</span><span class="navBadge" id="navOrdersBadge" hidden>0</span></div>
+    <div class="navItem counterOnly" data-page="tables"><i class="fa-solid fa-chair"></i><span>Tables</span></div>
+    <div class="navItem counterOnly" data-page="history"><i class="fa-solid fa-calendar-days"></i><span>History</span></div>
+    <div class="navItem adminOnly" data-page="menu" hidden><i class="fa-solid fa-utensils"></i><span>Menu</span></div>
+    <div class="navItem adminOnly" data-page="reports" hidden><i class="fa-solid fa-chart-pie"></i><span>Reports</span></div>
+    <div class="navItem adminOnly" data-page="settings" hidden><i class="fa-solid fa-gear"></i><span>Settings</span></div>
+    <div class="navItem adminOnly" data-page="activity" hidden><i class="fa-solid fa-clock-rotate-left"></i><span>Activity</span></div>
+    <div class="navItem" data-page="v8kds"><i class="fa-solid fa-fire-burner"></i><span>Kitchen KDS</span></div>
+    <div class="navItem counterOnly" data-page="v8gst"><i class="fa-solid fa-file-invoice-dollar"></i><span>Billing &amp; Shift</span></div>
+    <div class="navItem counterOnly" data-page="v8crm"><i class="fa-solid fa-users"></i><span>CRM &amp; Coupons</span></div>
+    <div class="navItem adminOnly" data-page="v8inv" hidden><i class="fa-solid fa-boxes-stacked"></i><span>Inventory &amp; Expenses</span></div>
+    <div class="navItem adminOnly" data-page="v8pro" hidden><i class="fa-solid fa-magnifying-glass-chart"></i><span>Pro Analytics</span></div>
+    <div class="navItem adminOnly" data-page="v8chain" hidden><i class="fa-solid fa-store"></i><span>All Outlets</span></div>
+  </div>
+</div>
+<div class="main">
+  <div id="banner" class="banner" hidden></div>
+  <div class="topbar">
+    <div class="restaurantTitle"><span id="pageTitle">Orders</span><span class="roleBadge" id="roleBadge"></span></div>
+    <div class="ownerArea">
+      <span id="netState" hidden><i class="fa-solid fa-wifi"></i> Offline - retrying</span>
+      <div id="liveTime">--:--</div>
+      <button class="iconBtn" id="soundBtn" type="button" data-action="sound" title="New-order sound" aria-label="Toggle new-order sound"></button>
+      <button class="iconBtn" type="button" data-action="logout" title="Sign out" aria-label="Sign out"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </div>
+  <div class="page" id="dashboard"></div>
+  <div class="page" id="v8pos"></div>
+  <div class="page active" id="orders"></div>
+  <div class="page" id="tables"></div>
+  <div class="page" id="history"></div>
+  <div class="page" id="menu"></div>
+  <div class="page" id="reports"></div>
+  <div class="page" id="settings"></div>
+  <div class="page" id="activity"></div>
+  <div class="page" id="v8kds"></div>
+  <div class="page" id="v8gst"></div>
+  <div class="page" id="v8crm"></div>
+  <div class="page" id="v8inv"></div>
+  <div class="page" id="v8pro"></div>
+  <div class="page" id="v8chain"></div>
+</div>
+</div>
+<div id="dialog" class="modal"></div>
+<div id="globalLoader"><div class="loaderBox"><div class="spinner"></div><div id="loaderText">Please wait...</div></div></div>
+<div id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="qr.js"></script>
+<script src="xlsx.js"></script>
+<script src="ui.js"></script>
+<script src="login.js"></script>
+<script src="dashboard.js"></script>
+<script src="v8_dashboard.js"></script>
+</body>
+</html>
