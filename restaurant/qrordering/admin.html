@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; manifest-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' https: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com about:; form-action 'self'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex, nofollow">
+<title>DigiConvo Super Admin Console</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231b2440'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23c5a880' font-family='sans-serif' font-weight='900'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div id="loginScreen">
+  <form id="loginForm" class="loginBox" autocomplete="on" novalidate>
+    <i class="fa-solid fa-shield-halved loginIcon"></i>
+    <h2 id="loginTitle">DigiConvo Admin</h2>
+    <p class="loginSub">Super Admin sign-in. 16+ character DB master passkey enforced.</p>
+    <label class="fieldLabel" for="loginEmail">Email</label>
+    <input class="field" id="loginEmail" type="email" autocomplete="username" required>
+    <label class="fieldLabel" for="loginPassword">Password</label>
+    <input class="field" id="loginPassword" type="password" autocomplete="current-password" required>
+    <div id="captchaBox" class="captchaBox"></div>
+    <div id="loginError" class="formMsg" role="alert"></div>
+    <button id="loginBtn" class="primaryButton block" type="submit" disabled>Sign in</button>
+  </form>
+  <form id="passkeyForm" class="loginBox" hidden novalidate>
+    <i class="fa-solid fa-key loginIcon"></i>
+    <h2>Master Passkey</h2>
+    <p class="loginSub">Enter your 16+ character database master passkey to unlock.</p>
+    <input class="field" id="passkeyInput" type="password" minlength="16" maxlength="128" autocomplete="off" placeholder="16+ character master passkey" required>
+    <div id="passkeyError" class="formMsg" role="alert"></div>
+    <button class="primaryButton block" id="passkeyBtn" type="submit">Unlock Admin Console</button>
+    <button class="secondaryButton block" id="passkeyCancel" type="button">Sign out</button>
+  </form>
+</div>
+<div id="app" hidden>
+<div class="main">
+  <div class="topbar">
+    <div class="restaurantTitle"><i class="fa-solid fa-store"></i>&nbsp;<span id="pageTitle">Restaurants</span><span class="roleBadge">Super Admin</span></div>
+    <div class="ownerArea">
+      <div id="liveTime">--:--</div>
+      <button class="secondaryButton" type="button" data-action="platform-log">Activity</button>
+      <button class="secondaryButton" type="button" data-action="purge">Run auto-clean</button>
+      <button class="iconBtn" type="button" data-action="logout" title="Sign out" aria-label="Sign out"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </div>
+  <div id="passkeyBanner" class="banner" hidden></div>
+  <div class="page active" id="list"></div>
+  <div class="page" id="detail"></div>
+</div>
+</div>
+<div id="dialog" class="modal"></div>
+<div id="globalLoader"><div class="loaderBox"><div class="spinner"></div><div id="loaderText">Please wait...</div></div></div>
+<div id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="qr.js"></script>
+<script src="xlsx.js"></script>
+<script src="ui.js"></script>
+<script src="login.js"></script>
+<script src="admin.js"></script>
+<script src="v8_admin.js"></script>
+</body>
+</html>
