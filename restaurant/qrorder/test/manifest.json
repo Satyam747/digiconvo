@@ -1,8 +1,0 @@
-{
-  "name": "DigiConvo Smart QR Ordering v8",
-  "short_name": "DigiConvo QR",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#0e1320",
-  "theme_color": "#c5a880"
-}
