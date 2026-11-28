@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#05070f">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' file: 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://challenges.cloudflare.com; style-src 'self' file: 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; frame-src https://challenges.cloudflare.com; connect-src https://xmsghzhlybiakfmyypek.supabase.co https://challenges.cloudflare.com; base-uri 'none'; object-src 'none'; form-action 'none'">
+<title>Restaurant Owner Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>')</script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>preventFraming();</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,sans-serif;}
+body{background:#05070f;color:#fff;min-height:100vh;display:flex;}
+.sidebar{width:250px;background:#0b0f19;border-right:1px solid #1f2940;display:flex;flex-direction:column;flex-shrink:0;}
+.logo{padding:22px;border-bottom:1px solid #1f2940;}
+.logo h2{font-size:20px;color:#c5a880;}
+.logo p{font-size:12px;color:#94a3b8;margin-top:4px;}
+.cityTag{display:inline-block;margin-top:8px;padding:3px 9px;border-radius:99px;background:#141b2d;border:1px solid #293552;color:#cbd5e1;font-size:11px;font-weight:700;}
+.navMenu{padding:15px;flex:1;}
+.navItem{display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:14px;color:#cbd5e1;}
+.navItem:hover{background:#141b2d;}
+.navItem.active{background:#c5a880;color:#05070f;font-weight:700;}
+.main{flex:1;display:flex;flex-direction:column;overflow-x:hidden;}
+.topbar{height:66px;background:#0b0f19;border-bottom:1px solid #1f2940;display:flex;justify-content:space-between;align-items:center;padding:0 24px;}
+.page{padding:24px;display:none;max-width:1280px;width:100%;margin:auto;}
+.page.active{display:block;}
+
+.expiryBanner{background:#7f1d1d;border-bottom:1px solid #ef4444;padding:10px 24px;display:none;justify-content:space-between;align-items:center;font-size:13px;gap:10px;flex-wrap:wrap;}
+
+.statsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px;}
+.statCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;padding:18px;display:flex;align-items:center;gap:15px;}
+.statCard i{font-size:26px;color:#c5a880;}
+.statCard h3{font-size:26px;}
+.statCard p{font-size:12px;color:#94a3b8;}
+
+.demandCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;padding:18px;margin-bottom:24px;}
+.demandPills{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.demandPill{background:#141b2d;border:1px solid #293552;padding:8px 13px;border-radius:10px;font-size:13px;}
+.demandPill b{color:#c5a880;}
+
+.sectionHeader{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.primaryButton{background:#c5a880;color:#05070f;border:none;padding:11px 20px;border-radius:10px;font-weight:700;cursor:pointer;}
+.secondaryButton{background:#1e293b;color:#fff;border:1px solid #334155;padding:11px 18px;border-radius:10px;font-weight:600;cursor:pointer;}
+
+.quickFilters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.qPill{padding:8px 14px;border-radius:99px;font-size:12.5px;font-weight:700;background:#0b0f19;border:1px solid #293552;color:#cbd5e1;cursor:pointer;}
+.qPill.active{background:#c5a880;color:#05070f;border-color:#c5a880;}
+
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.toolbar input,.toolbar select{background:#0b0f19;border:1px solid #293552;color:#fff;padding:11px 14px;border-radius:10px;min-width:210px;}
+
+.menuGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;}
+.menuCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;overflow:hidden;}
+.menuImage{height:170px;background:#141b2d;position:relative;}
+.menuImage img{width:100%;height:100%;object-fit:cover;}
+.menuBody{padding:16px;}
+.menuBody h3{font-size:18px;margin-bottom:6px;}
+.menuBody p{font-size:12.5px;color:#94a3b8;min-height:36px;margin-bottom:10px;}
+.price{font-size:20px;font-weight:800;color:#c5a880;margin-bottom:10px;}
+.badge{display:inline-block;padding:4px 9px;border-radius:20px;font-size:10.5px;font-weight:700;margin-right:5px;margin-bottom:5px;}
+.available{background:#14532d;color:#fff;}
+.unavailable{background:#7f1d1d;color:#fff;}
+.offerBadge{background:#2563eb;color:#fff;}
+.cardActions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+.cardActions button{border:none;padding:9px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;}
+.editBtn{background:#2563eb;}.offerBtn{background:#d97706;}.stockBtn{background:#16a34a;}.deleteBtn{background:#dc2626;}
+
+.settingsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;}
+.settingCard{background:#0b0f19;border:1px solid #24304d;border-radius:16px;padding:22px;}
+.settingCard h3{margin-bottom:14px;color:#c5a880;}
+.settingCard label{display:block;margin-top:12px;margin-bottom:6px;font-size:13px;font-weight:600;color:#cbd5e1;}
+.settingCard input,.settingCard textarea,.settingCard select{width:100%;padding:11px;background:#141b2d;border:1px solid #293552;border-radius:10px;color:#fff;}
+
+.standeeCard{max-width:380px;margin:auto;background:#fff;color:#05070f;border-radius:24px;padding:30px 24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.6);border:6px solid #c5a880;}
+.standeeQrBox{background:#f8fafc;padding:16px;border-radius:16px;display:inline-block;border:2px dashed #cbd5e1;margin:14px 0;}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;justify-content:center;align-items:center;z-index:999;padding:16px;}
+.modal.show{display:flex;}
+.modalBox{width:700px;max-width:100%;background:#0b0f19;border:1px solid #24304d;border-radius:18px;max-height:90vh;overflow-y:auto;}
+.modalHeader{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #24304d;}
+.modalBody{padding:22px;}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.formGrid label{display:block;margin-bottom:5px;font-size:12.5px;font-weight:600;color:#cbd5e1;}
+.formGrid input:not([type="checkbox"]),.formGrid select,.formGrid textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #293552;background:#141b2d;color:#fff;}
+.formGrid input[type="checkbox"]{width:16px;height:16px;accent-color:#c5a880;vertical-align:middle;margin-right:4px;}
+.fullWidth{grid-column:1/3;}
+.modalFooter{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+#loginScreen{position:fixed;inset:0;background:#05070f;display:flex;justify-content:center;align-items:center;z-index:9999;padding:20px;}
+.loginBox{background:#0b0f19;border:1px solid #24304d;border-radius:18px;padding:35px 28px;text-align:center;width:100%;max-width:380px;}
+.loginBox input{width:100%;padding:14px;border-radius:10px;border:1px solid #293552;background:#141b2d;color:#fff;font-size:22px;text-align:center;letter-spacing:6px;margin:14px 0 10px;}
+.turnstileSlot{display:none;justify-content:center;margin:10px 0 12px;min-height:65px;}
+
+@media(max-width:768px){
+    body{flex-direction:column;}
+    .sidebar{width:100%;border-right:none;border-bottom:1px solid #1f2940;}
+    .navMenu{display:flex;overflow-x:auto;gap:8px;padding:10px;}
+    .navItem{margin-bottom:0;white-space:nowrap;}
+    .formGrid{grid-template-columns:1fr;}
+    .fullWidth{grid-column:auto;}
+}
+@media print{
+    .sidebar,.topbar,.noPrint,.expiryBanner{display:none!important;}
+    body{background:#fff;}
+    .page{padding:0;}
+}
+
+:focus-visible{outline:2px solid #c5a880;outline-offset:2px;}
+button:disabled{opacity:.55;cursor:wait!important;}
+.topActions{display:flex;gap:10px;align-items:center;}
+#loginMsg{min-height:18px;color:#f87171;font-size:13px;margin-bottom:10px;}
+.hint{font-size:12px;color:#94a3b8;margin-top:6px;}
+.tableTools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+.tableTools input{background:#0b0f19;border:1px solid #293552;color:#fff;padding:10px 12px;border-radius:10px;width:150px;}
+#tableSheet{display:none;}
+body.printSheet{display:block;background:#fff;}
+body.printSheet .sidebar,body.printSheet .main,body.printSheet .modal{display:none!important;}
+body.printSheet #tableSheet{display:grid!important;grid-template-columns:repeat(2,1fr);gap:14px;padding:10px;}
+body.printSheet .sheetCard{break-inside:avoid;background:#fff;color:#05070f;border:4px solid #c5a880;border-radius:18px;padding:16px;text-align:center;}
+@media print{#tableSheet .sheetCard{box-shadow:none;}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+
+<body>
+
+<div id="loginScreen" role="dialog" aria-modal="true" aria-label="Owner login">
+    <div class="loginBox">
+        <i class="fa-solid fa-shield-halved" style="color:#c5a880;font-size:38px;margin-bottom:12px;" aria-hidden="true"></i>
+        <h2 id="loginRestName">Owner Dashboard</h2>
+        <p id="loginSubtitle" style="color:#94a3b8;font-size:13px;margin-top:4px;">Enter Admin PIN & Security Code</p>
+        <input type="password" id="loginPin" placeholder="••••••" maxlength="12" autocomplete="current-password" aria-label="Admin PIN" onkeydown="if(event.key==='Enter'){if(isTurnstileEnabled())attemptLogin();else $('captchaInput').focus();}">
+        <div id="fallbackCaptchaWrap">
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
+                <canvas id="captchaCanvas" width="165" height="44" style="border-radius:10px;border:1px solid #293552;background:#141b2d;"></canvas>
+                <button type="button" class="secondaryButton" style="padding:10px 12px;" title="New Code" onclick="generateCaptcha()"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+            <input type="text" id="captchaInput" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" autocomplete="off" style="margin:0 0 12px;font-size:18px;letter-spacing:4px;" onkeydown="if(event.key==='Enter')attemptLogin()">
+        </div>
+        <div id="ownerTurnstile" class="turnstileSlot"></div>
+        <div id="loginMsg" role="alert"></div>
+        <button class="primaryButton" id="loginBtn" style="width:100%;padding:14px;" onclick="attemptLogin()">Unlock Dashboard</button>
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="logo">
+        <h2 id="sidebarRestName">Restaurant</h2>
+        <p>ID: <code id="sidebarSlug" style="color:#c5a880;">demo</code></p>
+        <div class="cityTag" id="sidebarCity" style="display:none;"></div>
+    </div>
+    <div class="navMenu" role="tablist">
+        <div class="navItem active" role="tab" tabindex="0" onclick="switchTab('menuPage', this)">
+            <i class="fa-solid fa-utensils" aria-hidden="true"></i><span>Menu & Offers</span>
+        </div>
+        <div class="navItem" role="tab" tabindex="0" onclick="switchTab('qrPage', this)">
+            <i class="fa-solid fa-qrcode" aria-hidden="true"></i><span>QR Standee Card</span>
+        </div>
+        <div class="navItem" role="tab" tabindex="0" onclick="switchTab('settingsPage', this)">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Settings & Theme</span>
+        </div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="expiryBanner" id="expiryBanner" role="alert"></div>
+
+    <div class="topbar">
+        <div style="font-size:18px;font-weight:700;" id="topbarTitle">Menu & Offers</div>
+        <div class="topActions">
+            <a id="liveMenuLink" target="_blank" rel="noopener" class="secondaryButton" style="text-decoration:none;font-size:13px;">
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> View Live QR Menu
+            </a>
+            <button class="secondaryButton" style="font-size:13px;" onclick="logoutOwner()"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="page active" id="menuPage">
+        <div class="statsGrid" id="menuStats"></div>
+        <div class="demandCard" id="demandBox" style="display:none;">
+            <div style="font-size:13px;font-weight:800;color:#c5a880;text-transform:uppercase;">🔥 Most Shortlisted Dishes by Guests</div>
+            <div class="demandPills" id="demandPills"></div>
+        </div>
+        <div class="sectionHeader">
+            <h2>Menu Catalog</h2>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="secondaryButton" onclick="exportMenuCSV()"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Export CSV</button>
+                <button class="secondaryButton" onclick="document.getElementById('csvFile').click()"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i> Import CSV</button>
+                <button class="primaryButton" onclick="openMenuModal()"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add Dish</button>
+            </div>
+            <input type="file" id="csvFile" accept=".csv,text/csv" style="display:none" onchange="importMenuCSV(this)">
+        </div>
+        <div class="quickFilters" id="quickFilters">
+            <button type="button" class="qPill active" data-status="all" onclick="setStatusFilter('all', this)">All Dishes</button>
+            <button type="button" class="qPill" data-status="offers" onclick="setStatusFilter('offers', this)">🔥 Offers Only</button>
+            <button type="button" class="qPill" data-status="out" onclick="setStatusFilter('out', this)">🚫 Out of Stock</button>
+            <button type="button" class="qPill" data-status="in" onclick="setStatusFilter('in', this)">✅ In Stock</button>
+        </div>
+        <div class="toolbar">
+            <input id="menuSearch" type="search" placeholder="Search dish, category, description..." aria-label="Search dishes" oninput="filterMenu()">
+            <select id="categoryFilter" aria-label="Filter by category" onchange="filterMenu()"><option value="">All Categories</option></select>
+            <select id="menuSort" aria-label="Sort dishes" onchange="filterMenu()">
+                <option value="menu">Sort: Guest view order</option>
+                <option value="name">Sort: Name A-Z</option>
+                <option value="popular">Sort: Most shortlisted</option>
+                <option value="priceLow">Sort: Price low to high</option>
+                <option value="priceHigh">Sort: Price high to low</option>
+            </select>
+        </div>
+        <div class="menuGrid" id="menuGrid"></div>
+    </div>
+
+    <div class="page" id="qrPage">
+        <div class="sectionHeader noPrint">
+            <div>
+                <h2>Print-Ready Table QR Standee</h2>
+                <p style="color:#94a3b8;font-size:14px;">Print this card for tables or counter - it always shows your live menu.</p>
+            </div>
+            <button class="primaryButton" onclick="window.print()"><i class="fa-solid fa-print" aria-hidden="true"></i> Print / Save PDF</button>
+        </div>
+        <div class="tableTools noPrint">
+            <input id="qrTable" maxlength="12" placeholder="Table no. (optional)" aria-label="Table number for this QR" oninput="renderQrStandee()">
+            <button class="secondaryButton" onclick="copyMenuLink()"><i class="fa-solid fa-link" aria-hidden="true"></i> Copy menu link</button>
+            <input id="qrCount" type="number" min="1" max="60" value="10" aria-label="Number of tables">
+            <button class="secondaryButton" id="printSheetBtn" onclick="printTableSheet(this)"><i class="fa-solid fa-table-cells" aria-hidden="true"></i> Print QR sheet for tables 1 to N</button>
+        </div>
+        <p class="hint noPrint" style="margin:-8px 0 18px;">A table QR adds the table number to the guest's WhatsApp order automatically.</p>
+        <div class="standeeCard" id="standeeCard"></div>
+    </div>
+
+    <div class="page" id="settingsPage"></div>
+</div>
+
+<div id="tableSheet"></div>
+
+<div class="modal" id="menuModal" role="dialog" aria-modal="true" aria-label="Dish editor"></div>
+<div class="modal" id="offerModal" role="dialog" aria-modal="true" aria-label="Offer editor"></div>
+
+<script>
+let MENU = [];
+let FILTERED_MENU = [];
+let CURRENT_ITEM = null;
+let NEW_DISH_ID = null;
+let STATUS_FILTER = "all";
+let CURRENT_CAPTCHA = "";
+let TURNSTILE_WIDGET_ID = null;
+let TURNSTILE_TOKEN = "";
+let PROVIDER_WA = "";
+let PROVIDER_UPI = "";
+
+const $ = id => document.getElementById(id);
+const toast = (msg, isErr = false) => showToast(msg, isErr);
+
+function generateCaptcha() {
+    CURRENT_CAPTCHA = String(Math.floor(100000 + Math.random() * 900000));
+    const c = $("captchaCanvas");
+    if (!c) return;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#141b2d";
+    ctx.fillRect(0, 0, c.width, c.height);
+    for (let i = 0; i < 6; i++) {
+        ctx.strokeStyle = "rgba(197,168,128,0.25)";
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * c.width, Math.random() * c.height);
+        ctx.lineTo(Math.random() * c.width, Math.random() * c.height);
+        ctx.stroke();
+    }
+    ctx.font = "bold 24px monospace";
+    ctx.fillStyle = "#c5a880";
+    for (let i = 0; i < 6; i++) {
+        ctx.save();
+        ctx.translate(18 + i * 24, 30);
+        ctx.rotate((Math.random() - 0.5) * 0.35);
+        ctx.fillText(CURRENT_CAPTCHA[i], 0, 0);
+        ctx.restore();
+    }
+    if ($("captchaInput")) $("captchaInput").value = "";
+}
+
+async function initSecurityChallenge() {
+    if (isTurnstileEnabled()) {
+        $("fallbackCaptchaWrap").style.display = "none";
+        $("ownerTurnstile").style.display = "flex";
+        $("loginSubtitle").innerText = "Enter Admin PIN & complete security check";
+        TURNSTILE_TOKEN = "";
+        try {
+            const ts = await loadTurnstileScript();
+            if (TURNSTILE_WIDGET_ID !== null) {
+                ts.reset(TURNSTILE_WIDGET_ID);
+            } else {
+                TURNSTILE_WIDGET_ID = ts.render("#ownerTurnstile", {
+                    sitekey: CONFIG.SECURITY.TURNSTILE_SITE_KEY,
+                    action: "owner_login",
+                    theme: "dark",
+                    callback: (token) => { TURNSTILE_TOKEN = token; },
+                    "expired-callback": () => { TURNSTILE_TOKEN = ""; },
+                    "error-callback": () => { TURNSTILE_TOKEN = ""; }
+                });
+            }
+        } catch (e) {
+            $("loginMsg").innerText = "Security widget failed to load. Please refresh.";
+        }
+    } else {
+        $("fallbackCaptchaWrap").style.display = "block";
+        $("ownerTurnstile").style.display = "none";
+        generateCaptcha();
+    }
+}
+
+function resetSecurityChallenge() {
+    if (isTurnstileEnabled() && window.turnstile && TURNSTILE_WIDGET_ID !== null) {
+        TURNSTILE_TOKEN = "";
+        window.turnstile.reset(TURNSTILE_WIDGET_ID);
+    } else {
+        generateCaptcha();
+    }
+}
+
+async function withBusy(btn, fn) {
+    if (btn && btn.disabled) return;
+    if (btn) btn.disabled = true;
+    try { return await fn(); }
+    finally { if (btn) btn.disabled = false; }
+}
+
+async function refreshSettings() {
+    const s = await api("getSettings");
+    if (s && s.success) {
+        SETTINGS = { ...SETTINGS, ...s };
+        applyThemePreset(SETTINGS.ThemeColor);
+        const loc = [SETTINGS.Area, SETTINGS.City].filter(Boolean).join(", ");
+        const cityEl = $("sidebarCity");
+        if (cityEl) {
+            if (loc) { cityEl.innerText = "📍 " + loc; cityEl.style.display = "inline-block"; }
+            else cityEl.style.display = "none";
+        }
+        return true;
+    }
+    return false;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadRestaurantSettings();
+    if (SETTINGS.NotFound) {
+        document.querySelector(".loginBox").innerHTML = SETTINGS.LoadFailed
+            ? `<i class="fa-solid fa-wifi" style="color:#f59e0b;font-size:38px;margin-bottom:12px;" aria-hidden="true"></i>
+               <h2>Can't reach the server</h2>
+               <p style="color:#94a3b8;font-size:13px;margin-top:8px;">${escapeHTML(SETTINGS.ErrorMessage || "")}</p>
+               <button class="primaryButton" style="margin-top:16px;" onclick="location.reload()">Try again</button>`
+            : `<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;font-size:38px;margin-bottom:12px;" aria-hidden="true"></i>
+               <h2>Restaurant Not Found</h2>
+               <p style="color:#94a3b8;font-size:13px;margin-top:8px;">No restaurant exists with slug: <b style="color:#fff;">?r=${escapeHTML(CONFIG.TENANT.SLUG)}</b></p>`;
+        return;
+    }
+    $("loginRestName").innerText = SETTINGS.Name;
+    $("sidebarRestName").innerText = SETTINGS.Name;
+    $("sidebarSlug").innerText = CONFIG.TENANT.SLUG;
+    $("liveMenuLink").href = `index.html?r=${encodeURIComponent(CONFIG.TENANT.SLUG)}`;
+
+    const resumed = await api("resumeSession");
+    if (resumed && resumed.success) {
+        PROVIDER_WA = resumed.ProviderWhatsApp || "";
+        PROVIDER_UPI = resumed.ProviderUpi || "";
+        await enterDashboard();
+    } else {
+        await initSecurityChallenge();
+        $("loginPin").focus();
+    }
+});
+
+window.addEventListener("dc:auth-expired", () => showLogin("Your session expired. Please log in again."));
+
+function showLogin(msg) {
+    $("loginScreen").style.display = "flex";
+    $("loginPin").value = "";
+    $("loginMsg").innerText = msg || "";
+    initSecurityChallenge();
+    $("loginPin").focus();
+}
+
+async function attemptLogin() {
+    const pin = $("loginPin").value.trim();
+    if (!pin) { $("loginMsg").innerText = "Enter your Admin PIN."; return; }
+
+    if (isTurnstileEnabled()) {
+        if (!TURNSTILE_TOKEN) {
+            $("loginMsg").innerText = "Please complete the Cloudflare security check.";
+            return;
+        }
+    } else {
+        const cap = ($("captchaInput")?.value || "").trim();
+        if (cap !== CURRENT_CAPTCHA) {
+            $("loginMsg").innerText = "Incorrect 6-digit security code. Try again.";
+            generateCaptcha();
+            $("captchaInput").focus();
+            return;
+        }
+    }
+
+    await withBusy($("loginBtn"), async () => {
+        const res = await api("verifyPin", { pin, turnstileToken: TURNSTILE_TOKEN });
+        if (!res || !res.success) {
+            $("loginMsg").innerText = (res && res.message) || "Invalid PIN";
+            resetSecurityChallenge();
+            $("loginPin").select();
+            return;
+        }
+        PROVIDER_WA = res.ProviderWhatsApp || "";
+        PROVIDER_UPI = res.ProviderUpi || "";
+        $("loginMsg").innerText = "";
+        await enterDashboard();
+    });
+}
+
+async function enterDashboard() {
+    $("loginScreen").style.display = "none";
+    $("loginPin").value = "";
+    await refreshSettings();
+    checkSubscriptionBanner();
+    await loadMenu();
+    renderSettings();
+    renderQrStandee();
+}
+
+async function logoutOwner() {
+    await api("logout");
+    location.reload();
+}
+
+function checkSubscriptionBanner() {
+    const b = $("expiryBanner");
+    const d = daysUntil(SETTINGS.ValidTill);
+    const isPausedOrOffline = SETTINGS.IsActive === false;
+    if (!isPausedOrOffline && (d === null || d > 5)) { b.style.display = "none"; return; }
+    b.style.display = "flex";
+    const renewWA = waNumber(PROVIDER_WA);
+    const price = SETTINGS.PlanPrice ?? 399;
+    const renewBtn = renewWA
+        ? `<a href="https://wa.me/${renewWA}?text=${encodeURIComponent('Hi, I want to renew/activate my ' + (SETTINGS.Currency || '₹') + price + ' Digiconvo QR Menu subscription for ' + SETTINGS.Name + ' (' + CONFIG.TENANT.SLUG + ')')}" target="_blank" rel="noopener" style="background:#fff;color:#7f1d1d;padding:5px 12px;border-radius:6px;font-weight:800;text-decoration:none;">Renew / Contact Support</a>`
+        : "";
+    if (d !== null && d <= 5) {
+        const when = d < 0 ? `expired ${-d} day(s) ago` : d === 0 ? "expires today" : `expires in ${d} day(s)`;
+        const offline = isPausedOrOffline ? " Your public menu is currently OFFLINE." : "";
+        b.innerHTML = `<span>⚠️ Your Digiconvo QR Menu subscription ${when} (${escapeHTML(SETTINGS.ValidTill)}).${offline}</span> ${renewBtn}`;
+    } else {
+        b.innerHTML = `<span>⚠️ Your public QR menu is currently PAUSED / OFFLINE. Guests cannot view it until reactivated.</span> ${renewBtn}`;
+    }
+}
+
+function switchTab(pageId, el) {
+    document.querySelectorAll(".navItem").forEach(n => { n.classList.remove("active"); n.setAttribute("aria-selected", "false"); });
+    el.classList.add("active");
+    el.setAttribute("aria-selected", "true");
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    $(pageId).classList.add("active");
+    $("topbarTitle").innerText = el.innerText.trim();
+    if (pageId === "qrPage") renderQrStandee();
+}
+
+async function loadMenu() {
+    const [res] = await Promise.all([api("getOwnerMenu"), refreshSettings()]);
+    if (!res || !res.success) {
+        if (!(res && res.authExpired)) toast("Unable to load menu: " + ((res && res.message) || "network error"), true);
+        return;
+    }
+    MENU = res.data || [];
+    renderStats();
+    populateCategories();
+    filterMenu();
+}
+
+function renderStats() {
+    const activeOffers = MENU.filter(i => i.OfferType && i.OfferType !== "None").length;
+    const outOfStock = MENU.filter(i => !i.Available).length;
+    $("menuStats").innerHTML = `
+        <div class="statCard"><i class="fa-solid fa-qrcode" aria-hidden="true"></i><div><h3>${Number(SETTINGS.ScanCount) || 0}</h3><p>Total QR Menu Scans</p></div></div>
+        <div class="statCard"><i class="fa-solid fa-bowl-food" aria-hidden="true"></i><div><h3>${MENU.length}</h3><p>Total Dishes</p></div></div>
+        <div class="statCard"><i class="fa-solid fa-fire" aria-hidden="true"></i><div><h3>${activeOffers}</h3><p>Active / Scheduled Offers</p></div></div>
+        <div class="statCard"><i class="fa-solid fa-ban" aria-hidden="true"></i><div><h3>${outOfStock}</h3><p>Out of Stock</p></div></div>
+    `;
+    const top = [...MENU].filter(i => i.ShortlistCount > 0).sort((a, b) => b.ShortlistCount - a.ShortlistCount).slice(0, 5);
+    const dBox = $("demandBox");
+    if (top.length > 0) {
+        dBox.style.display = "block";
+        $("demandPills").innerHTML = top.map(i => `<div class="demandPill">${escapeHTML(i.Name)} — <b>${i.ShortlistCount} shortlists</b></div>`).join("");
+    } else {
+        dBox.style.display = "none";
+    }
+}
+
+function populateCategories() {
+    const sel = $("categoryFilter");
+    const current = sel.value;
+    const cats = sortCategoriesNaturally([...new Set(MENU.map(x => x.Category).filter(Boolean))]);
+    sel.innerHTML = `<option value="">All Categories</option>` + cats.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
+    sel.value = cats.includes(current) ? current : "";
+}
+
+function setStatusFilter(status, el) {
+    STATUS_FILTER = status;
+    document.querySelectorAll("#quickFilters .qPill").forEach(p => p.classList.remove("active"));
+    if (el) el.classList.add("active");
+    filterMenu();
+}
+
+function filterMenu() {
+    const kw = ($("menuSearch").value || "").trim().toLowerCase();
+    const cat = $("categoryFilter").value || "";
+    const sort = $("menuSort").value;
+    let list = MENU.filter(i => {
+        const textMatch = !kw ||
+            i.Name.toLowerCase().includes(kw) ||
+            i.Category.toLowerCase().includes(kw) ||
+            i.Description.toLowerCase().includes(kw) ||
+            (i.PairsWith || "").toLowerCase().includes(kw);
+        const catMatch = (kw !== "" || !cat) ? true : i.Category === cat;
+        let statusMatch = true;
+        if (STATUS_FILTER === "offers") statusMatch = Boolean(i.OfferType && i.OfferType !== "None");
+        else if (STATUS_FILTER === "out") statusMatch = !i.Available;
+        else if (STATUS_FILTER === "in") statusMatch = Boolean(i.Available);
+        return textMatch && catMatch && statusMatch;
+    });
+    if (sort === "name") list.sort((a, b) => a.Name.localeCompare(b.Name));
+    else if (sort === "popular") list.sort((a, b) => b.ShortlistCount - a.ShortlistCount);
+    else if (sort === "priceLow") list.sort((a, b) => a.Price - b.Price);
+    else if (sort === "priceHigh") list.sort((a, b) => b.Price - a.Price);
+    FILTERED_MENU = list;
+    renderMenuCards();
+}
+
+function renderMenuCards() {
+    const grid = $("menuGrid");
+    if (FILTERED_MENU.length === 0) {
+        grid.innerHTML = `<div class="settingCard">${MENU.length === 0 ? 'No dishes yet. Click "Add Dish" or import a CSV to get started.' : "No dishes match your search or filter."}</div>`;
+        return;
+    }
+    grid.innerHTML = FILTERED_MENU.map(item => {
+        const jid = escapeJS(item.ID);
+        let badges = item.Veg ? `<span class="badge available">🟢 VEG</span>` : `<span class="badge unavailable">🔴 NON-VEG</span>`;
+        if (item.Jain) badges += `<span class="badge available">🕉️ Jain</span>`;
+        if (item.Bestseller) badges += `<span class="badge" style="background:#b45309;">⭐ Bestseller</span>`;
+        if (item.ChefsSpecial) badges += `<span class="badge" style="background:#6d28d9;">👨‍🍳 Chef's Special</span>`;
+        if (item.MustTry) badges += `<span class="badge" style="background:#0284c7;">🔥 Must Try</span>`;
+        if (item.Spicy) badges += `<span class="badge" style="background:#b91c1c;">🌶️ Spicy</span>`;
+        if (item.OfferType && item.OfferType !== "None") {
+            badges += `<span class="badge offerBadge">${item.isOfferActive ? "🔥 Live: " : "⏰ "}${escapeHTML(item.OfferType)}</span>`;
+        }
+        badges += item.Available ? `<span class="badge available">In Stock</span>` : `<span class="badge unavailable">Sold Out</span>`;
+
+        const halfDiscounted = item.HalfPrice > 0 && item.halfPrice < item.HalfPrice;
+        const halfText = item.HalfPrice > 0
+            ? `<span style="font-size:12px;color:#94a3b8;font-weight:500;"> (Half: ${halfDiscounted ? `<del style="margin-right:3px;">${formatMoney(item.HalfPrice)}</del>` : ""}${formatMoney(item.halfPrice)})</span>`
+            : "";
+
+        return `
+            <div class="menuCard">
+                <div class="menuImage">
+                    <img src="${imageOrDefault(item.Image)}" alt="${escapeHTML(item.Name)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${CONFIG.UI.DEFAULT_IMAGE}'">
+                </div>
+                <div class="menuBody">
+                    <div style="font-size:12px;color:#c5a880;font-weight:700;margin-bottom:4px;">${escapeHTML(item.Category)}</div>
+                    <h3>${escapeHTML(item.Name)}</h3>
+                    <p>${escapeHTML(item.Description)}</p>
+                    <div class="price">
+                        ${item.OriginalPrice > item.Price ? `<del style="font-size:13px;color:#64748b;margin-right:5px;">${formatMoney(item.OriginalPrice)}</del>` : ""}
+                        ${formatMoney(item.Price)}${halfText}
+                    </div>
+                    <div>${badges}</div>
+                    <div class="cardActions">
+                        <button class="editBtn" onclick="openMenuModal('${jid}')">Edit</button>
+                        <button class="offerBtn" onclick="openOfferModal('${jid}')">Offer</button>
+                        <button class="stockBtn" onclick="toggleStock('${jid}', this)">${item.Available ? "Mark Out" : "In Stock"}</button>
+                        <button class="deleteBtn" onclick="deleteItem('${jid}', this)">Delete</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+/* ---------------- dish editor ---------------- */
+function openMenuModal(id = null) {
+    NEW_DISH_ID = null;
+    CURRENT_ITEM = id ? MENU.find(x => String(x.ID) === String(id)) || null : null;
+    const src = CURRENT_ITEM;
+    const cur = escapeHTML(SETTINGS.Currency || "₹");
+    const existingCats = sortCategoriesNaturally([...new Set(MENU.map(x => x.Category).filter(Boolean))]);
+    const hasCurrentCat = Boolean(src?.Category && existingCats.includes(src.Category));
+    const showNewCat = !hasCurrentCat && (existingCats.length === 0 || Boolean(src?.Category));
+
+    $("menuModal").innerHTML = `
+        <div class="modalBox">
+            <div class="modalHeader">
+                <h3>${CURRENT_ITEM ? "Edit Dish" : "Add New Dish"}</h3>
+                <button class="secondaryButton" aria-label="Close" onclick="closeOverlay('menuModal')">✕</button>
+            </div>
+            <div class="modalBody">
+                <div class="formGrid">
+                    <div><label for="fName">Dish Name</label><input id="fName" maxlength="120" value="${escapeHTML(src?.Name || "")}"></div>
+                    <div>
+                        <label for="fCategorySelect">Category</label>
+                        <select id="fCategorySelect" onchange="toggleNewCategoryBox()">
+                            ${existingCats.map(c => `<option value="${escapeHTML(c)}" ${src?.Category === c ? "selected" : ""}>${escapeHTML(c)}</option>`).join("")}
+                            <option value="__NEW__" ${showNewCat ? "selected" : ""}>+ Add New Category...</option>
+                        </select>
+                        <input id="fCategoryNew" maxlength="60" placeholder="Enter new category name..." value="${hasCurrentCat ? "" : escapeHTML(src?.Category || "")}" style="margin-top:8px;display:${showNewCat ? "block" : "none"};">
+                    </div>
+                    <div><label for="fPrice">Full Price (${cur})</label><input type="number" id="fPrice" min="0" step="any" inputmode="decimal" value="${src?.OriginalPrice || ""}"></div>
+                    <div><label for="fHalfPrice">Half Portion Price (Optional — 0 for none)</label><input type="number" id="fHalfPrice" min="0" step="any" inputmode="decimal" value="${src?.HalfPrice || 0}"></div>
+                    <div>
+                        <label for="fVeg">Dietary Type</label>
+                        <select id="fVeg">
+                            <option value="true" ${src?.Veg !== false ? "selected" : ""}>🟢 Pure Veg</option>
+                            <option value="false" ${src?.Veg === false ? "selected" : ""}>🔴 Non-Veg</option>
+                        </select>
+                    </div>
+                    <div><label for="fPrep">Prep Time (Optional, e.g. 15 mins)</label><input id="fPrep" maxlength="30" value="${escapeHTML(src?.PrepTime || "")}"></div>
+                    <div class="fullWidth">
+                        <label for="fPairs">"Pairs Well With" Dish Name (Smart Cross-Sell Upsell)</label>
+                        <input id="fPairs" maxlength="120" placeholder="e.g. Garlic Butter Naan or Mint Mojito" value="${escapeHTML(src?.PairsWith || "")}">
+                        <div class="hint">Type the other dish's exact name. If you rename that dish later, update this field too.</div>
+                    </div>
+                    <div class="fullWidth">
+                        <label>Smart Conversion Tags</label>
+                        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;">
+                            <label><input type="checkbox" id="fBest" ${src?.Bestseller ? "checked" : ""}> ⭐ Bestseller</label>
+                            <label><input type="checkbox" id="fChef" ${src?.ChefsSpecial ? "checked" : ""}> 👨‍🍳 Chef's Special</label>
+                            <label><input type="checkbox" id="fMust" ${src?.MustTry ? "checked" : ""}> 🔥 Must Try</label>
+                            <label><input type="checkbox" id="fJain" ${src?.Jain ? "checked" : ""}> 🕉️ Jain Available</label>
+                            <label><input type="checkbox" id="fSpicy" ${src?.Spicy ? "checked" : ""}> 🌶️ Spicy</label>
+                        </div>
+                    </div>
+                    <div class="fullWidth"><label for="fImage">Image URL (https://...)</label><input id="fImage" type="url" value="${escapeHTML(src?.Image || "")}"></div>
+                    <div class="fullWidth"><label for="fDesc">Description</label><textarea id="fDesc" rows="2" maxlength="500">${escapeHTML(src?.Description || "")}</textarea></div>
+                </div>
+                <div class="modalFooter">
+                    <button class="secondaryButton" onclick="closeOverlay('menuModal')">Cancel</button>
+                    <button class="primaryButton" onclick="saveDish(this)">Save Dish</button>
+                </div>
+            </div>
+        </div>
+    `;
+    openOverlay("menuModal");
+}
+
+function toggleNewCategoryBox() {
+    const isNew = $("fCategorySelect").value === "__NEW__";
+    $("fCategoryNew").style.display = isNew ? "block" : "none";
+    if (isNew) $("fCategoryNew").focus();
+}
+
+async function saveDish(btn) {
+    const catVal = ($("fCategorySelect").value === "__NEW__" ? $("fCategoryNew").value : $("fCategorySelect").value).trim();
+    const payload = {
+        ID: CURRENT_ITEM ? CURRENT_ITEM.ID : (NEW_DISH_ID = NEW_DISH_ID || randomID("DISH")),
+        Name: $("fName").value.trim(),
+        Category: catVal,
+        OriginalPrice: Number($("fPrice").value),
+        Price: Number($("fPrice").value),
+        HalfPrice: Number($("fHalfPrice").value || 0),
+        Veg: $("fVeg").value === "true",
+        PrepTime: $("fPrep").value.trim(),
+        PairsWith: $("fPairs").value.trim(),
+        Bestseller: $("fBest").checked,
+        ChefsSpecial: $("fChef").checked,
+        MustTry: $("fMust").checked,
+        Jain: $("fJain").checked,
+        Spicy: $("fSpicy").checked,
+        Image: $("fImage").value.trim(),
+        Description: $("fDesc").value.trim(),
+        Available: CURRENT_ITEM ? CURRENT_ITEM.Available : true
+    };
+    if (!payload.Name || !payload.Category || !Number.isFinite(payload.Price) || payload.Price <= 0 || payload.Price > 1000000) {
+        toast("Please enter Name, Category, and valid Full Price (1 to 1,000,000).", true);
+        return;
+    }
+    if (!Number.isFinite(payload.HalfPrice) || payload.HalfPrice < 0 || (payload.HalfPrice > 0 && payload.HalfPrice >= payload.Price)) {
+        toast("Half price must be 0 (none) or less than the full price.", true);
+        return;
+    }
+    if (payload.Image && !safeUrl(payload.Image)) {
+        toast("Image URL must start with https://", true);
+        return;
+    }
+    await withBusy(btn, async () => {
+        const res = await api("saveMenuItem", payload);
+        if (res && res.success) {
+            toast("Dish Saved!");
+            closeOverlay("menuModal");
+            loadMenu();
+        } else if (!(res && res.authExpired)) toast((res && res.message) || "Failed to save", true);
+    });
+}
+
+async function toggleStock(id, btn) {
+    await withBusy(btn, async () => {
+        const res = await api("toggleAvailability", { id });
+        if (res && res.success) { toast("Stock Updated"); loadMenu(); }
+        else if (!(res && res.authExpired)) toast((res && res.message) || "Could not update stock", true);
+    });
+}
+
+async function deleteItem(id, btn) {
+    const it = MENU.find(x => String(x.ID) === String(id));
+    if (!confirm(`Delete "${it ? it.Name : "this dish"}" permanently?`)) return;
+    await withBusy(btn, async () => {
+        const res = await api("deleteMenuItem", { id });
+        if (res && res.success) { toast("Dish Deleted"); loadMenu(); }
+        else if (!(res && res.authExpired)) toast((res && res.message) || "Could not delete dish", true);
+    });
+}
+
+/* ---------------- offers ---------------- */
+function openOfferModal(id) {
+    CURRENT_ITEM = MENU.find(x => String(x.ID) === String(id));
+    if (!CURRENT_ITEM) return;
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    $("offerModal").innerHTML = `
+        <div class="modalBox">
+            <div class="modalHeader">
+                <h3>Offer & Dayparting — ${escapeHTML(CURRENT_ITEM.Name)}</h3>
+                <button class="secondaryButton" aria-label="Close" onclick="closeOverlay('offerModal')">✕</button>
+            </div>
+            <div class="modalBody">
+                <div class="formGrid">
+                    <div>
+                        <label for="oType">Offer Type</label>
+                        <select id="oType">
+                            <option value="None">No Offer</option>
+                            <option value="Happy Hour">Happy Hour (% Off)</option>
+                            <option value="Percentage">Percentage Discount (%)</option>
+                            <option value="Flat">Flat Discount (${escapeHTML(SETTINGS.Currency || "₹")})</option>
+                        </select>
+                    </div>
+                    <div><label for="oVal">Discount Value</label><input type="number" id="oVal" min="0" step="any" value="${CURRENT_ITEM.OfferValue || 0}"></div>
+                    <div><label for="oStart">Start Time (Optional)</label><input type="time" id="oStart" value="${escapeHTML(CURRENT_ITEM.StartTime || "")}"></div>
+                    <div><label for="oEnd">End Time (Optional)</label><input type="time" id="oEnd" value="${escapeHTML(CURRENT_ITEM.EndTime || "")}"></div>
+                    <div class="fullWidth">
+                        <label>Active Days (Leave unchecked for Every Day)</label>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;" id="oDays">
+                            ${days.map(d => `<label><input type="checkbox" value="${d}" ${(CURRENT_ITEM.OfferDays || []).includes(d) ? "checked" : ""}> ${d}</label>`).join("")}
+                        </div>
+                        <div class="hint">Times follow the restaurant's clock (${escapeHTML(SETTINGS.Timezone || CONFIG.UI.TIMEZONE)}). An end time earlier than the start time runs overnight.</div>
+                    </div>
+                </div>
+                <div class="modalFooter">
+                    <button class="deleteBtn" style="padding:10px 16px;border-radius:8px;border:none;color:#fff;font-weight:700;margin-right:auto;cursor:pointer;" onclick="clearItemOffer(this)">Remove Offer</button>
+                    <button class="secondaryButton" onclick="closeOverlay('offerModal')">Cancel</button>
+                    <button class="primaryButton" onclick="saveItemOffer(this)">Save Offer</button>
+                </div>
+            </div>
+        </div>
+    `;
+    $("oType").value = CURRENT_ITEM.OfferType || "None";
+    openOverlay("offerModal");
+}
+
+async function saveItemOffer(btn) {
+    const days = [...document.querySelectorAll("#oDays input:checked")].map(c => c.value);
+    const payload = {
+        id: CURRENT_ITEM.ID,
+        offerType: $("oType").value,
+        offerValue: Number($("oVal").value),
+        startTime: $("oStart").value,
+        endTime: $("oEnd").value,
+        days
+    };
+    if (payload.offerType !== "None") {
+        if (!Number.isFinite(payload.offerValue) || !(payload.offerValue > 0)) { toast("Enter a discount value above 0.", true); return; }
+        if (payload.offerType !== "Flat" && payload.offerValue > 100) { toast("Percentage can't exceed 100.", true); return; }
+        if (payload.offerType === "Flat" && payload.offerValue >= CURRENT_ITEM.OriginalPrice) { toast("Flat discount must be less than the dish price.", true); return; }
+        if (Boolean(payload.startTime) !== Boolean(payload.endTime)) { toast("Set both start and end time, or leave both empty.", true); return; }
+    }
+    await withBusy(btn, async () => {
+        const res = await api("saveOffer", payload);
+        if (res && res.success) {
+            toast("Offer Updated!");
+            closeOverlay("offerModal");
+            loadMenu();
+        } else if (!(res && res.authExpired)) toast((res && res.message) || "Error", true);
+    });
+}
+
+async function clearItemOffer(btn) {
+    await withBusy(btn, async () => {
+        const res = await api("removeOffer", { id: CURRENT_ITEM.ID });
+        if (res && res.success) {
+            toast("Offer Removed");
+            closeOverlay("offerModal");
+            loadMenu();
+        } else if (!(res && res.authExpired)) toast((res && res.message) || "Could not remove offer", true);
+    });
+}
+
+/* ---------------- CSV export / atomic bulk import ---------------- */
+const CSV_COLS = ["Category", "Name", "Description", "FullPrice", "HalfPrice", "Veg", "Jain", "Spicy", "Bestseller", "ChefsSpecial", "MustTry", "PairsWith", "PrepTime", "Image", "Available"];
+
+function csvCell(v) {
+    let s = String(v ?? "");
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function exportMenuCSV() {
+    if (MENU.length === 0) { toast("Nothing to export yet.", true); return; }
+    const yn = b => (b ? "yes" : "no");
+    const lines = [CSV_COLS.join(",")].concat(MENU.map(i => [
+        i.Category, i.Name, i.Description, i.OriginalPrice, i.HalfPrice, yn(i.Veg), yn(i.Jain), yn(i.Spicy),
+        yn(i.Bestseller), yn(i.ChefsSpecial), yn(i.MustTry), i.PairsWith, i.PrepTime, i.Image, yn(i.Available)
+    ].map(csvCell).join(",")));
+    const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${CONFIG.TENANT.SLUG}-menu-${todayInRestaurantTZ()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function parseCSV(text) {
+    text = text.replace(/^\uFEFF/, "");
+    const rows = [];
+    let row = [], cur = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (q) {
+            if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+            else cur += c;
+        } else if (c === '"') q = true;
+        else if (c === ",") { row.push(cur); cur = ""; }
+        else if (c === "\n" || c === "\r") {
+            if (c === "\r" && text[i + 1] === "\n") i++;
+            row.push(cur); cur = "";
+            if (row.length > 1 || row[0] !== "") rows.push(row);
+            row = [];
+        } else cur += c;
+    }
+    if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+    return rows;
+}
+
+function parseBool(v, def) {
+    const s = String(v ?? "").trim().toLowerCase();
+    if (["yes", "y", "true", "1", "veg"].includes(s)) return true;
+    if (["no", "n", "false", "0", "non-veg", "nonveg"].includes(s)) return false;
+    return def;
+}
+
+async function importMenuCSV(input) {
+    const file = input.files && input.files[0];
+    input.value = "";
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast("CSV is too large (max 2 MB).", true); return; }
+    const rows = parseCSV(await file.text());
+    if (rows.length < 2) { toast("The CSV has no data rows.", true); return; }
+    const header = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z]/g, ""));
+    const col = (...names) => header.findIndex(h => names.includes(h));
+    const idx = {
+        category: col("category"), name: col("name", "dish", "dishname"), desc: col("description", "desc"),
+        price: col("fullprice", "price"), half: col("halfprice", "half"), veg: col("veg", "vegnonveg", "type"),
+        jain: col("jain"), spicy: col("spicy"), best: col("bestseller"), chef: col("chefsspecial", "chefspecial"),
+        must: col("musttry"), pairs: col("pairswith"), prep: col("preptime"), image: col("image", "imageurl"),
+        avail: col("available", "instock")
+    };
+    if (idx.name < 0 || idx.category < 0 || idx.price < 0) {
+        toast("CSV needs at least these columns: Category, Name, FullPrice", true);
+        return;
+    }
+    const get = (r, k) => (idx[k] >= 0 ? String(r[idx[k]] ?? "").trim().replace(/^'([=+\-@])/, "$1") : "");
+    if (rows.length - 1 > 500) { toast("Too many rows (max 500 per import).", true); return; }
+
+    const byKey = new Map(MENU.map(m => [(m.Category + "|" + m.Name).toLowerCase(), m]));
+    const jobMap = new Map();
+    const problems = [];
+
+    rows.slice(1).forEach((r, n) => {
+        const line = n + 2;
+        const name = get(r, "name"), category = get(r, "category");
+        const price = Number(get(r, "price")), half = Number(get(r, "half") || 0);
+        if (!name || !category) { problems.push(`Row ${line}: name and category are required`); return; }
+        if (name.length > 120) { problems.push(`Row ${line} (${name.slice(0, 20)}...): name exceeds 120 chars`); return; }
+        if (category.length > 60) { problems.push(`Row ${line} (${name}): category exceeds 60 chars`); return; }
+        if (!Number.isFinite(price) || !(price > 0) || price > 1000000) { problems.push(`Row ${line} (${name}): invalid price`); return; }
+        if (!Number.isFinite(half) || half < 0 || (half > 0 && half >= price)) { problems.push(`Row ${line} (${name}): half price must be below the full price`); return; }
+        let image = get(r, "image");
+        if (image && !safeUrl(image)) { image = ""; problems.push(`Row ${line} (${name}): image ignored (needs https://)`); }
+
+        const key = (category + "|" + name).toLowerCase();
+        const existing = byKey.get(key);
+        const prevJob = jobMap.get(key);
+        if (prevJob) problems.push(`Row ${line} (${name}): duplicate in CSV merged`);
+
+        jobMap.set(key, {
+            isNew: !existing,
+            payload: {
+                ID: existing ? existing.ID : (prevJob ? prevJob.payload.ID : randomID("DISH")),
+                Name: name, Category: category, OriginalPrice: price, Price: price, HalfPrice: half,
+                Veg: parseBool(get(r, "veg"), true), Jain: parseBool(get(r, "jain"), false),
+                Spicy: parseBool(get(r, "spicy"), false), Bestseller: parseBool(get(r, "best"), false),
+                ChefsSpecial: parseBool(get(r, "chef"), false), MustTry: parseBool(get(r, "must"), false),
+                PairsWith: get(r, "pairs"), PrepTime: get(r, "prep"), Image: image, Description: get(r, "desc"),
+                Available: idx.avail >= 0 ? parseBool(get(r, "avail"), true) : (existing ? existing.Available : true)
+            }
+        });
+    });
+
+    const jobs = [...jobMap.values()];
+    if (jobs.length === 0) { toast(problems[0] || "No valid rows found.", true); return; }
+    const nNew = jobs.filter(j => j.isNew).length;
+    if (!confirm(`Import ${jobs.length} dish(es) in one fast batch?\n\n• ${nNew} new\n• ${jobs.length - nNew} will update existing dishes (offers are kept)\n• ${problems.length} row(s) with warnings/skipped`)) return;
+
+    showToast(`Importing ${jobs.length} dish(es)...`);
+    const res = await api("bulkSaveMenuItems", { items: jobs.map(j => j.payload) });
+    if (!res || !res.success) {
+        if (!(res && res.authExpired)) toast((res && res.message) || "Bulk import failed", true);
+        return;
+    }
+
+    await loadMenu();
+    const done = Number(res.done || 0);
+    const failed = Number(res.failed || 0);
+    const firstErr = res.firstError || "";
+    toast(`Imported ${done} dish(es)` + (failed ? `, ${failed} failed (${firstErr})` : "") + (problems.length ? `, ${problems.length} warning(s)` : ""), failed > 0);
+    if (problems.length) {
+        alert("Some rows were skipped or adjusted:\n\n" + problems.slice(0, 10).join("\n") + (problems.length > 10 ? `\n...and ${problems.length - 10} more` : ""));
+    }
+}
+
+/* ---------------- QR standee ---------------- */
+function menuLinkFor(table) {
+    let url = new URL(`index.html?r=${encodeURIComponent(CONFIG.TENANT.SLUG)}`, window.location.href).href;
+    if (table) url += `&t=${encodeURIComponent(table)}`;
+    return url;
+}
+
+const cleanTable = v => String(v || "").replace(/[^A-Za-z0-9 _-]/g, "").trim().slice(0, 12);
+
+function qrImgFor(url, size) {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=0&data=${encodeURIComponent(url)}`;
+}
+
+function renderQrStandee() {
+    const table = cleanTable($("qrTable") ? $("qrTable").value : "");
+    const menuUrl = menuLinkFor(table);
+    $("standeeCard").innerHTML = `
+        <div style="font-size:12px;font-weight:800;letter-spacing:1.5px;color:#b45309;margin-bottom:6px;">SCAN FOR LIVE DIGITAL MENU</div>
+        <h2>${escapeHTML(SETTINGS.Name)}</h2>
+        <p>${escapeHTML(SETTINGS.Tagline || "Fresh Food & Great Vibes")}</p>
+        ${table ? `<div style="display:inline-block;margin-top:10px;background:#05070f;color:#c5a880;font-weight:800;padding:6px 16px;border-radius:99px;">TABLE ${escapeHTML(table)}</div>` : ""}
+        <div class="standeeQrBox">
+            <img src="${qrImgFor(menuUrl, 240)}" width="210" height="210" alt="Menu QR Code" onerror="this.outerHTML='<div style=&quot;width:210px;padding:40px 10px;font-size:12px;color:#b91c1c;&quot;>QR image could not load. Check your internet connection.</div>'">
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;">
+            🔥 Live Offers • ⭐ Bestsellers • 📝 Shortlist & Split Bill
+        </div>
+        ${SETTINGS.WifiName ? `
+            <div style="background:#f1f5f9;padding:10px;border-radius:12px;font-size:12px;color:#334155;margin-top:8px;">
+                📶 <b>Free Wi-Fi:</b> ${escapeHTML(SETTINGS.WifiName)} &nbsp;|&nbsp; <b>Pass:</b> ${escapeHTML(SETTINGS.WifiPassword || "Ask Server")}
+            </div>
+        ` : ""}
+        <div style="font-size:10px;color:#94a3b8;margin-top:14px;">Powered by Digiconvo Smart QR Menu</div>
+    `;
+}
+
+function copyMenuLink() {
+    const url = menuLinkFor(cleanTable($("qrTable").value));
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => toast("Menu link copied"), () => toast(url));
+    } else toast(url);
+}
+
+async function printTableSheet(btn) {
+    const rawN = Math.floor(Number($("qrCount").value));
+    if (!Number.isFinite(rawN) || rawN < 1) {
+        toast("Enter between 1 and 60 tables.", true);
+        return;
+    }
+    const n = Math.min(60, rawN);
+    await withBusy(btn, async () => {
+        toast(`Loading ${n} table QR codes...`);
+        const sheet = $("tableSheet");
+        sheet.innerHTML = Array.from({ length: n }, (_, i) => {
+            const t = String(i + 1);
+            return `<div class="sheetCard">
+                <div style="font-size:11px;font-weight:800;letter-spacing:1.2px;color:#b45309;">SCAN FOR MENU</div>
+                <div style="font-weight:800;font-size:16px;margin:4px 0;">${escapeHTML(SETTINGS.Name)}</div>
+                <img src="${qrImgFor(menuLinkFor(t), 200)}" width="170" height="170" alt="QR for table ${t}">
+                <div style="display:inline-block;margin-top:8px;background:#05070f;color:#c5a880;font-weight:800;padding:5px 14px;border-radius:99px;">TABLE ${t}</div>
+            </div>`;
+        }).join("");
+
+        const imgs = [...sheet.querySelectorAll("img")];
+        const waitImgs = Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })));
+        await Promise.race([waitImgs, new Promise(r => setTimeout(r, 8000))]);
+
+        clearTimeout(window._sheetTimer);
+        document.body.classList.add("printSheet");
+        const endSheetMode = () => {
+            clearTimeout(window._sheetTimer);
+            window.removeEventListener("afterprint", endSheetMode);
+            window.removeEventListener("focus", onFocusEnd);
+            document.body.classList.remove("printSheet");
+            sheet.innerHTML = "";
+        };
+        const onFocusEnd = () => setTimeout(endSheetMode, 300);
+        window.addEventListener("afterprint", endSheetMode, { once: true });
+        window.addEventListener("focus", onFocusEnd, { once: true });
+        window._sheetTimer = setTimeout(endSheetMode, 120000);
+        window.print();
+    });
+}
+
+/* ---------------- settings ---------------- */
+function renderSettings() {
+    const tzOptions = [
+        "Asia/Kolkata", "Asia/Dubai", "Asia/Singapore", "Asia/Kathmandu",
+        "Asia/Dhaka", "Europe/London", "America/New_York"
+    ];
+    const currentTz = SETTINGS.Timezone || "Asia/Kolkata";
+    if (!tzOptions.includes(currentTz)) tzOptions.unshift(currentTz);
+
+    $("settingsPage").innerHTML = `
+        <div class="sectionHeader">
+            <h2>Restaurant Branding, Theme & Marketing</h2>
+            <button class="primaryButton" onclick="saveAllSettings(this)">Save Changes</button>
+        </div>
+        <div class="settingsGrid">
+            <div class="settingCard">
+                <h3>Branding & Live Banner</h3>
+                <label for="sName">Restaurant Name</label><input id="sName" maxlength="80" value="${escapeHTML(SETTINGS.Name || "")}">
+                <label for="sTagline">Tagline</label><input id="sTagline" maxlength="120" value="${escapeHTML(SETTINGS.Tagline || "")}">
+                <label for="sAnnounce">📢 Top Live Announcement / Today's Special Banner</label>
+                <input id="sAnnounce" maxlength="200" placeholder="e.g. 🎉 Unlimited Veg Thali @ ₹199 (12 PM - 3 PM)" value="${escapeHTML(SETTINGS.Announcement || "")}">
+                <label for="sTheme">🎨 Menu Color Theme Preset</label>
+                <select id="sTheme">
+                    <option value="gold" ${SETTINGS.ThemeColor === "gold" ? "selected" : ""}>✨ Royal Gold & Obsidian</option>
+                    <option value="emerald" ${SETTINGS.ThemeColor === "emerald" ? "selected" : ""}>🌿 Pure Veg Emerald Green</option>
+                    <option value="crimson" ${SETTINGS.ThemeColor === "crimson" ? "selected" : ""}>🔥 Cafe Terracotta Orange</option>
+                    <option value="royal" ${SETTINGS.ThemeColor === "royal" ? "selected" : ""}>🌊 Midnight Ocean Blue</option>
+                    <option value="plum" ${SETTINGS.ThemeColor === "plum" ? "selected" : ""}>🍷 Velvet Lounge Plum</option>
+                </select>
+                <label for="sLogo">Logo Image URL (https://...)</label><input id="sLogo" type="url" value="${escapeHTML(SETTINGS.Logo || "")}">
+                <label for="sArea">Locality / Area (${escapeHTML(SETTINGS.City || "City")})</label><input id="sArea" maxlength="80" placeholder="e.g. Vijay Nagar" value="${escapeHTML(SETTINGS.Area || "")}">
+                <label for="sAddress">Full Address</label><textarea id="sAddress" rows="2" maxlength="300">${escapeHTML(SETTINGS.Address || "")}</textarea>
+            </div>
+            <div class="settingCard">
+                <h3>Growth, Wi-Fi & Reviews</h3>
+                <label for="sPhone">Phone Number</label><input id="sPhone" maxlength="20" inputmode="tel" value="${escapeHTML(SETTINGS.Phone || "")}">
+                <label for="sWA">Customer WhatsApp Number (10-digit Indian numbers get +91 automatically)</label>
+                <input id="sWA" inputmode="tel" value="${escapeHTML(SETTINGS.WhatsApp || "")}">
+                <label for="sReview">Google Review Link (opened when a guest taps any star)</label>
+                <input id="sReview" type="url" value="${escapeHTML(SETTINGS.ReviewLink || "")}">
+                <label for="sInsta">Instagram Profile Link</label>
+                <input id="sInsta" type="url" value="${escapeHTML(SETTINGS.Instagram || "")}">
+                <label for="sWifiName">Guest Wi-Fi Name (SSID)</label>
+                <input id="sWifiName" maxlength="64" value="${escapeHTML(SETTINGS.WifiName || "")}">
+                <label for="sWifiPass">Guest Wi-Fi Password</label>
+                <input id="sWifiPass" maxlength="64" value="${escapeHTML(SETTINGS.WifiPassword || "")}">
+            </div>
+            <div class="settingCard">
+                <h3>Menu Rules, Timezone & Security</h3>
+                <label for="sCur">Currency Symbol</label><input id="sCur" maxlength="4" value="${escapeHTML(SETTINGS.Currency || "₹")}">
+                <label for="sGst">Estimated GST % (For Customer Shortlist Estimator)</label>
+                <input type="number" id="sGst" min="0" max="100" step="any" value="${SETTINGS.GST ?? 5}">
+                <label for="sTz">Restaurant Timezone (for Happy Hour & Offers)</label>
+                <select id="sTz">
+                    ${tzOptions.map(tz => `<option value="${escapeHTML(tz)}" ${currentTz === tz ? "selected" : ""}>${escapeHTML(tz)}</option>`).join("")}
+                </select>
+                <label for="sHappy">Happy Hour Master Switch</label>
+                <select id="sHappy">
+                    <option value="TRUE" ${String(SETTINGS.HappyHourEnabled).toUpperCase() !== "FALSE" ? "selected" : ""}>ENABLED (Active)</option>
+                    <option value="FALSE" ${String(SETTINGS.HappyHourEnabled).toUpperCase() === "FALSE" ? "selected" : ""}>DISABLED</option>
+                </select>
+                <label for="sNewPin">Change Admin PIN (stored encrypted - leave blank to keep current)</label>
+                <input type="password" id="sNewPin" placeholder="Enter new PIN (4-12 characters)" maxlength="12" autocomplete="new-password">
+                <div class="hint">Changing the PIN signs out every other device.</div>
+            </div>
+        </div>
+    `;
+}
+
+async function saveAllSettings(btn) {
+    const payload = {
+        Name: $("sName").value.trim(),
+        Tagline: $("sTagline").value.trim(),
+        Announcement: $("sAnnounce").value.trim(),
+        ThemeColor: $("sTheme").value,
+        Area: $("sArea").value.trim(),
+        Timezone: $("sTz").value,
+        Phone: $("sPhone").value.trim(),
+        Logo: $("sLogo").value.trim(),
+        Address: $("sAddress").value.trim(),
+        WhatsApp: $("sWA").value.trim(),
+        ReviewLink: $("sReview").value.trim(),
+        Instagram: $("sInsta").value.trim(),
+        WifiName: $("sWifiName").value.trim(),
+        WifiPassword: $("sWifiPass").value.trim(),
+        Currency: $("sCur").value.trim() || "₹",
+        GST: Number($("sGst").value || 0),
+        HappyHourEnabled: $("sHappy").value,
+        NewAdminPIN: $("sNewPin").value.trim()
+    };
+    if (!payload.Name) { toast("Restaurant name can't be empty.", true); return; }
+    for (const [k, label] of [["Logo", "Logo URL"], ["ReviewLink", "Review link"], ["Instagram", "Instagram link"]]) {
+        if (payload[k] && !safeUrl(payload[k])) { toast(`${label} must start with https://`, true); return; }
+    }
+    if (!(payload.GST >= 0 && payload.GST <= 100)) { toast("GST must be between 0 and 100.", true); return; }
+    if (payload.NewAdminPIN && !/^.{4,12}$/.test(payload.NewAdminPIN)) { toast("PIN must be 4-12 characters.", true); return; }
+    if (payload.NewAdminPIN && payload.NewAdminPIN.startsWith("dcs_")) { toast("PIN cannot start with dcs_", true); return; }
+    await withBusy(btn, async () => {
+        const res = await api("saveSettings", payload);
+        if (res && res.success) {
+            toast("Settings Saved!");
+            await refreshSettings();
+            checkSubscriptionBanner();
+            await loadMenu();
+            renderSettings();
+            $("sidebarRestName").innerText = SETTINGS.Name;
+            renderQrStandee();
+        } else if (!(res && res.authExpired)) toast((res && res.message) || "Unable to save", true);
+    });
+}
+</script>
+</body>
+</html>
